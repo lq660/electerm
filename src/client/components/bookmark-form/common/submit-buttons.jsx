@@ -7,36 +7,32 @@ import { Button, Form } from 'antd'
 import { tailFormItemLayout } from '../../../common/form-layout'
 
 const FormItem = Form.Item
-const e = window.translate
 
 export default function SubmitButtons ({
   onSave,
   onSaveAndCreateNew,
   onConnect,
-  onTestConnection,
-  onSaveAndConnect
+  onTestConnection
 }) {
   return (
     <FormItem {...tailFormItemLayout}>
-      <p>
-        <Button type='primary' htmlType='submit' className='mg1r mg1b'>
-          {e('saveAndConnect')}
+      <div className='cn-submit-actions'>
+        <Button type='primary' htmlType='submit'>
+          保存并连接
         </Button>
-        <Button type='primary' className='mg1r mg1b' onClick={onSaveAndCreateNew}>
-          {e('saveAndCreateNew')}
+        <Button onClick={onSave}>
+          仅保存
         </Button>
-        <Button type='dashed' className='mg1r mg1b' onClick={onSave}>
-          {e('save')}
+        <Button onClick={onSaveAndCreateNew}>
+          保存并继续新建
         </Button>
-      </p>
-      <p>
-        <Button type='dashed' onClick={onConnect} className='mg1r mg1b'>
-          {e('connect')}
+        <Button onClick={onTestConnection}>
+          测试连接
         </Button>
-        <Button type='dashed' onClick={onTestConnection} className='mg1r mg1b'>
-          {e('testConnection')}
+        <Button onClick={onConnect}>
+          直接连接
         </Button>
-      </p>
+      </div>
     </FormItem>
   )
 }

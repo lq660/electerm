@@ -102,6 +102,9 @@ exports.patchAppImage = function patchAppImage () {
       "const { installDesktopFile } = require('./appimage-integration')"
     )
     code = code.replace(
+      'app.setName(packInfo.productName || packInfo.name)',
+      'app.setName(packInfo.productName || packInfo.name)\n  installDesktopFile()'
+    ).replace(
       'app.setName(packInfo.name)',
       'app.setName(packInfo.name)\n  installDesktopFile()'
     )

@@ -242,9 +242,10 @@ export class TransferClientBase {
     // Try to use last saved path
     const lastPath = this.storageKey ? getItem(this.storageKey) : null
 
+    const title = window.translate('chooseFolderToSaveFiles')
     const savePaths = await window.api.openDialog({
-      title: 'Choose a folder to save file(s)',
-      message: 'Choose a folder to save file(s)',
+      title,
+      message: title,
       defaultPath: lastPath || undefined,
       properties: [
         'openDirectory',

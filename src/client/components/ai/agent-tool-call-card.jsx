@@ -50,9 +50,14 @@ export default function AgentToolCallCard ({ toolCall }) {
 
   function renderTag () {
     const color = status === 'running' ? 'processing' : status === 'completed' ? 'success' : 'error'
+    const statusText = {
+      running: '执行中',
+      completed: '已完成',
+      error: '失败'
+    }[status] || status
     return (
       <Tag color={color} className='agent-tool-tag'>
-        {status}
+        {statusText}
       </Tag>
     )
   }
@@ -73,13 +78,13 @@ export default function AgentToolCallCard ({ toolCall }) {
         <div className='agent-tool-detail'>
           {args && Object.keys(args).length > 0 && (
             <div className='agent-tool-args'>
-              <div className='agent-tool-label'>Arguments:</div>
+              <div className='agent-tool-label'>参数：</div>
               <pre className='agent-tool-pre'>{JSON.stringify(args, null, 2)}</pre>
             </div>
           )}
           {result && (
             <div className='agent-tool-result'>
-              <div className='agent-tool-label'>Result:</div>
+              <div className='agent-tool-label'>结果：</div>
               <pre className='agent-tool-pre'>{formatResult(result)}</pre>
             </div>
           )}

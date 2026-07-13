@@ -5,7 +5,7 @@
 import { useState, useRef } from 'react'
 import { quickCommandLabelsLsKey, pinnedQuickCommandBarKey } from '../../common/constants'
 import { sortBy } from 'lodash-es'
-import { Button, Input, Select, Space, Flex } from 'antd'
+import { Button, Input, Select, Space, Flex, Tooltip } from 'antd'
 import * as ls from '../../common/safe-local-storage'
 import CmdItem from './quick-command-item'
 import {
@@ -173,7 +173,7 @@ export default function QuickCommandsFooterBox (props) {
   const sprops = {
     value: label,
     onChange: handleChangeLabels,
-    placeholder: e('labels'),
+    placeholder: '按标签筛选',
     className: 'qm-label-select',
     allowClear: true
   }
@@ -196,11 +196,17 @@ export default function QuickCommandsFooterBox (props) {
       {...qmProps}
     >
       <div className='pd2'>
+        <div className='cn-qm-header'>
+          <div>
+            <strong>快捷命令</strong>
+            <span>常用脚本、巡检命令和批量执行入口</span>
+          </div>
+        </div>
         <Flex justify='space-between' className='qm-flex'>
           <Input.Search
             value={keyword}
             onChange={handleChange}
-            placeholder=''
+            placeholder='搜索命令名称'
             className='qm-search-input'
           />
           <Flex gap='small'>
@@ -215,23 +221,29 @@ export default function QuickCommandsFooterBox (props) {
               type={type}
               onClick={window.store.handleSortByFrequency}
             >
-              {e('sortByFrequency')}
+              按频率排序
             </Button>
           </Flex>
           <Space.Compact className='mg2l'>
-            <Button
-              onClick={handleTogglePinned}
-              icon={<PushpinOutlined />}
-              type={tp}
-            />
-            <Button
-              onClick={window.store.handleOpenQuickCommandsSetting}
-              icon={<EditOutlined />}
-            />
-            <Button
-              onClick={handleClose}
-              icon={<CloseCircleOutlined />}
-            />
+            <Tooltip title='固定快捷命令栏'>
+              <Button
+                onClick={handleTogglePinned}
+                icon={<PushpinOutlined />}
+                type={tp}
+              />
+            </Tooltip>
+            <Tooltip title='管理快捷命令'>
+              <Button
+                onClick={window.store.handleOpenQuickCommandsSetting}
+                icon={<EditOutlined />}
+              />
+            </Tooltip>
+            <Tooltip title='关闭'>
+              <Button
+                onClick={handleClose}
+                icon={<CloseCircleOutlined />}
+              />
+            </Tooltip>
           </Space.Compact>
         </Flex>
         <div className={cls}>

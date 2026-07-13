@@ -14,6 +14,7 @@ import { debounce } from 'lodash-es'
 import { refs } from '../components/common/ref'
 import templates from '../components/quick-commands/templates'
 import { readClipboardAsync } from '../common/clipboard'
+import { resolveTerminalId } from '../common/active-terminal'
 
 // Function to parse templates in command string
 async function parseTemplates (cmd) {
@@ -58,7 +59,7 @@ export default Store => {
   }
 
   Store.prototype.runQuickCommand = function (cmd, inputOnly = false, tabId) {
-    const tid = tabId || window.store.activeTabId
+    const tid = resolveTerminalId(tabId || window.store.activeTabId)
     refs.get('term-' + tid)?.runQuickCommand(cmd, inputOnly)
   }
 

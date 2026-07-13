@@ -3,6 +3,7 @@ import { refsStatic, refs } from '../common/ref'
 import { statusMap } from '../../common/constants'
 import { autoRun } from 'manate'
 import uid from '../../common/uid'
+import { resolveTerminalId } from '../../common/active-terminal'
 
 const STATIC_KEY = 'batch-op-runner'
 
@@ -237,7 +238,7 @@ export default class BatchOpRunner extends Component {
       throw new Error('No active tab. Please connect first.')
     }
 
-    const term = refs.get('term-' + tabId)
+    const term = refs.get('term-' + resolveTerminalId(tabId))
     if (!term || !term.term) {
       throw new Error('Terminal not found')
     }

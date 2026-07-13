@@ -37,6 +37,7 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
   // Create two database instances
   const mainDb = new DatabaseSync(mainDbPath)
   const dataDb = new DatabaseSync(dataDbPath)
+  const lockedRows = new Map()
 
   const tables = [
     'bookmarks',
@@ -98,21 +99,39 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
   function toDoc (row, dbName) {
     if (!row) return null
     const shouldDec = dec && shouldEncForRow(dbName, row._id)
-    const raw = shouldDec ? decryptData(row.data) : row.data
-    let r = {}
     try {
-      r = JSON.parse(raw || '{}')
+      const raw = shouldDec ? decryptData(row.data) : row.data
+      const result = JSON.parse(raw || '{}')
+      lockedRows.delete(`${dbName}:${row._id}`)
+      return {
+        ...result,
+        _id: row._id
+      }
     } catch (e) {
+      if (shouldDec && row.data.startsWith(ENC_PREFIX)) {
+        // 2026-07-12 coder(lq): Keep unreadable ciphertext untouched and lock its ID so a default/empty object cannot overwrite it later.
+        lockedRows.set(`${dbName}:${row._id}`, {
+          dbName,
+          id: row._id,
+          code: e.code || 'DECRYPT_FAILED'
+        })
+        console.error(`Encrypted row ${dbName}:${row._id} is locked:`, e.message)
+        return null
+      }
       console.error(`Error parsing JSON for row ${row._id}:`, e.message)
+      return null
     }
-    return {
-      ...r,
-      _id: row._id
+  }
+
+  function assertRowWritable (dbName, id) {
+    if (lockedRows.has(`${dbName}:${id}`)) {
+      throw new Error('该记录仍是锁定的旧版加密数据，请先恢复后再修改')
     }
   }
 
   function toRow (doc, dbName) {
     const _id = doc._id || doc.id || uid()
+    assertRowWritable(dbName, _id)
     const copy = { ...doc }
     delete copy._id
     delete copy.id
@@ -158,6 +177,7 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
       return Array.isArray(args[0]) ? inserted : inserted[0]
     } else if (op === 'remove') {
       const query = args[0] || {}
+      assertRowWritable(dbName, query._id)
       const sql = `DELETE FROM \`${dbName}\` WHERE _id = ?`
       const params = [query._id]
       const stmt = db.prepare(sql)
@@ -187,9 +207,24 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
     }
   }
 
+  function getStorageStatus () {
+    const tables = {}
+    let needsKeychain = false
+    for (const row of lockedRows.values()) {
+      tables[row.dbName] = (tables[row.dbName] || 0) + 1
+      needsKeychain = needsKeychain || row.code === 'SAFE_STORAGE_UNAVAILABLE'
+    }
+    return {
+      lockedCount: lockedRows.size,
+      tables,
+      needsKeychain
+    }
+  }
+
   return {
     dbAction,
-    tables
+    tables,
+    getStorageStatus
   }
 }
 

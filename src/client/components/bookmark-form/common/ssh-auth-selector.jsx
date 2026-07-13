@@ -41,7 +41,7 @@ export default function renderAuth (props) {
       key={key}
       className='mg1b'
       rules={[{
-        max: 13000, message: '13000 chars max'
+        max: 13000, message: '最多 13000 个字符'
       }]}
     >
       <FormItem noStyle name={key}>
@@ -86,7 +86,7 @@ export default function renderAuth (props) {
         name={formItemName}
         hasFeedback
         rules={[{
-          max: 1024, message: '1024 chars max'
+          max: 1024, message: '最多 1024 个字符'
         }]}
       >
         <AutoComplete
@@ -132,7 +132,7 @@ export default function renderAuth (props) {
       name='passphrase'
       hasFeedback
       rules={[{
-        max: 1024, message: '1024 chars max'
+        max: 1024, message: '最多 1024 个字符'
       }]}
     >
       <Password

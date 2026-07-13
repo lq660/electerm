@@ -7,7 +7,6 @@ import {
   paneMap
 } from './constants'
 
-const e = window.translate
 window.et.tabCount = 0
 
 export function updateCount (tab) {
@@ -20,7 +19,8 @@ export default (removeTitle) => {
     id: uid(),
     status: 'processing',
     pane: paneMap.terminal,
-    title: e('newTerminal')
+    // 2026-07-04 coder(lq): Use a Chinese default title so local terminal tabs are understandable without relying on upstream translations.
+    title: '本地终端'
   }
   if (removeTitle) {
     delete res.title

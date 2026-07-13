@@ -43,7 +43,7 @@ export default auto(function TabSettings (props) {
 
   function handleConfigSubmit (values) {
     window.store.updateConfig(values)
-    message.success('Saved')
+    message.success('已保存')
   }
 
   const aiConfProps = {
@@ -95,7 +95,13 @@ export default auto(function TabSettings (props) {
     <div
       className='setting-tabs-setting'
     >
-      <SettingCol>
+      <SettingCol
+        className='cn-settings-template'
+        leftTitle='设置分类'
+        leftDesc='按功能域切换配置'
+        rightTitle='参数配置'
+        rightDesc='保存后立即应用到工作台'
+      >
         <List
           {...listProps}
         />

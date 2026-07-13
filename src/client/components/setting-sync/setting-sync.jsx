@@ -3,6 +3,7 @@
  */
 
 import { Tabs, Spin } from 'antd'
+import { useEffect } from 'react'
 import SyncForm from './setting-sync-form'
 import { syncTypes, syncDataMaps } from '../../common/constants'
 import DataTransport from './data-import'
@@ -24,6 +25,11 @@ export default auto(function SyncSettingEntry (props) {
   const {
     store
   } = window
+  useEffect(() => {
+    if (store.syncType === syncTypes.cloud) {
+      store.syncType = syncTypes.webdav
+    }
+  }, [store])
   function renderForm () {
     const syncProps = {
       ...syncSetting,
@@ -60,10 +66,17 @@ export default auto(function SyncSettingEntry (props) {
     )
   }
 
-  const syncItems = Object.keys(syncTypes).map(type => {
+  const syncItems = Object.keys(syncTypes).filter(type => type !== syncTypes.cloud).map(type => {
+    const syncTypeLabels = {
+      github: 'GitHub',
+      gitee: 'Gitee',
+      custom: '自建服务',
+      cloud: '云端服务',
+      webdav: 'WebDAV'
+    }
     return {
       key: type,
-      label: type,
+      label: syncTypeLabels[type] || type,
       children: null
     }
   })
@@ -80,18 +93,40 @@ export default auto(function SyncSettingEntry (props) {
     config
   }
   return (
-    <div className='pd2l'>
-      <DataTransport {...dataImportProps} />
+    <div className='form-wrap pd1y pd2x cn-setting-detail-form cn-sync-setting-form'>
+      <div className='cn-setting-card-title'>
+        <strong>配置同步</strong>
+        <span>备份和恢复连接、主题、命令等个人配置</span>
+      </div>
+      <section className='cn-settings-section cn-sync-import-section'>
+        <div className='cn-settings-section-title'>
+          <strong>本地导入导出</strong>
+          <span>用于迁移、备份或从旧环境恢复配置</span>
+        </div>
+        <DataTransport {...dataImportProps} />
+      </section>
       <Spin spinning={store.isSyncingSetting}>
-        <Tabs
-          activeKey={store.syncType}
-          onChange={handleChange}
-          items={syncItems}
-        />
-        {
-          renderForm()
-        }
-        <DataSelect {...dataSelectProps} />
+        <section className='cn-settings-section cn-sync-provider-section'>
+          <div className='cn-settings-section-title'>
+            <strong>同步方式</strong>
+            <span>选择一个远端存储，并填写对应认证信息</span>
+          </div>
+          <Tabs
+            activeKey={store.syncType}
+            onChange={handleChange}
+            items={syncItems}
+          />
+          {
+            renderForm()
+          }
+        </section>
+        <section className='cn-settings-section cn-sync-data-section'>
+          <div className='cn-settings-section-title'>
+            <strong>同步范围</strong>
+            <span>按需选择要参与同步的数据类型</span>
+          </div>
+          <DataSelect {...dataSelectProps} />
+        </section>
       </Spin>
     </div>
   )

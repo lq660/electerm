@@ -112,9 +112,11 @@ export default Store => {
 
   Store.prototype.openTerminalThemes = function () {
     const { store } = window
+    // 2026-07-13 coder(lq): Only toggle an already visible theme panel; a remembered tab must not swallow the next open action.
     if (
       store.settingTab === settingMap.terminalThemes &&
-      store.settingItem.id === ''
+      store.settingItem.id === '' &&
+      store.showModal === modals.setting
     ) {
       return store.hideSettingModal()
     }

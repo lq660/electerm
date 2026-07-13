@@ -1,19 +1,11 @@
 import {
   GithubOutlined,
-  GlobalOutlined,
-  HighlightOutlined,
-  HomeOutlined,
-  UserOutlined,
   InfoCircleOutlined,
-  AlignLeftOutlined,
-  BugOutlined,
-  HeartOutlined,
-  CloudOutlined
+  HighlightOutlined
 } from '@ant-design/icons'
 import { Tabs, Button } from 'antd'
 import Modal from '../common/modal'
 import Link from '../common/external-link'
-import LogoElem from '../common/logo-elem'
 import RunningTime from './app-running-time'
 import { auto } from 'manate/react'
 import { useState } from 'react'
@@ -26,6 +18,7 @@ import { checkSkipSrc } from '../../common/check-skip-src'
 import './info.styl'
 
 const e = window.translate
+const productName = '云舵工作台'
 
 export default auto(function InfoModal (props) {
   const [runtimeEnv, setRuntimeEnv] = useState(null)
@@ -122,25 +115,11 @@ export default auto(function InfoModal (props) {
   }
   const {
     name,
-    // description,
     devDependencies,
     dependencies,
-    langugeRepo,
-    author: {
-      name: authorName,
-      email,
-      url: authorUrl
-    },
-    homepage,
-    bugs: {
-      url: bugReportLink
-    },
-    releases: releaseLink,
-    sponsorLink,
-    knownIssuesLink
+    releases: releaseLink
   } = packInfo
-  const electermOnline = 'https://cloud.electerm.org'
-  const link = releaseLink.replace('/releases', '')
+  const upstreamProjectLink = releaseLink.replace('/releases', '')
   const { versions } = window.pre
   const deps = {
     ...devDependencies,
@@ -152,7 +131,7 @@ export default auto(function InfoModal (props) {
   }
   const title = (
     <div className='custom-modal-close-confirm-title font16'>
-      <InfoCircleOutlined className='font20 mg1r' /> {e('about')} {name}
+      <InfoCircleOutlined className='font20 mg1r' /> {e('about')} {productName}
     </div>
   )
   const attrs = {
@@ -168,69 +147,49 @@ export default auto(function InfoModal (props) {
       key: infoTabs.info,
       label: e('about'),
       children: (
-        <>
-          <LogoElem />
-          <p className='mg2b'>{e('desc')}</p>
+        <div className='cn-about-page'>
+          <div className='cn-about-hero'>
+            <div className='cn-about-logo'>云</div>
+            <div>
+              <strong>{productName}</strong>
+              <span>统一管理本地终端、SSH 会话、SFTP 文件和传输任务</span>
+              <em>基于 electerm 开源项目定制，当前内核版本 {name} {packInfo.version}</em>
+            </div>
+          </div>
           <RunningTime />
-          <p className='mg1b'>
-            <HomeOutlined /> <b>{e('homepage')}/{e('download')} ➾</b>
-            <Link to={homepage} className='mg1l'>
-              {homepage}
-            </Link>
-          </p>
-          <p className='mg1b'>
-            <UserOutlined /> <b className='mg1r'>{e('author')} ➾</b>
-            <Link to={authorUrl} className='mg1l'>
-              {authorName} ({email})
-            </Link>
-          </p>
-          <p className='mg1b'>
-            <GithubOutlined /> <b className='mg1r'>github ➾</b>
-            <Link to={link} className='mg1l'>
-              {link}
-            </Link>
-          </p>
-          <p className='mg1b'>
-            <GlobalOutlined /> <b className='mg1r'>{e('language')} repo ➾</b>
-            <Link to={langugeRepo} className='mg1l'>
-              {langugeRepo}
-            </Link>
-          </p>
-          <p className='mg1b'>
-            <BugOutlined /> <b className='mg1r'>{e('bugReport')} ➾</b>
-            <Link to={bugReportLink} className='mg1l'>
-              {bugReportLink}
-            </Link>
-          </p>
-          <p className='mg1b'>
-            <HighlightOutlined /> <b className='mg1r'>{e('changeLog')} ➾</b>
-            <Link to={releaseLink} className='mg1l'>
-              {releaseLink}
-            </Link>
-          </p>
-          <p className='mg1b'>
-            <AlignLeftOutlined /> <b className='mg1r'>{e('knownIssues')} ➾</b>
-            <Link to={knownIssuesLink} className='mg1l'>
-              {knownIssuesLink}
-            </Link>
-          </p>
-          <p className='mg1b'>
-            <CloudOutlined /> <b className='mg1r'>electerm Online ➾</b>
-            <Link to={electermOnline} className='mg1l'>
-              {electermOnline}
-            </Link>
-          </p>
-          <p className='mg1b'>
-            <HeartOutlined /> <b className='mg1r'>{e('sponsorElecterm')} ➾</b>
-            <Link to={sponsorLink} className='mg1l'>
-              {sponsorLink}
-            </Link>
-          </p>
-          <p className='mg1b'>
-            <InfoCircleOutlined /> <b className='mg1r'>{window.store.installSrc}</b>
-          </p>
+          {/* 2026-07-04 coder(lq): Keep upstream attribution visible, but separate it from product-facing identity and support links. */}
+          <div className='cn-about-facts'>
+            <div>
+              <b>产品定位</b>
+              <span>本地终端、远程连接、文件管理和传输任务的一体化工作台</span>
+            </div>
+            <div>
+              <b>当前版本</b>
+              <span>{productName} {packInfo.version}</span>
+            </div>
+            <div>
+              <b>安装包</b>
+              <span>{window.store.installSrc || '开发预览'}</span>
+            </div>
+          </div>
+          <div className='cn-about-open-source'>
+            <h3>开源致谢</h3>
+            <p>本产品基于 electerm 开源项目定制，保留其终端、连接和文件传输等基础能力。</p>
+            <p>
+              <GithubOutlined /> <b className='mg1r'>上游项目</b>
+              <Link to={upstreamProjectLink} className='mg1l'>
+                {upstreamProjectLink}
+              </Link>
+            </p>
+            <p>
+              <HighlightOutlined /> <b className='mg1r'>上游更新日志</b>
+              <Link to={releaseLink} className='mg1l'>
+                {releaseLink}
+              </Link>
+            </p>
+          </div>
           {renderCheckUpdate()}
-        </>
+        </div>
       )
     },
     {

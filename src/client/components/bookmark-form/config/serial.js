@@ -5,6 +5,11 @@ import { createBaseInitValues, getTerminalBackgroundDefaults } from '../common/i
 import { commonFields } from './common-fields.js'
 
 const e = window.translate
+const renderOptionLabel = d => d === 'none' ? e('none') : d
+const renderLineEndingOption = d => ({
+  value: d.value,
+  label: d.value === 'none' ? e('none') : d.label
+})
 
 const serialConfig = {
   key: 'serial',
@@ -35,11 +40,11 @@ const serialConfig = {
       fields: [
         commonFields.category,
         commonFields.colorTitle,
-        { type: 'serialPathSelector', name: 'path', label: 'path', rules: [{ required: true, message: 'path required' }] },
+        { type: 'serialPathSelector', name: 'path', label: () => e('path'), rules: [{ required: true, message: '请输入串口路径' }] },
         {
           type: 'autocomplete',
           name: 'baudRate',
-          label: 'baudRate',
+          label: () => e('baudRate'),
           options: commonBaudRates.map(d => ({ value: d.toString(), label: d.toString() })),
           normalize: (value) => {
             if (value === '' || value == null) {
@@ -49,19 +54,19 @@ const serialConfig = {
             return isNaN(numValue) ? undefined : numValue
           }
         },
-        { type: 'select', name: 'dataBits', label: 'dataBits', options: commonDataBits.map(d => ({ value: d, label: d })) },
-        { type: 'select', name: 'stopBits', label: 'stopBits', options: commonStopBits.map(d => ({ value: d, label: d })) },
-        { type: 'select', name: 'parity', label: 'parity', options: commonParities.map(d => ({ value: d, label: d })) },
-        { type: 'switch', name: 'lock', label: 'lock', valuePropName: 'checked' },
-        { type: 'switch', name: 'rtscts', label: 'rtscts', valuePropName: 'checked' },
-        { type: 'switch', name: 'xon', label: 'xon', valuePropName: 'checked' },
-        { type: 'switch', name: 'xoff', label: 'xoff', valuePropName: 'checked' },
-        { type: 'switch', name: 'xany', label: 'xany', valuePropName: 'checked' },
-        { type: 'select', name: 'txLineEnding', label: 'txLineEnding', options: commonTxLineEndings.map(d => ({ value: d.value, label: d.label })) },
-        { type: 'select', name: 'rxLineEnding', label: 'rxLineEnding', options: commonRxLineEndings.map(d => ({ value: d.value, label: d.label })) },
+        { type: 'select', name: 'dataBits', label: () => e('dataBits'), options: commonDataBits.map(d => ({ value: d, label: d })) },
+        { type: 'select', name: 'stopBits', label: () => e('stopBits'), options: commonStopBits.map(d => ({ value: d, label: d })) },
+        { type: 'select', name: 'parity', label: () => e('parity'), options: commonParities.map(d => ({ value: d, label: renderOptionLabel(d) })) },
+        { type: 'switch', name: 'lock', label: () => e('lock'), valuePropName: 'checked' },
+        { type: 'switch', name: 'rtscts', label: () => e('rtscts'), valuePropName: 'checked' },
+        { type: 'switch', name: 'xon', label: () => e('xon'), valuePropName: 'checked' },
+        { type: 'switch', name: 'xoff', label: () => e('xoff'), valuePropName: 'checked' },
+        { type: 'switch', name: 'xany', label: () => e('xany'), valuePropName: 'checked' },
+        { type: 'select', name: 'txLineEnding', label: () => e('txLineEnding'), options: commonTxLineEndings.map(renderLineEndingOption) },
+        { type: 'select', name: 'rxLineEnding', label: () => e('rxLineEnding'), options: commonRxLineEndings.map(renderLineEndingOption) },
         commonFields.runScripts,
         commonFields.description,
-        { type: 'input', name: 'type', label: 'type', hidden: true }
+        { type: 'input', name: 'type', label: () => e('type'), hidden: true }
       ]
     },
     {

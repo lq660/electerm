@@ -2,7 +2,7 @@ import { Component } from 'react'
 import { refs } from '../common/ref'
 import generate from '../../common/uid'
 import runIdle from '../../common/run-idle'
-import { Spin } from 'antd'
+import { Dropdown, Spin } from 'antd'
 import { notification } from '../common/notification'
 import Modal from '../common/modal'
 import clone from '../../common/to-simple-obj'
@@ -29,7 +29,7 @@ import ListTable from './list-table-ui'
 import deepCopy from 'json-deep-copy'
 import isValidPath from '../../common/is-valid-path'
 import normalizeRemotePath from '../../common/normalize-remote-path'
-import { LoadingOutlined, ReloadOutlined } from '@ant-design/icons'
+import { DownOutlined, LoadingOutlined, ReloadOutlined, SyncOutlined } from '@ant-design/icons'
 import * as owner from './owner-list'
 import AddressBar from './address-bar'
 import getProxy from '../../common/get-proxy'
@@ -49,6 +49,7 @@ export default class Sftp extends Component {
       onEditFile: false,
       ...this.defaultState(),
       loadingSftp: false,
+      syncingTerminalCwd: false,
       inited: false,
       ready: false
     }
@@ -60,6 +61,9 @@ export default class Sftp extends Component {
     refs.add(this.id, this)
     if (this.props.isFtp) {
       this.initFtpData()
+    }
+    if (this.props.autoInit) {
+      this.initData(this.props.terminalId, this.props.sftpPort)
     }
     this.timer = setTimeout(() => {
       this.setState({
@@ -95,8 +99,22 @@ export default class Sftp extends Component {
     }
     if (
       this.props.sftpPathFollowSsh &&
-      prevProps.cwd !== this.props.cwd
+      this.props.cwd &&
+      (
+        prevProps.cwd !== this.props.cwd ||
+        !prevProps.sftpPathFollowSsh
+      )
     ) {
+      // 2026-07-06 coder(lq): When a file tab becomes active follow mode may turn on while cwd is unchanged, so sync once immediately.
+      this.updateCwd(this.props.cwd)
+    }
+    if (
+      this.props.sftpPathFollowSsh &&
+      this.props.cwd &&
+      !prevState.inited &&
+      this.state.inited
+    ) {
+      // 2026-07-06 coder(lq): If cwd arrives before the file pane finishes loading, replay it once after initialization.
       this.updateCwd(this.props.cwd)
     }
   }
@@ -262,8 +280,9 @@ export default class Sftp extends Component {
     const { currentBatchTabId, pane, sshSftpSplitView } = this.props
     const { tab } = this.props
     const isFtp = tab.type === terminalFtpType
+    const activeTabId = this.props.activeOwnerTabId || tab.id
 
-    return (currentBatchTabId === tab.id && (pane === paneMap.fileManager || sshSftpSplitView)) || isFtp
+    return (currentBatchTabId === activeTabId && (pane === paneMap.fileManager || sshSftpSplitView)) || isFtp
   }
 
   updateKeyword = (keyword, type) => {
@@ -323,6 +342,63 @@ export default class Sftp extends Component {
       [n]: cwd,
       [nt]: cwd
     }, () => this[`${type}List`]())
+  }
+
+  handleSyncTerminalCwd = async (terminalId) => {
+    if (!terminalId || !this.props.onSyncTerminalCwd || this.state.syncingTerminalCwd) {
+      return
+    }
+    this.setState({ syncingTerminalCwd: true })
+    const cwd = await this.props.onSyncTerminalCwd(terminalId).catch(() => '')
+    if (cwd) {
+      this.updateCwd(cwd)
+    } else {
+      notification.warning({
+        message: '暂时无法读取该终端的当前目录'
+      })
+    }
+    this.setState({ syncingTerminalCwd: false })
+  }
+
+  renderTerminalCwdSync () {
+    const options = this.props.terminalSyncOptions || []
+    if (!options.length || !this.props.onSyncTerminalCwd) {
+      return null
+    }
+    const { syncingTerminalCwd } = this.state
+    const content = (
+      <button
+        type='button'
+        className='sftp-terminal-cwd-sync'
+        disabled={syncingTerminalCwd}
+      >
+        <SyncOutlined spin={syncingTerminalCwd} />
+        <span>同步终端目录</span>
+        {options.length > 1 ? <DownOutlined className='sftp-terminal-cwd-sync-arrow' /> : null}
+      </button>
+    )
+    if (options.length === 1) {
+      return (
+        <span onClick={() => this.handleSyncTerminalCwd(options[0].id)}>
+          {content}
+        </span>
+      )
+    }
+    const items = options.map(option => ({
+      key: option.id,
+      label: option.title
+    }))
+    return (
+      <Dropdown
+        trigger={['click']}
+        menu={{
+          items,
+          onClick: ({ key }) => this.handleSyncTerminalCwd(key)
+        }}
+      >
+        {content}
+      </Dropdown>
+    )
   }
 
   getPwd = async (username) => {
@@ -1030,7 +1106,7 @@ export default class Sftp extends Component {
     }
     if (!isValidPath(np)) {
       return notification.warning({
-        message: 'path not valid'
+        message: e('pathNotValid')
       })
     }
     this.setState({
@@ -1206,18 +1282,21 @@ export default class Sftp extends Component {
   renderSftpPanelTitle (type, username, host) {
     if (type === typeMap.remote) {
       return (
-        <div className='sftp-panel-title pd1t pd1b pd1x alignright'>
+        <div className='sftp-panel-title pd1t pd1b pd1x'>
+          <span className='sftp-panel-title-main'>{e('remote')}</span>
+          <span className='sftp-panel-title-sub'>{username}@{host}</span>
           <ReloadOutlined
-            className='mg1r pointer'
+            className='mg1r pointer sftp-panel-title-action'
             onClick={this.handleReloadRemoteSftp}
           />
-          {e('remote')}: {username}@{host}
         </div>
       )
     }
     return (
       <div className='sftp-panel-title pd1t pd1b pd1x'>
-        {e('local')}
+        <span className='sftp-panel-title-main'>{e('local')}</span>
+        <span className='sftp-panel-title-sub'>本机文件系统</span>
+        {this.renderTerminalCwdSync()}
       </div>
     )
   }

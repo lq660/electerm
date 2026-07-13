@@ -1,21 +1,828 @@
 .no-sessions
-  background var(--main)
-  text-align center
-  padding 50px 0
+  background #f4f7fb
   position absolute
   top 36px
   left 0
   right 0
   bottom 0
   z-index 11
-.no-session-history
-  position absolute
-  top 320px
-  bottom 80px
-  left 0
-  right 0
-  .sidebar-panel-history
-    overflow-y auto
-    .pd2x
-      width 400px
-      margin 0 auto
+  overflow hidden
+
+.cn-workbench-home
+  color #1f2937
+  text-align left
+
+.cn-workbench-shell
+  display grid
+  // 2026-07-04 coder(lq): Keep the original workbench feel while using the main panel as the primary resource entry.
+  grid-template-columns minmax(560px, 1fr) 280px
+  gap 12px
+  height 100%
+  padding 12px
+  box-sizing border-box
+
+.cn-workbench-sidebar,
+.cn-workbench-main,
+.cn-history-panel
+  min-width 0
+  border 1px solid #dbe3ef
+  background #fff
+  border-radius 8px
+  box-shadow 0 8px 24px rgba(15, 23, 42, .06)
+
+.cn-workbench-sidebar
+  display none
+  flex-direction column
+  padding 14px
+  overflow hidden
+
+.cn-brand-block
+  display flex
+  align-items center
+  gap 10px
+  margin-bottom 12px
+
+.cn-brand-mark
+  width 36px
+  height 36px
+  border-radius 8px
+  background #1769e0
+  color #fff
+  display flex
+  align-items center
+  justify-content center
+  font-size 18px
+  font-weight 700
+
+.cn-brand-name
+  font-size 16px
+  font-weight 700
+  line-height 20px
+
+.cn-brand-sub
+  color #667085
+  font-size 12px
+  margin-top 2px
+
+.cn-area-label,
+.cn-page-kicker
+  display flex
+  align-items center
+  justify-content space-between
+  gap 8px
+  min-height 26px
+  margin-bottom 10px
+  padding 0 2px
+  color #667085
+  font-size 12px
+
+  span
+    font-weight 700
+    color #344054
+
+  b
+    height 22px
+    line-height 20px
+    padding 0 8px
+    border 1px solid #d8e0ea
+    border-radius 6px
+    background #f5f8ff
+    color #1677ff
+    font-size 11px
+    font-weight 700
+
+.cn-page-kicker
+  justify-content flex-start
+  margin 0 0 4px
+  padding 0
+
+  b
+    background #eef5ff
+    border-color #b8d8ff
+
+.cn-server-search
+  margin-bottom 14px
+  .ant-input-affix-wrapper
+    border-radius 6px
+
+.cn-workbench-home
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-group-addon,
+  .ant-select-selector
+    background #fff !important
+    border-color #d8e0ea !important
+    color #1f2937 !important
+    box-shadow none !important
+
+  .ant-input::placeholder
+    color #98a2b3 !important
+
+  .ant-input-prefix,
+  .ant-input-suffix
+    color #667085 !important
+
+  .ant-input-affix-wrapper-focused,
+  .ant-input:focus
+    border-color #1677ff !important
+    box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+
+  .cn-server-search
+    height 34px
+
+    .ant-input
+      height 32px
+      background transparent !important
+
+  .cn-shell-tag
+    min-width 44px
+    height 22px
+    line-height 20px
+    margin 0
+    text-align center
+    border 1px solid #b8d8ff !important
+    border-radius 5px
+    background #eef5ff !important
+    color #1677ff !important
+    font-weight 700
+
+.cn-nav-section
+  border-top 1px solid #edf1f7
+  padding-top 12px
+  margin-top 4px
+
+.remote-section
+  overflow-y auto
+  padding-right 2px
+
+.cn-section-title,
+.cn-group-name
+  display flex
+  align-items center
+  justify-content space-between
+  color #667085
+  font-size 12px
+  margin-bottom 8px
+
+.cn-section-title
+  font-weight 600
+
+.cn-section-title.with-action button
+  width 22px
+  height 22px
+  border 1px solid #dbe3ef
+  background #fff
+  color #1769e0
+  border-radius 6px
+  cursor pointer
+
+.cn-nav-item,
+.cn-server-row,
+.cn-command-panel button
+  width 100%
+  border 0
+  background transparent
+  color #1f2937
+  cursor pointer
+  font-size 12px
+
+.cn-nav-item
+  height 34px
+  display grid
+  grid-template-columns 18px 1fr auto
+  align-items center
+  gap 8px
+  padding 0 8px
+  border-radius 6px
+  text-align left
+  margin-bottom 4px
+
+.cn-nav-item.active,
+.cn-nav-item:hover,
+.cn-server-row:hover
+  background #eef5ff
+  color #1769e0
+
+.cn-nav-item:disabled
+  color #98a2b3
+  cursor not-allowed
+
+.cn-server-group
+  margin-bottom 12px
+
+.cn-group-name
+  padding 0 4px
+
+.cn-server-row
+  display grid
+  grid-template-columns 10px 1fr auto
+  align-items center
+  gap 8px
+  padding 8px
+  border-radius 6px
+  text-align left
+
+.cn-server-row span
+  min-width 0
+  display flex
+  flex-direction column
+
+.cn-server-row strong,
+.cn-file-row strong
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+  font-weight 600
+
+.cn-server-row em,
+.cn-file-row em
+  color #667085
+  font-style normal
+  font-size 11px
+  margin-top 2px
+
+.cn-server-row b
+  color #667085
+  font-weight 500
+  font-size 11px
+
+.cn-status-dot
+  width 8px
+  height 8px
+  border-radius 50%
+  background #98a2b3
+
+.cn-status-dot.online
+  background #12b76a
+
+.cn-status-dot.warning
+  background #f79009
+
+.cn-status-dot.offline
+  background #98a2b3
+
+.cn-workbench-main
+  display flex
+  flex-direction column
+  gap 14px
+  padding 16px
+  overflow auto
+
+.cn-workbench-toolbar
+  display flex
+  align-items center
+  justify-content space-between
+  gap 14px
+  min-height 74px
+  padding 2px 0 10px
+  border-bottom 1px solid #edf1f7
+
+.cn-workbench-toolbar h2
+  margin 0
+  font-size 20px
+  line-height 26px
+  font-weight 700
+
+.cn-workbench-toolbar p
+  margin 5px 0 0
+  color #667085
+  font-size 12px
+
+.cn-toolbar-actions
+  display flex
+  flex-wrap wrap
+  justify-content flex-end
+  gap 8px
+
+.cn-toolbar-actions .ant-btn
+  border-radius 6px
+  height 34px
+  border-color #d8e0ea !important
+  background #fff !important
+  color #344054 !important
+  font-weight 600
+
+  &:hover
+    border-color #1677ff !important
+    background #f5f8ff !important
+    color #1677ff !important
+
+.cn-toolbar-actions .ant-btn-primary
+  border-color #1677ff !important
+  background #1677ff !important
+  color #fff !important
+
+  &:hover
+    border-color #0958d9 !important
+    background #0958d9 !important
+    color #fff !important
+
+.cn-quick-connect,
+.cn-saved-connections,
+.cn-workbench-empty-info,
+.cn-panel,
+.cn-transfer-drawer
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fbfdff
+
+.cn-quick-connect
+  display flex
+  align-items center
+  gap 12px
+  padding 12px
+  min-height 52px
+  background #f8fbff
+
+.cn-quick-connect .quick-connect
+  flex 1
+  min-width 0
+
+.cn-workbench-status-grid
+  display grid
+  grid-template-columns minmax(0, 1fr) minmax(0, 1fr)
+  gap 12px
+
+.cn-workbench-empty-info
+  display grid
+  grid-template-columns 38px minmax(0, 1fr)
+  align-items center
+  gap 10px
+  padding 12px
+  min-height 86px
+
+  > .anticon
+    width 38px
+    height 38px
+    display flex
+    align-items center
+    justify-content center
+    border-radius 8px
+    background #e6f1ff
+    color #1677ff
+    font-size 18px
+
+  div
+    min-width 0
+    display flex
+    flex-direction column
+    gap 4px
+
+  strong
+    color #1f2937
+    font-size 13px
+
+  span
+    color #667085
+    font-size 12px
+    line-height 1.5
+
+.cn-saved-connections
+  padding 14px
+  display flex
+  flex-direction column
+  gap 12px
+  min-height 176px
+
+.cn-saved-connections-head
+  display flex
+  align-items center
+  justify-content space-between
+  gap 12px
+
+  p
+    margin 4px 0 0
+    color #667085
+    font-size 12px
+
+  .ant-btn
+    height 32px
+    border-radius 6px
+    font-weight 600
+
+.cn-saved-connection-grid
+  display grid
+  grid-template-columns repeat(2, minmax(0, 1fr))
+  gap 8px
+
+.cn-connection-card
+  min-height 58px
+  display grid
+  grid-template-columns 10px minmax(0, 1fr) auto auto
+  align-items center
+  gap 8px
+  padding 9px 10px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+  cursor pointer
+  outline none
+
+  &:hover,
+  &:focus
+    border-color #1677ff
+    background #f5f8ff
+    box-shadow 0 0 0 2px rgba(22, 119, 255, .06)
+
+.cn-connection-card-main
+  min-width 0
+  display grid
+  grid-template-columns minmax(0, 1fr) auto
+  column-gap 8px
+  row-gap 2px
+  align-items center
+
+  strong,
+  em
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  strong
+    color #1f2937
+    font-size 13px
+    font-weight 700
+
+  em
+    grid-column 1 / 3
+    color #667085
+    font-style normal
+    font-size 12px
+
+  span
+    max-width 88px
+    height 20px
+    line-height 18px
+    padding 0 6px
+    border 1px solid #d8e0ea
+    border-radius 5px
+    background #f8fafc
+    color #667085
+    font-size 11px
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+.cn-connection-type.ant-tag
+  min-width 48px
+  margin 0
+  text-align center
+  border-color #b8d8ff !important
+  border-radius 5px
+  background #eef5ff !important
+  color #1677ff !important
+  font-size 11px
+  font-weight 700
+
+.cn-connection-open-btn.ant-btn
+  min-width 54px
+  height 28px
+  border-radius 6px
+  font-weight 700
+
+.cn-empty-connections
+  min-height 94px
+  display grid
+  grid-template-columns 38px minmax(0, 1fr)
+  align-items center
+  gap 12px
+  padding 14px
+  border 1px dashed #b8d8ff
+  border-radius 8px
+  background #f5f8ff
+
+  > .anticon
+    width 38px
+    height 38px
+    display flex
+    align-items center
+    justify-content center
+    border-radius 8px
+    background #e6f1ff
+    color #1677ff
+    font-size 18px
+
+  div
+    min-width 0
+    display flex
+    flex-direction column
+    gap 3px
+
+  strong
+    color #1f2937
+    font-size 13px
+
+  span
+    color #667085
+    font-size 12px
+    line-height 1.5
+
+  .ant-btn
+    border-radius 6px
+    font-weight 700
+
+.cn-quick-connect-bar
+  padding 0 !important
+  align-items center
+
+  .ant-btn
+    height 34px
+    border-color #d8e0ea !important
+    background #fff !important
+    color #344054 !important
+
+    &:hover
+      border-color #1677ff !important
+      background #f5f8ff !important
+      color #1677ff !important
+
+  .ant-btn:last-child
+    width 42px
+    border-color #1677ff !important
+    background #1677ff !important
+    color #fff !important
+
+    &:hover
+      border-color #0958d9 !important
+      background #0958d9 !important
+      color #fff !important
+
+  .cn-quick-connect-input
+    height 34px
+    background #fff !important
+    color #1f2937 !important
+    border-color #d8e0ea !important
+
+.cn-panel-title
+  display flex
+  align-items center
+  gap 7px
+  white-space nowrap
+  color #344054
+  font-weight 600
+  font-size 12px
+
+.cn-quick-connect .cn-panel-title
+  min-width 82px
+
+.cn-workbench-grid
+  min-height 0
+  display grid
+  grid-template-columns minmax(320px, 1.4fr) minmax(220px, .8fr)
+  grid-template-rows minmax(180px, 1fr) minmax(172px, .9fr)
+  gap 12px
+  flex 1
+
+.cn-panel
+  padding 12px
+  overflow hidden
+
+.cn-terminal-preview
+  display flex
+  flex-direction column
+
+.cn-terminal-screen
+  flex 1
+  margin-top 10px
+  border-radius 8px
+  background #101828
+  color #d0d5dd
+  padding 14px
+  overflow hidden
+  font-family 'Maple Mono', 'SFMono-Regular', Consolas, monospace
+  font-size 12px
+  line-height 1.65
+
+.cn-terminal-screen p
+  margin 0 0 4px
+  white-space nowrap
+
+.cn-terminal-screen .success
+  color #32d583
+
+.cn-monitor-panel
+  display flex
+  flex-direction column
+  gap 12px
+
+.cn-metric-list
+  display flex
+  flex-direction column
+  gap 12px
+  margin-top 12px
+
+.cn-metric-list span
+  display block
+  margin-bottom 3px
+  color #667085
+  font-size 12px
+
+.cn-network-row
+  display grid
+  grid-template-columns 1fr 1fr 1fr
+  gap 8px
+  color #667085
+  font-size 12px
+  padding-top 10px
+  border-top 1px solid #edf1f7
+
+.cn-network-row strong
+  color #1f2937
+  font-weight 600
+
+.cn-file-panel
+  grid-column span 1
+
+.cn-file-columns
+  display grid
+  grid-template-columns 1fr 1fr
+  gap 12px
+  margin-top 10px
+
+.cn-file-columns h3
+  margin 0 0 8px
+  color #667085
+  font-size 12px
+  font-weight 600
+
+.cn-file-row
+  display grid
+  grid-template-columns 18px 1fr
+  gap 8px
+  align-items center
+  min-width 0
+  padding 8px
+  border-radius 6px
+  background #fff
+  border 1px solid #edf1f7
+  margin-bottom 6px
+
+.cn-file-row span
+  min-width 0
+  display flex
+  flex-direction column
+
+.cn-command-panel
+  display flex
+  flex-direction column
+  gap 8px
+
+.cn-command-panel .cn-panel-title
+  margin-bottom 2px
+
+.cn-command-panel button
+  height 32px
+  border 1px solid #dbe3ef
+  border-radius 6px
+  background #fff
+  text-align left
+  padding 0 10px
+
+.cn-command-panel button:hover
+  border-color #1769e0
+  color #1769e0
+
+.cn-transfer-drawer
+  display grid
+  grid-template-columns 1fr
+  align-content center
+  gap 10px
+  padding 12px
+  min-height 86px
+
+.cn-transfer-drawer strong
+  display block
+  font-size 12px
+
+.cn-transfer-drawer span
+  color #667085
+  font-size 11px
+
+.cn-history-panel
+  display flex
+  flex-direction column
+  padding 14px
+  overflow hidden
+
+.cn-history-panel .cn-panel-title
+  margin-bottom 10px
+
+.cn-history-panel .sidebar-panel-history
+  position static !important
+  left auto !important
+  right auto !important
+  top auto !important
+  bottom auto !important
+  min-height 0
+  width 100%
+  overflow auto
+  flex 1
+
+.cn-history-panel .sidebar-panel-history .pd2x
+  padding-left 0
+  padding-right 0
+
+.cn-empty-history
+  flex 1
+  display flex
+  flex-direction column
+  align-items center
+  justify-content center
+  gap 8px
+  min-height 220px
+  padding 16px
+  border 1px dashed #d8e0ea
+  border-radius 8px
+  background #fbfdff
+  text-align center
+
+  > .anticon
+    width 36px
+    height 36px
+    display flex
+    align-items center
+    justify-content center
+    border-radius 8px
+    background #e6f1ff
+    color #1677ff
+    font-size 18px
+
+  strong
+    color #1f2937
+    font-size 13px
+
+  span
+    color #667085
+    font-size 12px
+
+@media (max-width: 1180px)
+  .cn-workbench-shell
+    grid-template-columns 1fr
+  .cn-history-panel
+    display none
+
+@media (max-width: 900px)
+  .cn-workbench-shell
+    grid-template-columns 1fr
+    overflow auto
+  .cn-workbench-sidebar
+    display none
+  .cn-workbench-grid
+    grid-template-columns 1fr
+    grid-template-rows auto
+  .cn-saved-connection-grid
+    grid-template-columns 1fr
+  .cn-workbench-status-grid
+    grid-template-columns 1fr
+  .cn-file-panel
+    grid-column auto
+  .cn-transfer-drawer
+    grid-template-columns 1fr
+
+// 2026-07-03 coder(lq): Final specificity layer for the home workbench because the global terminal theme uses #container selectors.
+#container .cn-workbench-home
+  .cn-server-search,
+  .cn-quick-connect-input,
+  .quick-connect-input
+    background #fff !important
+    border-color #d8e0ea !important
+    color #1f2937 !important
+
+  .cn-server-search .ant-input,
+  .cn-quick-connect-input.ant-input,
+  .quick-connect-input.ant-input
+    background #fff !important
+    color #1f2937 !important
+
+  .cn-server-search .ant-input::placeholder,
+  .cn-quick-connect-input::placeholder,
+  .quick-connect-input::placeholder
+    color #98a2b3 !important
+
+  .cn-toolbar-actions .ant-btn,
+  .cn-quick-connect-bar .ant-btn
+    border-color #d8e0ea !important
+    background #fff !important
+    color #344054 !important
+
+    &:hover
+      border-color #1677ff !important
+      background #f5f8ff !important
+      color #1677ff !important
+
+  .cn-toolbar-actions .ant-btn-primary,
+  .cn-quick-connect-bar .ant-btn:last-child,
+  .cn-saved-connections .ant-btn-primary
+    border-color #1677ff !important
+    background #1677ff !important
+    color #fff !important
+
+    &:hover
+      border-color #0958d9 !important
+      background #0958d9 !important
+      color #fff !important
+
+  .cn-shell-tag.ant-tag
+    border-color #b8d8ff !important
+    background #eef5ff !important
+    color #1677ff !important

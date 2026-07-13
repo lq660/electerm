@@ -80,3 +80,374 @@
       width auto
     .setting-row-right
       left auto
+
+// 2026-07-02 coder(lq): Final settings-dialog overrides live here because component styles load after the global workbench skin.
+.setting-wrap
+  .ant-select:not(.ant-select-customize-input) .ant-select-selector,
+  .ant-select-selector,
+  .ant-auto-complete .ant-input,
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-number
+    background #fff !important
+    border-color #cfd8e6 !important
+    color #1f2937 !important
+    box-shadow none !important
+    border-radius 6px !important
+
+  .ant-select-single .ant-select-selector,
+  .ant-select-multiple .ant-select-selector
+    min-height 34px !important
+    height auto !important
+
+  .ant-select-selection-item,
+  .ant-select-selection-placeholder,
+  .ant-select-selection-search-input,
+  .ant-input-number-input,
+  .ant-input-affix-wrapper .ant-input
+    background transparent !important
+    color #1f2937 !important
+
+  .ant-select-selection-placeholder,
+  .ant-input::placeholder,
+  textarea.ant-input::placeholder
+    color #98a2b3 !important
+
+  .ant-select-arrow,
+  .ant-input-prefix,
+  .ant-input-suffix
+    color #667085 !important
+
+  .ant-select-focused .ant-select-selector,
+  .ant-input:focus,
+  .ant-input-affix-wrapper-focused,
+  .ant-input-number-focused
+    border-color #1677ff !important
+    box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+
+  .ant-space-compact
+    .ant-select-selector,
+    .ant-input,
+    .ant-input-affix-wrapper
+      background #fff !important
+      color #1f2937 !important
+      border-color #cfd8e6 !important
+
+  .ant-select-disabled .ant-select-selector,
+  .ant-input-disabled,
+  .ant-input[disabled]
+    background #f8fafc !important
+    color #98a2b3 !important
+
+.ant-select-dropdown
+  background #fff !important
+  border 1px solid #d8e0ea !important
+  border-radius 8px !important
+  box-shadow 0 12px 30px rgba(15, 23, 42, .14) !important
+
+  .ant-select-item
+    color #344054 !important
+    border-radius 6px !important
+
+  .ant-select-item-option-active,
+  .ant-select-item-option-selected
+    background #eef5ff !important
+    color #1677ff !important
+
+// 2026-07-03 coder(lq): Shared section layout for all deep settings pages so drilled-in tabs keep the same China ops workbench structure.
+.setting-wrap
+  .cn-setting-status
+    padding-right 34px
+
+  .close-setting-wrap
+    top 26px !important
+    right 20px !important
+
+  .form-wrap,
+  .cn-setting-detail-form
+    background #fff !important
+    color #1f2937 !important
+
+  .cn-setting-card-title
+    display flex
+    align-items center
+    justify-content space-between
+    gap 12px
+    min-height 48px
+    margin -18px -22px 18px !important
+    padding 14px 22px !important
+    border-bottom 1px solid #d8e0ea
+    background #fbfdff
+
+    strong
+      display flex
+      align-items center
+      color #1f2937
+      font-size 15px
+      line-height 22px
+      font-weight 700
+
+    span
+      color #667085
+      font-size 12px
+      line-height 18px
+      font-weight 400
+
+  .cn-settings-section
+    margin 0 0 16px
+    border 1px solid #d8e0ea
+    border-radius 8px
+    background #fff
+    overflow hidden
+
+  .cn-settings-section-title
+    display flex
+    align-items center
+    justify-content space-between
+    gap 12px
+    min-height 42px
+    padding 11px 16px
+    border-bottom 1px solid #edf1f7
+    background #fbfdff
+
+    strong
+      color #1f2937
+      font-size 14px
+      line-height 20px
+      font-weight 700
+
+    span
+      color #667085
+      font-size 12px
+      line-height 18px
+
+  .cn-settings-section-body
+    padding 16px 16px 4px
+
+  .cn-settings-field
+    display grid
+    grid-template-columns 160px minmax(0, 1fr)
+    gap 16px
+    align-items flex-start
+    padding 0 0 14px
+
+  .cn-settings-label
+    padding-top 7px
+
+    strong
+      display block
+      color #344054
+      font-size 13px
+      line-height 18px
+      font-weight 600
+
+    span
+      display block
+      margin-top 2px
+      color #667085
+      font-size 12px
+      line-height 18px
+
+  .cn-settings-control
+    min-width 0
+
+    > .pd2b,
+    > .pd1b
+      padding-bottom 0 !important
+
+  .cn-settings-toggle-grid
+    display grid
+    grid-template-columns repeat(auto-fill, minmax(220px, 1fr))
+    gap 10px 12px
+    padding 0 0 12px
+
+  .cn-settings-toggle
+    display flex
+    align-items center
+    min-height 34px
+    padding 0 !important
+
+    .ant-switch
+      min-width 176px
+      height 28px
+      background #cfd8e6 !important
+
+      &.ant-switch-checked
+        background #1677ff !important
+
+    .ant-switch-inner
+      color #fff !important
+      font-size 12px
+      font-weight 500
+
+  .cn-settings-inline-head
+    display flex
+    align-items center
+    gap 8px
+    min-height 34px
+    margin 0 0 12px
+    color #344054
+
+    strong
+      color #344054
+      font-size 13px
+      font-weight 700
+
+  .cn-settings-proxy
+    padding 0 0 8px
+
+  .cn-settings-action-row
+    margin 0 !important
+    padding 14px 0 0
+    border-top 1px solid #edf1f7
+
+    .ant-form-item-control-input-content > div,
+    > div,
+    p
+      display flex
+      align-items center
+      flex-wrap wrap
+      gap 8px
+      margin 0 !important
+
+    .ant-btn
+      margin 0 !important
+
+  .cn-settings-help-line,
+  .cn-sync-status-line
+    color #667085
+    font-size 12px
+    line-height 18px
+
+  .cn-sync-provider-form
+    border none !important
+    box-shadow none !important
+    max-width 860px
+    margin 0 auto
+    padding 4px 16px 14px !important
+
+    .ant-form-item
+      display block !important
+      max-width none
+      margin-bottom 14px !important
+
+    .ant-form-item-row
+      display grid !important
+      grid-template-columns 150px minmax(0, 1fr) !important
+      gap 14px !important
+      align-items start !important
+      width 100% !important
+
+    .ant-form-item-label
+      grid-column 1 !important
+      width 150px !important
+      text-align right !important
+      padding 0 !important
+
+      > label
+        height 34px
+        line-height 34px
+
+    .ant-form-item-control
+      grid-column 2 !important
+      width 100% !important
+      min-width 0 !important
+
+    .cn-settings-action-row
+      max-width none
+      padding-top 12px
+
+      .ant-form-item-row
+        display block !important
+
+      .ant-form-item-control
+        width 100% !important
+
+  .cn-sync-action-buttons
+    display flex
+    flex-wrap wrap
+    gap 8px
+    margin-bottom 10px
+
+    .ant-btn
+      margin 0 !important
+
+  .cn-theme-toolbar
+    display flex
+    justify-content flex-start
+    padding 0 0 4px
+
+    .mg1b
+      margin-bottom 0 !important
+
+  .cn-theme-editor-section
+    .ant-form-item-label
+      display none
+
+  // 2026-07-13 coder(lq): Keep theme actions visible while the long color-variable list scrolls.
+  .cn-theme-action-row
+    position sticky
+    top 0
+    z-index 20
+    margin 0 0 16px !important
+    padding 10px 12px !important
+    border 1px solid #cfe0f6
+    border-radius 8px
+    background #f7faff !important
+    box-shadow 0 6px 16px rgba(15, 23, 42, .06)
+
+    .ant-form-item-control-input-content > div
+      justify-content flex-end
+
+  .cn-theme-save-hint
+    flex 1 1 260px
+    color #667085
+    font-size 12px
+    line-height 18px
+
+  .cn-qm-command-list
+    margin-bottom 0 !important
+
+  .cn-qm-command-row
+    display grid !important
+    grid-template-columns 24px auto 110px minmax(260px, 1fr) 34px
+    gap 8px
+    align-items center
+    padding 10px
+    border 1px solid #edf1f7
+    border-radius 8px
+    background #fbfdff
+
+    .drag
+      color #98a2b3
+
+    .ant-space-compact-item
+      border-radius 6px !important
+
+    .qm-input
+      min-height 34px !important
+
+    .ant-btn
+      width 32px
+      padding 0 !important
+
+  .cn-shortcuts-form
+    .ant-table-wrapper
+      border 1px solid #d8e0ea
+      border-radius 8px
+      overflow hidden
+
+@media (max-width: 900px)
+  .setting-wrap
+    .cn-settings-field
+      grid-template-columns 1fr
+      gap 6px
+
+    .cn-settings-label
+      padding-top 0
+
+    .cn-qm-command-row
+      grid-template-columns 24px 90px minmax(160px, 1fr) 34px
+
+      .ant-space-addon:first-of-type
+        display none

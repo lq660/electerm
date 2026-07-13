@@ -206,7 +206,8 @@ class Tab extends Component {
     }
   }
 
-  handleReloadTab = async () => {
+  handleReloadTab = async (e) => {
+    e && e.stopPropagation()
     window.store.reloadTab(this.props.tab.id)
   }
 
@@ -220,7 +221,8 @@ class Tab extends Component {
     e && e.dataTransfer && e.dataTransfer.clearData()
   }
 
-  handleClose = () => {
+  handleClose = (e) => {
+    e && e.stopPropagation()
     window.store.delTab(this.props.tab.id)
   }
 
@@ -412,8 +414,8 @@ class Tab extends Component {
 
   renderCloseIcon () {
     return (
-      <span className='tab-close pointer'>
-        <CloseOutlined onClick={this.handleClose} />
+      <span className='tab-close pointer' onClick={this.handleClose}>
+        <CloseOutlined />
       </span>
     )
   }
@@ -478,6 +480,7 @@ class Tab extends Component {
           draggable
           ref={this.tabRef}
           data-id={id}
+          onClick={this.handleClick}
           {...pick(this, [
             'onDrag',
             'onDragEnter',
@@ -492,7 +495,6 @@ class Tab extends Component {
           <Dropdown {...dropdownProps}>
             <div
               className='tab-title elli'
-              onClick={this.handleClick}
               onDoubleClick={this.handleDup}
             >
               {

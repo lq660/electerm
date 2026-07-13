@@ -42,7 +42,7 @@ export const commonFields = {
     type: 'colorTitle',
     name: 'host',
     label: () => e('host'),
-    rules: [{ required: true, message: e('host') + ' required' }]
+    rules: [{ required: true, message: '请输入主机地址' }]
   },
 
   colorTitle: {
@@ -87,7 +87,7 @@ export const commonFields = {
     type: 'number',
     name: 'port',
     label: () => e('port'),
-    rules: [{ required: true, message: 'port required' }]
+    rules: [{ required: true, message: '请输入端口' }]
   },
 
   description: {
@@ -105,7 +105,7 @@ export const commonFields = {
   type: {
     type: 'input',
     name: 'type',
-    label: 'type',
+    label: () => e('type'),
     hidden: true
   },
 
@@ -113,7 +113,7 @@ export const commonFields = {
   setEnv: {
     type: 'input',
     name: 'setEnv',
-    label: 'SetEnv',
+    label: () => e('setEnv'),
     props: { placeholder: 'SEC=xxx BEC=xxxx' }
   },
 
@@ -147,7 +147,7 @@ export const commonFields = {
     type: 'autocomplete',
     name: 'envLang',
     label: 'ENV:LANG',
-    rules: [{ max: 130, message: '130 chars max' }],
+    rules: [{ max: 130, message: '最多 130 个字符' }],
     options: commonLangOptions,
     props: { placeholder: 'en_US.UTF-8' }
   },
@@ -156,7 +156,7 @@ export const commonFields = {
     type: 'autocomplete',
     name: 'term',
     label: () => e('terminalType'),
-    rules: [{ required: true, message: 'terminal type required' }],
+    rules: [{ required: true, message: '请输入终端类型' }],
     options: terminalTypes.map(t => ({ label: t, value: t }))
   },
 
@@ -171,7 +171,7 @@ export const commonFields = {
     type: 'input',
     name: 'fontFamily',
     label: () => e('fontFamily'),
-    rules: [{ max: 130, message: '130 chars max' }],
+    rules: [{ max: 130, message: '最多 130 个字符' }],
     props: { placeholder: defaultSettings.fontFamily }
   },
 
@@ -213,7 +213,7 @@ export const commonFields = {
   x11: {
     type: 'x11',
     name: '__x11__',
-    label: 'x11'
+    label: () => e('x11')
   },
 
   // Dynamic sections
@@ -261,6 +261,14 @@ export const terminalSettings = [
 ]
 
 export const sshSettings = [
+  commonFields.description,
+  commonFields.setEnv,
+  commonFields.startDirectoryLocal,
+  commonFields.startDirectory,
+  commonFields.interactiveValues,
+  commonFields.envLang,
+  commonFields.encode,
+  commonFields.runScripts,
   {
     type: 'switch',
     name: 'enableSsh',
@@ -310,14 +318,6 @@ export const sshAuthFields = [
     name: 'useSshAgent'
   },
   { type: 'switch', name: 'isMFA', label: () => e('MFA/OTP'), valuePropName: 'checked' },
-  commonFields.runScripts,
-  commonFields.description,
-  commonFields.setEnv,
-  commonFields.startDirectoryLocal,
-  commonFields.startDirectory,
-  commonFields.interactiveValues,
-  commonFields.envLang,
-  commonFields.encode,
   commonFields.type
 ]
 

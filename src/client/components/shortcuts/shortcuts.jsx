@@ -49,7 +49,7 @@ export default class Shortcuts extends PureComponent {
   render () {
     const columns = [
       {
-        title: 'NO.',
+        title: '序号',
         dataIndex: 'index',
         key: 'index',
         render: (index) => {
@@ -104,18 +104,28 @@ export default class Shortcuts extends PureComponent {
       rowKey: 'id'
     }
     return (
-      <>
-        <Table
-          {...props}
-        />
-        <div className='pd1y'>
+      <div className='form-wrap pd1y pd2x cn-setting-detail-form cn-shortcuts-form'>
+        <div className='cn-setting-card-title'>
+          <strong>{e('settingShortcuts')}</strong>
+          <span>统一管理常用操作快捷键</span>
+        </div>
+        <section className='cn-settings-section'>
+          <div className='cn-settings-section-title'>
+            <strong>快捷键列表</strong>
+            <span>点击右侧快捷键可重新录入组合键</span>
+          </div>
+          <Table
+            {...props}
+          />
+        </section>
+        <div className='pd1y cn-settings-action-row'>
           <Button
             onClick={this.handleResetAll}
           >
             {e('resetAllToDefault')}
           </Button>
         </div>
-      </>
+      </div>
     )
   }
 }

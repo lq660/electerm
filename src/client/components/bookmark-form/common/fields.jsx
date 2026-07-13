@@ -53,7 +53,11 @@ export function renderFormItem (item, formItemLayout, form, ctxProps, index) {
 
   // Render simple AntD controls directly inside Form.Item
   if (commonRenderTypes.has(type)) {
-    const cls = hidden ? 'hide' : undefined
+    const cls = [
+      hidden ? 'hide' : '',
+      `cn-field-${String(name).replace(/[^a-zA-Z0-9_-]/g, '-')}`,
+      `cn-field-type-${type}`
+    ].filter(Boolean).join(' ')
     let control = null
     switch (type) {
       case 'input':

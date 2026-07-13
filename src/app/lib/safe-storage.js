@@ -11,6 +11,15 @@
 
 const SAFE_PREFIX = 'v2:safe:'
 
+class SafeStorageError extends Error {
+  constructor (message, cause) {
+    super(message)
+    this.name = 'SafeStorageError'
+    this.code = 'SAFE_STORAGE_UNAVAILABLE'
+    this.cause = cause
+  }
+}
+
 let _ss = null
 
 function getSS () {
@@ -27,26 +36,28 @@ function getSS () {
 
 /**
  * Encrypt a string using the OS-level secure storage.
- * Returns the original string unchanged when safeStorage is unavailable.
+ * Throws when secure storage is unavailable so callers cannot persist plaintext accidentally.
  * @param {string} str
  * @returns {string}
  */
 exports.safeEncrypt = function (str) {
   if (typeof str !== 'string' || !str) return str
   const ss = getSS()
-  if (!ss) return str
+  if (!ss || !ss.isEncryptionAvailable()) {
+    throw new SafeStorageError('系统安全存储当前不可用')
+  }
   try {
     const buf = ss.encryptString(str)
     return SAFE_PREFIX + buf.toString('base64')
   } catch (e) {
     console.error('[safe-storage] encrypt error:', e.message)
-    return str
+    throw new SafeStorageError('无法写入系统安全存储', e)
   }
 }
 
 /**
  * Decrypt a string that was encrypted with safeEncrypt.
- * Returns the original string unchanged when it was not produced by safeEncrypt.
+ * Throws for prefixed ciphertext that cannot be unlocked.
  * @param {string} str
  * @returns {string}
  */
@@ -54,13 +65,17 @@ exports.safeDecrypt = function (str) {
   if (typeof str !== 'string' || !str) return str
   if (!str.startsWith(SAFE_PREFIX)) return str
   const ss = getSS()
-  if (!ss) return str
+  if (!ss || !ss.isEncryptionAvailable()) {
+    throw new SafeStorageError('系统安全存储当前不可用')
+  }
   try {
     const base64 = str.slice(SAFE_PREFIX.length)
     const buf = Buffer.from(base64, 'base64')
     return ss.decryptString(buf)
   } catch (e) {
     console.error('[safe-storage] decrypt error:', e.message)
-    return str
+    throw new SafeStorageError('无法解锁旧版加密数据', e)
   }
 }
+
+exports.SafeStorageError = SafeStorageError

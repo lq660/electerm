@@ -12,7 +12,6 @@ import { useRef } from 'react'
 
 const FormItem = Form.Item
 const FormList = Form.List
-const e = window.translate
 
 export default function renderQm (form) {
   const focused = useRef(0)
@@ -67,7 +66,7 @@ export default function renderQm (form) {
     return (
       <Space.Compact
         align='center'
-        className='width-100 mg2b'
+        className='width-100 mg2b cn-qm-command-row'
         key={field.key}
         draggable
         onDragStart={(e) => handleDragStart(e, i)}
@@ -78,7 +77,7 @@ export default function renderQm (form) {
       >
         <HolderOutlined className='mg1r drag' />
 
-        <Space.Addon>{e('delay')}</Space.Addon>
+        <Space.Addon>延迟</Space.Addon>
         <FormItem
           label=''
           name={[field.name, 'delay']}
@@ -103,7 +102,7 @@ export default function renderQm (form) {
         >
           <Input.TextArea
             autoSize={{ minRows: 1 }}
-            placeholder={e('quickCommand')}
+            placeholder='请输入命令内容'
             className='compact-input qm-input'
             onFocus={() => {
               focused.current = i
@@ -118,26 +117,26 @@ export default function renderQm (form) {
     )
   }
   const commonCmds = [
-    { cmd: 'ls', desc: 'List directory contents' },
-    { cmd: 'cd', desc: 'Change the current directory' },
-    { cmd: 'pwd', desc: 'Print the current working directory' },
-    { cmd: 'cp', desc: 'Copy files and directories' },
-    { cmd: 'mv', desc: 'Move/rename files and directories' },
-    { cmd: 'rm', desc: 'Remove files or directories' },
-    { cmd: 'mkdir', desc: 'Create new directories' },
-    { cmd: 'rmdir', desc: 'Remove empty directories' },
-    { cmd: 'touch', desc: 'Create empty files or update file timestamps' },
-    { cmd: 'chmod', desc: 'Change file modes or Access Control Lists' },
-    { cmd: 'chown', desc: 'Change file owner and group' },
-    { cmd: 'cat', desc: 'Concatenate and display file content' },
-    { cmd: 'echo', desc: 'Display message or variable value' },
-    { cmd: 'grep', desc: 'Search text using patterns' },
-    { cmd: 'find', desc: 'Search for files in a directory hierarchy' },
-    { cmd: 'df', desc: 'Report file system disk space usage' },
-    { cmd: 'du', desc: 'Estimate file space usage' },
-    { cmd: 'top', desc: 'Display Linux tasks' },
-    { cmd: 'ps', desc: 'Report a snapshot of current processes' },
-    { cmd: 'kill', desc: 'Send a signal to a process' }
+    { cmd: 'ls', desc: '列出目录内容' },
+    { cmd: 'cd', desc: '切换当前目录' },
+    { cmd: 'pwd', desc: '显示当前路径' },
+    { cmd: 'cp', desc: '复制文件或目录' },
+    { cmd: 'mv', desc: '移动或重命名文件' },
+    { cmd: 'rm', desc: '删除文件或目录' },
+    { cmd: 'mkdir', desc: '创建目录' },
+    { cmd: 'rmdir', desc: '删除空目录' },
+    { cmd: 'touch', desc: '创建空文件或更新时间戳' },
+    { cmd: 'chmod', desc: '修改文件权限' },
+    { cmd: 'chown', desc: '修改文件属主和属组' },
+    { cmd: 'cat', desc: '查看文件内容' },
+    { cmd: 'echo', desc: '输出文本或变量' },
+    { cmd: 'grep', desc: '按模式搜索文本' },
+    { cmd: 'find', desc: '查找文件' },
+    { cmd: 'df', desc: '查看文件系统空间' },
+    { cmd: 'du', desc: '统计文件空间占用' },
+    { cmd: 'top', desc: '查看进程和资源占用' },
+    { cmd: 'ps', desc: '查看进程快照' },
+    { cmd: 'kill', desc: '向进程发送信号' }
   ]
 
   const cmds = commonCmds.map(c => {
@@ -157,14 +156,14 @@ export default function renderQm (form) {
   })
   const label = (
     <div>
-      {e('quickCommands')}
+      命令步骤
       <HelpIcon
         title={cmds}
       />
     </div>
   )
   return (
-    <FormItem label={label}>
+    <FormItem label={label} className='cn-qm-command-list'>
       <FormList
         name='commands'
       >
@@ -183,7 +182,7 @@ export default function renderQm (form) {
                     onClick={() => add()}
                     icon={<PlusOutlined />}
                   >
-                    {e('quickCommand')}
+                    新增命令
                   </Button>
                 </FormItem>
               </>

@@ -20,7 +20,74 @@ const TabWidgets = lazy(() => import('./tab-widgets'))
 
 const Loading = () => <div style={{ padding: 20, textAlign: 'center' }}><Spin /></div>
 
-const e = window.translate
+const cnTabLabels = {
+  [settingMap.bookmarks]: '服务器管理',
+  [settingMap.setting]: '系统设置',
+  [settingMap.terminalThemes]: '终端主题',
+  [settingMap.quickCommands]: '快捷命令',
+  [settingMap.profiles]: '连接模板',
+  [settingMap.widgets]: '工具面板'
+}
+
+const cnTabGroupMap = {
+  resource: [settingMap.bookmarks],
+  settings: [settingMap.setting],
+  tools: [
+    settingMap.terminalThemes,
+    settingMap.quickCommands,
+    settingMap.profiles,
+    settingMap.widgets
+  ]
+}
+
+function getCnTabGroup (settingTab) {
+  return Object.keys(cnTabGroupMap).find(key => cnTabGroupMap[key].includes(settingTab)) || 'settings'
+}
+
+const cnPageMeta = {
+  [settingMap.bookmarks]: {
+    title: '服务器资源',
+    desc: '维护服务器分组、连接详情、认证方式和远程访问入口',
+    scope: '资源管理',
+    badge: '连接配置',
+    areaClass: 'cn-area-resource'
+  },
+  [settingMap.setting]: {
+    title: '设置中心',
+    desc: '只调整软件自身偏好、终端行为、同步、AI 和快捷键',
+    scope: '系统配置',
+    badge: '实时生效',
+    areaClass: 'cn-area-settings'
+  },
+  [settingMap.terminalThemes]: {
+    title: '终端主题',
+    desc: '管理终端配色、字体显示和主题方案',
+    scope: '外观配置',
+    badge: '终端显示',
+    areaClass: 'cn-area-tools'
+  },
+  [settingMap.quickCommands]: {
+    title: '命令中心',
+    desc: '管理常用脚本片段、快捷命令和执行模板',
+    scope: '效率工具',
+    badge: '命令模板',
+    areaClass: 'cn-area-tools'
+  },
+  [settingMap.profiles]: {
+    title: '连接模板',
+    desc: '维护 SSH、SFTP、RDP 等连接的默认参数',
+    scope: '模板配置',
+    badge: '模板配置',
+    areaClass: 'cn-area-tools'
+  },
+  [settingMap.widgets]: {
+    title: '工具面板',
+    desc: '管理右侧辅助工具、扩展面板和工作台能力',
+    scope: '效率工具',
+    badge: '扩展能力',
+    areaClass: 'cn-area-tools'
+  }
+}
 
 export default auto(function SettingModalWrap (props) {
   const selectItem = (item) => {
@@ -74,45 +141,23 @@ export default auto(function SettingModalWrap (props) {
         'initLoadingData'
       ])
     }
-    const items = [
-      {
-        key: settingMap.bookmarks,
-        label: e(settingMap.bookmarks),
-        children: null
-      },
-      {
-        key: settingMap.setting,
-        label: e(settingMap.setting),
-        children: null
-      },
-      {
-        key: settingMap.terminalThemes,
-        label: e('uiThemes'),
-        children: null
-      },
-      {
-        key: settingMap.quickCommands,
-        label: e(settingMap.quickCommands),
-        children: null
-      },
-      {
-        key: settingMap.profiles,
-        label: e(settingMap.profiles),
-        children: null
-      },
-      {
-        key: settingMap.widgets,
-        label: <>{e(settingMap.widgets)} <sup>Beta</sup></>,
-        children: null
-      }
-    ]
+    // 2026-07-04 coder(lq): Keep navigation task-oriented for Chinese ops users; resource, settings, and tools should not be mixed in one global tab row.
+    const group = getCnTabGroup(settingTab)
+    const visibleTabs = cnTabGroupMap[group]
+    const items = visibleTabs.map(key => ({
+      key,
+      label: key === settingMap.widgets
+        ? <>{cnTabLabels[key]} <sup>试用</sup></>
+        : cnTabLabels[key],
+      children: null
+    }))
     const tabsProps = {
       activeKey: settingTab,
       animated: false,
       items,
       onChange: store.handleChangeSettingTab,
       destroyOnHidden: true,
-      className: 'setting-tabs',
+      className: `setting-tabs cn-setting-tabs-${group} ${visibleTabs.length === 1 ? 'cn-setting-tabs-single' : ''}`,
       type: 'card'
     }
     return (
@@ -182,6 +227,7 @@ export default auto(function SettingModalWrap (props) {
       visible={show}
       useSystemTitleBar={useSystemTitleBar}
       innerWidth={innerWidth}
+      pageMeta={cnPageMeta[props.store.settingTab]}
     >
       {renderTabs()}
     </SettingModal>

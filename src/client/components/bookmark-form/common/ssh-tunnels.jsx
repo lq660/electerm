@@ -97,7 +97,7 @@ export default function renderSshTunnels (props) {
 
   const cols = [
     {
-      title: 'NO.',
+      title: '序号',
       dataIndex: 'index',
       key: 'index',
       render: (k) => k

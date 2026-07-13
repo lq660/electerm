@@ -75,9 +75,9 @@ export default function ConnectionHoppingForm (props) {
         label={e('host')}
         hasFeedback
         rules={[{
-          max: 520, message: '520 chars max'
+          max: 520, message: '最多 520 个字符'
         }, {
-          required: true, message: 'host required'
+          required: true, message: '请输入主机地址'
         }]}
         normalize={trim}
         name='host'
@@ -90,7 +90,7 @@ export default function ConnectionHoppingForm (props) {
         hasFeedback
         name='port'
         rules={[{
-          required: true, message: 'port required'
+          required: true, message: '请输入端口'
         }]}
       >
         <InputNumber
@@ -106,7 +106,7 @@ export default function ConnectionHoppingForm (props) {
         hasFeedback
         name='username'
         rules={[{
-          max: 128, message: '128 chars max'
+          max: 128, message: '最多 128 个字符'
         }]}
         normalize={trim}
       >

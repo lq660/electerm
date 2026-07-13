@@ -1,46 +1,50 @@
 const log = require('../common/log')
 const { appPath, defaultUserName } = require('../common/app-props')
-const { safeEncrypt, safeDecrypt } = require('./safe-storage')
 const { resolve: pathResolve } = require('path')
 const fs = require('fs')
 const { randomBytes } = require('crypto')
 
 const appDataPath = process.env.DATA_PATH || pathResolve(appPath, 'electerm')
-const keyFilePath = pathResolve(appDataPath, 'users', defaultUserName, 'storage-key.enc')
+const keyFilePath = pathResolve(appDataPath, 'users', defaultUserName, 'storage-key.local')
+const KEY_PREFIX = 'v1:local:'
 
-let _cachedStorageKey = null
+let cachedStorageKey = null
+
+function writeStorageKey (key) {
+  const dir = pathResolve(appDataPath, 'users', defaultUserName)
+  const temporaryPath = keyFilePath + '.tmp'
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true })
+  }
+  // 2026-07-12 coder(lq): Use an atomic owner-only key file so database encryption does not depend on a surprising OS keychain prompt.
+  fs.writeFileSync(temporaryPath, KEY_PREFIX + key, { mode: 0o600 })
+  fs.renameSync(temporaryPath, keyFilePath)
+  fs.chmodSync(keyFilePath, 0o600)
+}
 
 function getStorageKey () {
-  if (_cachedStorageKey) return _cachedStorageKey
-  let key = null
+  if (cachedStorageKey) return cachedStorageKey
   try {
     if (fs.existsSync(keyFilePath)) {
-      const enc = fs.readFileSync(keyFilePath, 'utf8').trim()
-      const dec = safeDecrypt(enc)
-      if (dec && dec !== enc) {
-        key = dec
-      } else if (dec && !enc.startsWith('v2:safe:')) {
-        key = dec
+      const stored = fs.readFileSync(keyFilePath, 'utf8').trim()
+      if (!stored.startsWith(KEY_PREFIX)) {
+        throw new Error('Unsupported local storage key format')
       }
-    }
-  } catch (e) {
-    log.error('[storage-key] read error:', e.message)
-  }
-  if (!key) {
-    key = randomBytes(32).toString('base64')
-    try {
-      const dir = pathResolve(appDataPath, 'users', defaultUserName)
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true })
+      cachedStorageKey = stored.slice(KEY_PREFIX.length)
+      if (!cachedStorageKey) {
+        throw new Error('Local storage key is empty')
       }
-      const enc = safeEncrypt(key)
-      fs.writeFileSync(keyFilePath, enc, 'utf8')
-    } catch (e) {
-      log.error('[storage-key] write error:', e.message)
+      fs.chmodSync(keyFilePath, 0o600)
+      return cachedStorageKey
     }
+    cachedStorageKey = randomBytes(32).toString('base64')
+    writeStorageKey(cachedStorageKey)
+    return cachedStorageKey
+  } catch (error) {
+    cachedStorageKey = null
+    log.error('[storage-key] error:', error.message)
+    throw error
   }
-  _cachedStorageKey = key
-  return key
 }
 
 module.exports = { getStorageKey }

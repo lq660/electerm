@@ -42,7 +42,7 @@ export default function Login () {
 
   const handleSubmit = () => {
     if (!pass) {
-      return message.warning('password required')
+      return message.warning('请输入密码')
     } else if (submitting) {
       return
     }
@@ -56,7 +56,7 @@ export default function Login () {
       setLogined(true)
       setLoading(false)
     } else {
-      message.error('Login failed')
+      message.error('登录失败')
       setLoading(false)
     }
     setSubmitting(false)

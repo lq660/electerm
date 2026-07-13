@@ -32,6 +32,16 @@ const downloadMirrorList = [
   'r2'
 ]
 
+const productName = '云舵工作台'
+// 2026-07-04 coder(lq): The current updater still consumes electerm release assets, so the UI names it as an upstream kernel update.
+const upstreamKernelName = 'electerm 开源内核'
+const mirrorLabels = {
+  github: 'GitHub 原始源',
+  'gh-proxy': '国内加速',
+  sourceforge: 'SourceForge',
+  r2: '备用源'
+}
+
 export default class Upgrade extends PureComponent {
   state = {
     mirror: downloadMirrorList[1]
@@ -114,7 +124,7 @@ export default class Upgrade extends PureComponent {
 
   timeout = () => {
     this.cancel()
-    message.error('Download timeout, please try again')
+    message.error('下载超时，请重试')
   }
 
   onEnd = () => {
@@ -172,7 +182,7 @@ export default class Upgrade extends PureComponent {
     })
     if (!releaseVer) {
       return this.changeProps({
-        error: 'Can not get version info'
+        error: '无法获取上游内核版本信息'
       })
     }
     const { skipVersion = 'v0.0.0' } = this.props
@@ -210,19 +220,20 @@ export default class Upgrade extends PureComponent {
       <div className='upgrade-panel'>
         <div className='upgrade-panel-title fix'>
           <span className='fleft'>
-            {e('fail')}: {err}
+            更新检查失败：{err}
           </span>
           <span className='fright'>
             <CloseOutlined className='pointer font16 close-upgrade-panel' onClick={this.handleClose} />
           </span>
         </div>
         <div className='upgrade-panel-body'>
-          You can visit
+          可前往
           <Link
             to={homepage}
             className='mg1x'
-          >{homepage}
-          </Link> to download new version.
+          >上游下载页
+          </Link>
+          手动获取最新内核包。
         </div>
       </div>
     )
@@ -236,12 +247,15 @@ export default class Upgrade extends PureComponent {
       return null
     }
     return (
-      <div className='pd1t'>
-        <div className='bold'>Changelog:</div>
-        <Markdown text={releaseInfo.body} />
+      <div className='cn-upgrade-changelog pd1t'>
+        <div className='bold'>上游内核更新内容</div>
+        <div className='cn-upgrade-changelog-note'>
+          以下为 {upstreamKernelName} 发布说明，后续接入云舵自己的更新服务后可替换为产品更新日志。
+        </div>
+        <Markdown text={releaseInfo.body || ''} />
         <Link
           to={packInfo.releases}
-        >{e('moreChangeLog')}
+        >查看更多上游更新记录
         </Link>
       </div>
     )
@@ -254,20 +268,20 @@ export default class Upgrade extends PureComponent {
         icon={<CloseOutlined />}
         className='mg1l mg1b'
       >
-        {e('skipThisVersion')}
+        本版本不再提醒
       </Button>
     )
   }
 
   renderLinks = () => {
     return (
-      <div>
+      <div className='cn-upgrade-links'>
         <p>
-          {e('manuallyDownloadFrom')}:
+          手动下载内核包：
           {
             downloadMirrors.map((d) => {
               return (
-                <Link to={d.url} className='mg1l' key={d.url}>{d.name}</Link>
+                <Link to={d.url} className='mg1l' key={d.url}>{d.name === 'homepage' ? '上游下载页' : d.name}</Link>
               )
             })
           }
@@ -287,7 +301,7 @@ export default class Upgrade extends PureComponent {
         style={{ height: 32 }}
       >
         {downloadMirrorList.map((opt) => (
-          <Select.Option key={opt} value={opt}>{opt}</Select.Option>
+          <Select.Option key={opt} value={opt}>{mirrorLabels[opt] || opt}</Select.Option>
         ))}
       </Select>
     )
@@ -306,7 +320,7 @@ export default class Upgrade extends PureComponent {
           onClick={() => this.cancel()}
           className='mg1b'
         >
-          <span>{`${e('upgrading')}... ${percent}% ${e('cancel')}`}</span>
+          <span>{`正在更新内核... ${percent}% 取消`}</span>
         </Button>
       )
     }
@@ -321,7 +335,7 @@ export default class Upgrade extends PureComponent {
           onClick={() => this.doUpgrade()}
           className='mg1b'
         >
-          {e('upgrade')}
+          更新内核
         </Button>
       </Space.Compact>
     )
@@ -335,8 +349,10 @@ export default class Upgrade extends PureComponent {
     }
     return (
       <div>
-        {this.renderUpgradeButton()}
-        {this.renderSkipVersion()}
+        <div className='cn-upgrade-actions'>
+          {this.renderUpgradeButton()}
+          {this.renderSkipVersion()}
+        </div>
         <div className='pd1t'>
           {this.renderLinks()}
         </div>
@@ -349,17 +365,27 @@ export default class Upgrade extends PureComponent {
     const cls = showUpgradeModal
       ? 'animate upgrade-panel'
       : 'animate upgrade-panel upgrade-panel-hide'
+    const releaseDate = releaseInfo && releaseInfo.date
+      ? ` · ${releaseInfo.date}`
+      : ''
+    const currentVersion = window.et.version || '-'
     return (
       <div className={cls}>
-        <div className='upgrade-panel-title fix'>
+        <div className='upgrade-panel-title cn-upgrade-title fix'>
           <span className='fleft'>
-            {e('newVersion')} <b>{remoteVersion} [{releaseInfo.date}]</b>
+            <b>{productName} 可用内核更新</b>
+            <span className='cn-upgrade-version'>
+              当前版本 {currentVersion}，可更新至 {remoteVersion}{releaseDate}
+            </span>
           </span>
           <span className='fright'>
             <MinusSquareOutlined className='pointer font16 close-upgrade-panel' onClick={this.handleMinimize} />
           </span>
         </div>
         <div className='upgrade-panel-body'>
+          <div className='cn-upgrade-summary'>
+            此更新来自 {upstreamKernelName}，用于获得安全修复、终端能力和文件传输能力更新。
+          </div>
           {this.renderUpgradeContent()}
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { Component } from 'manate/react/class-components'
 import { refsStatic, refs } from '../common/ref'
+import { resolveTerminalId } from '../../common/active-terminal'
 import SuggestionItem from './cmd-item'
 import { aiSuggestionsCache } from '../../common/cache'
 import uid from '../../common/uid'
@@ -214,7 +215,7 @@ export default class TerminalCmdSuggestions extends Component {
 
   handleSelect = (item) => {
     const { activeTabId } = window.store
-    const terminal = refs.get('term-' + activeTabId)
+    const terminal = refs.get('term-' + resolveTerminalId(activeTabId))
     if (!terminal) {
       console.log('No active terminal found')
       this.closeSuggestions()

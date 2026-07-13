@@ -28,7 +28,7 @@ export default function LogPathEdit ({ pid, logPath, logName, logFileName, setLo
         await fs.unlink(testFile)
       } catch (err) {
         console.log('log path test failed', err)
-        message.error('invalid log folder')
+        message.error(e('invalidLogFolder'))
         return
       }
     }

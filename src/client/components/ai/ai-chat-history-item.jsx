@@ -15,6 +15,8 @@ import {
 } from '@ant-design/icons'
 import { copy } from '../../common/clipboard'
 
+const e = window.translate
+
 export default function AIChatHistoryItem ({ item }) {
   const [showOutput, setShowOutput] = useState(true)
   const [isStreaming, setIsStreaming] = useState(false)
@@ -161,7 +163,7 @@ export default function AIChatHistoryItem ({ item }) {
     return (
       <AIStopIcon
         onClick={handleStop}
-        title='Stop this AI request'
+        title={e('stopAiRequest')}
       />
     )
   }
@@ -192,20 +194,20 @@ export default function AIChatHistoryItem ({ item }) {
       <div>
         {nameAI && (
           <p>
-            <b>Name:</b> {nameAI}
+            <b>{e('name')}:</b> {nameAI}
           </p>
         )}
         <p>
-          <b>Model:</b> {modelAI}
+          <b>{e('model')}:</b> {modelAI}
         </p>
         <p>
-          <b>Role:</b> {roleAI}
+          <b>{e('role')}:</b> {roleAI}
         </p>
         <p>
-          <b>Base URL:</b> {baseURLAI}
+          <b>{e('baseURL')}:</b> {baseURLAI}
         </p>
         <p>
-          <b>Time:</b> {new Date(item.timestamp).toLocaleString()}
+          <b>{e('time')}:</b> {new Date(item.timestamp).toLocaleString()}
         </p>
         <p>
           <CopyOutlined

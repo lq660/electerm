@@ -22,7 +22,13 @@ export default function TabThemes (props) {
     <div
       className='setting-tabs-terminal-themes'
     >
-      <SettingCol>
+      <SettingCol
+        className='cn-tools-template'
+        leftTitle='主题列表'
+        leftDesc='选择或新增终端主题'
+        rightTitle='主题配置'
+        rightDesc='编辑配色、字体和显示效果'
+      >
         <TerminalThemeList
           {...listProps}
           theme={store.config.theme}

@@ -22,7 +22,13 @@ export default function TabQuickCommands (props) {
     <div
       className='setting-tabs-quick-commands'
     >
-      <SettingCol>
+      <SettingCol
+        className='cn-tools-template'
+        leftTitle='命令列表'
+        leftDesc='维护常用脚本片段'
+        rightTitle='命令详情'
+        rightDesc='编辑命令内容、标签和执行方式'
+      >
         <QuickCommandsList
           {...listProps}
           quickCommandId={store.quickCommandId}

@@ -33,9 +33,9 @@ export default function SshHostSelector ({ ips = [], useIp, form, onBlur, onPast
       label={e('host')}
       hasFeedback
       rules={[{
-        max: 520, message: '520 chars max'
+        max: 520, message: '最多 520 个字符'
       }, {
-        required: true, message: 'host required'
+        required: true, message: '请输入主机地址'
       }]}
       normalize={props.trim}
     >

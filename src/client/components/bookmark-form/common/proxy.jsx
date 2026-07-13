@@ -31,7 +31,7 @@ export default function renderProxy (props) {
       hasFeedback
       name='proxy'
       rules={[{
-        max: 1024, message: '1024 chars max'
+        max: 1024, message: '最多 1024 个字符'
       }]}
     >
       <AutoComplete options={options}>

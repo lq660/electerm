@@ -3,15 +3,180 @@
   display flex
   flex-direction column
 
+  &.ai-chat-embedded
+    .cn-ai-chat-intro
+      margin-bottom 8px
+      padding 10px
+
+      > .anticon
+        display none
+
+    .cn-ai-config-notice
+      margin 0 0 8px
+
+    .cn-ai-empty-state
+      padding 8px 0
+
+    .ai-chat-input
+      margin-top 8px
+
+    .ai-chat-terminals
+      gap 6px
+
+      > .ant-flex:first-child
+        min-width 0
+        flex-wrap wrap
+        row-gap 4px
+
+.cn-ai-chat-intro
+  display flex
+  align-items center
+  justify-content space-between
+  gap 12px
+  margin 0 0 10px
+  padding 12px
+  border 1px solid #d8e0ea
+  border-radius 8px
+  background #f8fafc
+  color #344054
+
+  strong,
+  span
+    display block
+
+  strong
+    color #1f2937
+    font-size 14px
+
+  span
+    margin-top 4px
+    color #667085
+    font-size 12px
+    line-height 18px
+
+  > .anticon
+    color #1677ff
+    font-size 18px
+
+  b
+    flex 0 0 auto
+    padding 2px 8px
+    border-radius 999px
+    font-size 12px
+
+    &.ready
+      background #ecfdf3
+      color #039855
+
+    &.missing
+      background #fff4e5
+      color #b54708
+
 .ai-chat-history
   flex-grow 1
   min-height 0
+  flex-direction column
+  overflow-y auto
+  overflow-x hidden
   &::-webkit-scrollbar
     width 0
 .ai-history-wrap
   width 100%
   overflow-y auto
   overflow-x hidden
+
+.cn-ai-empty-state
+  width 100%
+  padding 12px
+  color #344054
+
+  > strong,
+  > span
+    display block
+
+  > strong
+    color #1f2937
+    font-size 14px
+
+  > span
+    margin-top 4px
+    color #667085
+    font-size 12px
+
+.cn-ai-suggestion-grid
+  display grid
+  gap 8px
+  margin-top 12px
+
+  button
+    display block
+    width 100%
+    padding 10px
+    border 1px solid #d8e0ea
+    border-radius 8px
+    background #fff
+    text-align left
+    cursor pointer
+
+    &:hover
+      border-color #1677ff
+      background #f5f8ff
+
+  b,
+  em
+    display block
+
+  b
+    color #1f2937
+    font-size 13px
+
+  em
+    margin-top 4px
+    color #667085
+    font-size 12px
+    font-style normal
+    line-height 18px
+
+.cn-ai-config-notice
+  display flex
+  align-items center
+  justify-content space-between
+  gap 12px
+  margin 0 12px 8px
+  padding 10px
+  border 1px solid #fedf89
+  border-radius 8px
+  background #fffbeb
+
+  div
+    min-width 0
+
+  strong,
+  span
+    display block
+
+  strong
+    color #93370d
+    font-size 13px
+
+  span
+    margin-top 3px
+    color #b54708
+    font-size 12px
+    line-height 18px
+
+  button
+    flex 0 0 auto
+    height 30px
+    padding 0 12px
+    border 1px solid #f79009
+    border-radius 6px
+    background #fff7ed
+    color #b54708
+    cursor pointer
+
+    &:hover
+      background #ffedd5
 
 .chat-history-item
   position relative
@@ -164,3 +329,65 @@
     transform rotate(0deg)
   to
     transform rotate(360deg)
+
+// 2026-07-02 coder(lq): AI panels are normal assistant pages; cards, code blocks, and tool calls should follow the light workbench system.
+.ai-chat-container,
+.ai-history-wrap,
+.ai-stream-output
+  background #fff !important
+  color #1f2937 !important
+
+.chat-history-item,
+.agent-tool-call-card
+  background #fff !important
+  border 1px solid #d8e0ea !important
+  border-radius 8px !important
+  color #344054 !important
+
+.chat-history-item .code-block,
+.agent-tool-detail
+  border-color #d8e0ea !important
+
+.agent-tool-pre
+  background #f8fafc !important
+  color #1f2937 !important
+  border 1px solid #e4eaf2
+
+.agent-tool-label
+  color #667085 !important
+
+.ai-chat-input .ant-input
+  background #fff !important
+  border-color #cfd8e6 !important
+  color #1f2937 !important
+
+// 2026-07-04 coder(lq): AI right panel is rendered inside terminal chrome, so explicitly reset AntD assistant widgets to the light ops palette.
+.ai-chat-container
+  .ant-alert
+    border-color #b8d8ff !important
+    border-radius 8px !important
+    background #f5f8ff !important
+    color #344054 !important
+
+  .ant-alert-message,
+  .ant-alert-description
+    color #344054 !important
+
+  .ant-segmented
+    background #f1f5f9 !important
+    color #667085 !important
+
+  .ant-segmented-item
+    color #667085 !important
+
+  .ant-segmented-item-selected
+    background #fff !important
+    color #1677ff !important
+    box-shadow 0 1px 3px rgba(15, 23, 42, .10) !important
+
+  .ant-input,
+  textarea.ant-input,
+  .ant-input-affix-wrapper
+    background #fff !important
+    border-color #cfd8e6 !important
+    color #1f2937 !important

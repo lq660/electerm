@@ -27,13 +27,13 @@ export default function DeepLinkControl () {
     try {
       const result = await window.pre.runGlobalAsync('registerDeepLink', true)
       if (result.registered) {
-        message.success('Protocol handlers registered successfully')
+        message.success(e('protocolHandlersRegistered'))
         await checkRegistrationStatus()
       } else {
-        message.warning(e('deepLinkSkipped') || 'Registration skipped: ' + result.reason)
+        message.warning(`${e('registrationSkipped')}: ${result.reason || '-'}`)
       }
     } catch (error) {
-      message.error('Failed to register protocol handlers')
+      message.error(e('protocolRegistrationFailed'))
       console.error('Registration error:', error)
     } finally {
       setLoading(false)
@@ -44,10 +44,10 @@ export default function DeepLinkControl () {
     setLoading(true)
     try {
       await window.pre.runGlobalAsync('unregisterDeepLink')
-      message.success('Protocol handlers unregistered successfully')
+      message.success(e('protocolHandlersUnregistered'))
       await checkRegistrationStatus()
     } catch (error) {
-      message.error('Failed to unregister protocol handlers')
+      message.error(e('protocolUnregistrationFailed'))
       console.error('Unregistration error:', error)
     } finally {
       setLoading(false)
@@ -66,7 +66,7 @@ export default function DeepLinkControl () {
 
   const renderTooltipContent = () => {
     const protocols = ['ssh', 'telnet', 'rdp', 'vnc', 'serial', 'spice', 'electerm', 'ftp']
-    const tip = `Register electerm to handle protocol URLs (${protocols.join('://, ')})`
+    const tip = `${e('protocolRegistrationTip')} (${protocols.join('://, ')})`
 
     return (
       <div>
@@ -77,7 +77,7 @@ export default function DeepLinkControl () {
         {registrationStatus && (
           <>
             <div className='pd1b'>
-              Protocol Status
+              {e('protocolStatus')}
             </div>
             <div className='pd1b'>
               <Space size='small' wrap>

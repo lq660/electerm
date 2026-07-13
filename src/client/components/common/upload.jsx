@@ -19,9 +19,10 @@ const openFileSelect = async () => {
     'treatPackageAsDirectory',
     'dontAddToRecent'
   ]
+  const title = window.translate('chooseFile')
   const files = await window.api.openDialog({
-    title: 'Choose a file',
-    message: 'Choose a file',
+    title,
+    message: title,
     properties
   }).catch(() => false)
   if (!files) {

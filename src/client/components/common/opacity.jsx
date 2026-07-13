@@ -28,7 +28,8 @@ export default function Opacity ({ opacity }) {
     // Update style content based on opacity value
     if (currentOpacity === 1) {
       styleElement.innerHTML = ''
-      window.pre.runGlobalAsync('setBackgroundColor', '#333333')
+      // 2026-07-04 coder(lq): Keep the native BrowserWindow background aligned with the light workbench to avoid dark uncovered edges.
+      window.pre.runGlobalAsync('setBackgroundColor', '#f4f7fb')
     } else {
       window.pre.runGlobalAsync('setBackgroundColor', '#33333300')
       styleElement.innerHTML = `

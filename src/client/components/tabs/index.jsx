@@ -119,6 +119,18 @@ export default class Tabs extends Component {
     )
   }
 
+  getHomeTabId = () => {
+    return `home-${this.props.batch}`
+  }
+
+  handleHomeClick = () => {
+    const { batch } = this.props
+    const homeId = this.getHomeTabId()
+    window.store.currentLayoutBatch = batch
+    window.store[`activeTabId${batch}`] = homeId
+    window.store.activeTabId = homeId
+  }
+
   adjustScroll = () => {
     const { tabs, currentBatchTabId, batch } = this.props
     const index = tabs.findIndex(t => t.id === currentBatchTabId)
@@ -280,6 +292,7 @@ export default class Tabs extends Component {
           }}
           onDoubleClick={this.handleAdd}
         >
+          {this.renderHomeTab()}
           {
             tabs.map((tab, i) => {
               const isLast = i === len - 1
@@ -304,6 +317,25 @@ export default class Tabs extends Component {
               : this.renderAddBtn()
           }
         </div>
+      </div>
+    )
+  }
+
+  renderHomeTab () {
+    const active = !this.props.tabs?.length || this.props.currentBatchTabId === this.getHomeTabId()
+    const cls = classNames(
+      'tab',
+      'home-tab',
+      { active },
+      { 'active-all': active }
+    )
+    return (
+      <div
+        className={cls}
+        onClick={this.handleHomeClick}
+        title='工作台首页'
+      >
+        <span className='tab-title elli'>工作台</span>
       </div>
     )
   }
@@ -379,8 +411,10 @@ export default class Tabs extends Component {
 
   render () {
     const {
-      tabs
+      tabs,
+      currentBatchTabId
     } = this.props
+    const showHome = currentBatchTabId === this.getHomeTabId()
     if (!tabs || !tabs.length) {
       return (
         <div className='tabs-outer'>
@@ -389,6 +423,11 @@ export default class Tabs extends Component {
         </div>
       )
     }
-    return this.renderTabs()
+    return (
+      <div className='tabs-outer'>
+        {this.renderTabs()}
+        {showHome ? this.renderNoSession() : null}
+      </div>
+    )
   }
 }

@@ -19,6 +19,7 @@ const {
   testTerm,
   resize,
   runCmd,
+  getTerminalCwd,
   toggleTerminalLog,
   toggleTerminalLogTimestamp,
   setTerminalLogPath,
@@ -466,6 +467,8 @@ process.on('message', async (message) => {
       promise = setTerminalLogPath(body)
     } else if (action === 'start-terminal-log-file') {
       promise = startTerminalLogFile(body)
+    } else if (action === 'get-terminal-cwd') {
+      promise = getTerminalCwd(body)
     } else if (action === 'run-cmd') {
       promise = runCmd(body)
     }

@@ -4,10 +4,11 @@
 
 import { debounce } from 'lodash-es'
 import { refs } from '../components/common/ref'
+import { resolveTerminalId } from '../common/active-terminal'
 
 export default Store => {
   Store.prototype.zoomTerminal = debounce(function (delta) {
-    const term = refs.get('term-' + window.store.activeTabId)
+    const term = refs.get('term-' + resolveTerminalId())
     if (!term) {
       return
     }

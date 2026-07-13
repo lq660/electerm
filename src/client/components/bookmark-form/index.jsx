@@ -25,6 +25,18 @@ import './bookmark-form.styl'
 
 const e = window.translate
 
+const cnTypeNames = {
+  ssh: 'SSH/SFTP',
+  local: '本地终端',
+  telnet: 'Telnet',
+  serial: '串口',
+  rdp: '远程桌面',
+  vnc: 'VNC',
+  ftp: 'FTP/SFTP',
+  web: 'Web 入口',
+  spice: 'SPICE'
+}
+
 export default class BookmarkIndex2 extends PureComponent {
   constructor (props) {
     super(props)
@@ -103,7 +115,7 @@ export default class BookmarkIndex2 extends PureComponent {
         onChange={this.handleChange}
       >
         {filtered.map(v => {
-          const txt = v === 'ssh' ? 'Ssh/Sftp' : e(v)
+          const txt = cnTypeNames[v] || e(v)
           return (<Radio.Button key={v} value={v}>{txt}</Radio.Button>)
         })}
       </Radio.Group>
@@ -167,15 +179,22 @@ export default class BookmarkIndex2 extends PureComponent {
     const isNew = id.startsWith(newBookmarkIdPrefix)
     const keys = Object.keys(sessionConfig)
     return (
-      <div className='form-wrap pd1x'>
-        <div className='form-title pd1t pd1x pd2b bold'>
-          <BookOutlined className='mg1r' />
-          <span>
-            {((!isNew ? e('edit') : e('new')) + ' ' + e(settingMap.bookmarks))}
-          </span>
-          {this.renderTitle(formData, isNew)}
-          {this.renderTypes(bookmarkType, isNew, keys)}
-          {this.renderAIButton(isNew)}
+      <div className='form-wrap pd1x cn-bookmark-form'>
+        <div className='form-title pd1t pd1x pd2b bold cn-bookmark-form-title'>
+          <div className='cn-bookmark-title-main'>
+            <BookOutlined className='mg1r' />
+            <span>
+              {!isNew ? '编辑服务器连接' : '新建服务器连接'}
+            </span>
+            {this.renderTitle(formData, isNew)}
+          </div>
+          <div className='cn-bookmark-title-sub'>
+            服务器资源详情页，用于维护协议、账号、认证方式和连接高级参数
+          </div>
+          <div className='cn-bookmark-type-row'>
+            {this.renderTypes(bookmarkType, isNew, keys)}
+            {this.renderAIButton(isNew)}
+          </div>
         </div>
         {this.renderForm()}
       </div>

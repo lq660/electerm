@@ -1,26 +1,20 @@
 import { memo } from 'react'
 import {
-  SwapOutlined
+  SendOutlined
 } from '@ant-design/icons'
 import {
   Badge,
-  Popover
+  Tooltip
 } from 'antd'
-import TransferModal from './transfer-modal'
+import classNames from 'classnames'
 import './transfer.styl'
-
-const e = window.translate
 
 export default memo(function TransferList (props) {
   const {
     fileTransfers,
-    transferTab,
-    transferHistory
+    active
   } = props
   const len = fileTransfers.length
-  if (!len && !transferHistory.length) {
-    return null
-  }
   const color = fileTransfers.some(item => item.error) ? 'red' : 'green'
   const bdProps = {
     count: len,
@@ -29,33 +23,27 @@ export default memo(function TransferList (props) {
     color,
     overflowCount: 99
   }
-  const transferModalProps = {
-    fileTransfers,
-    transferHistory,
-    transferTab
+  const handleOpenTransfer = () => {
+    window.store.setOpenedSideBar('transfer')
   }
-  const popProps = {
-    placement: 'right',
-    destroyOnHidden: true,
-    overlayClassName: 'transfer-list-card',
-    content: <TransferModal {...transferModalProps} />
-  }
+  const cls = classNames('control-icon-wrap cn-side-icon-transfer', {
+    active
+  })
   return (
-    <div
-      className='control-icon-wrap'
-      title={e('fileTransfers')}
-    >
-      <Popover
-        {...popProps}
+    <Tooltip title='传输任务' placement='right' mouseEnterDelay={0.2}>
+      <div
+        className={cls}
+        aria-label='传输任务'
+        onClick={handleOpenTransfer}
       >
         <Badge
           {...bdProps}
         >
-          <SwapOutlined
-            className='iblock font20 control-icon'
+          <SendOutlined
+            className='iblock font18 control-icon'
           />
         </Badge>
-      </Popover>
-    </div>
+      </div>
+    </Tooltip>
   )
 })

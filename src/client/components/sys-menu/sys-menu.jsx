@@ -77,6 +77,13 @@ export default class ContextMenu extends PureComponent {
     if (type === 'hr') {
       return <hr />
     }
+    if (type === 'group') {
+      return (
+        <div className='context-menu-group-title' key={`context-group-${i}-${text}`}>
+          {text}
+        </div>
+      )
+    }
     let baseCls = 'context-item'
     if (module && this.modules[module]) {
       const Mod = this.modules[module]

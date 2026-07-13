@@ -5,3 +5,19 @@
   overflow hidden
   &.drag-over
     border 2px solid var(--primary)
+
+.layout-handle
+  position absolute
+  z-index 30
+  background transparent
+
+  &.vertical
+    width 4px
+    cursor col-resize
+
+  &.horizontal
+    height 4px
+    cursor row-resize
+
+  &:hover
+    background rgba(22, 119, 255, .28)

@@ -3,11 +3,12 @@
  */
 
 import { refs } from '../components/common/ref'
+import { resolveTerminalId } from '../common/active-terminal'
 
 export default Store => {
   Store.prototype.focus = function () {
     window.focused = true
-    refs.get('term-' + window.store.activeTabId)?.term?.focus()
+    refs.get('term-' + resolveTerminalId())?.term?.focus()
   }
 
   Store.prototype.blur = function () {
@@ -15,7 +16,7 @@ export default Store => {
     if (window.store.shouldSendWindowMove) {
       window.pre.runSync('windowMove', false)
     }
-    refs.get('term-' + window.store.activeTabId)?.term?.blur()
+    refs.get('term-' + resolveTerminalId())?.term?.blur()
   }
 
   Store.prototype.onBlur = function () {
@@ -29,7 +30,7 @@ export default Store => {
     document.activeElement &&
     document.activeElement.select &&
     document.activeElement.select()
-    refs.get('term-' + window.store.activeTabId)?.term?.selectAll()
+    refs.get('term-' + resolveTerminalId())?.term?.selectAll()
   }
 
   Store.prototype.triggerResize = function () {

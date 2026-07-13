@@ -18,6 +18,7 @@ import { action } from 'manate'
 import uid from '../common/uid'
 import deepCopy from 'json-deep-copy'
 import { aiConfigsArr } from '../components/ai/ai-config-props'
+import { resolveTerminalId } from '../common/active-terminal'
 
 const e = window.translate
 const { assign } = Object
@@ -45,7 +46,7 @@ export default Store => {
   Store.prototype.openInfoPanelAction = function () {
     const { store } = window
     setTimeout(() => {
-      const term = refs.get('term-' + store.activeTabId)
+      const term = refs.get('term-' + resolveTerminalId(store.activeTabId))
       term && term.handleShowInfo()
     }, 300)
   }
@@ -243,7 +244,7 @@ export default Store => {
 
   Store.prototype.runCommandInTerminal = function (cmd) {
     window.store.batchInputSelectedTabIds.forEach(id => {
-      refs.get('term-' + id)?.runQuickCommand(cmd)
+      refs.get('term-' + resolveTerminalId(id))?.runQuickCommand(cmd)
     })
   }
 
@@ -257,7 +258,7 @@ export default Store => {
   }
 
   Store.prototype.getLangName = function (
-    lang = window.store?.config.language || 'en_us'
+    lang = window.store?.config.language || 'zh_cn'
   ) {
     return get(window.langMap, `[${lang}].name`)
   }

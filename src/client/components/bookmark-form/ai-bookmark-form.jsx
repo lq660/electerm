@@ -125,7 +125,7 @@ export default function AIBookmarkForm (props) {
       }
     } catch (error) {
       console.error('AI bookmark generation error:', error)
-      message.error('Can not generate bookmarks from AI response: ' + error.message)
+      message.error(`${e('aiBookmarkGenerateFailed')}: ${error.message}`)
     } finally {
       setLoading(false)
     }
@@ -194,7 +194,7 @@ export default function AIBookmarkForm (props) {
       message.success(e('Done'))
     } catch (error) {
       console.error('AI bookmark creation error:', error)
-      message.error('Can not create bookmarks from AI response: ' + error.message)
+      message.error(`${e('aiBookmarkCreateFailed')}: ${error.message}`)
     } finally {
       setConfirmProgress(null)
     }

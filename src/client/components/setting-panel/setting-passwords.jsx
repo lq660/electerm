@@ -28,6 +28,7 @@ import './setting.styl'
 
 const { Text: TextAnt } = Typography
 const e = window.translate
+const text = key => e(key) || key
 
 export default class SettingPasswords extends Component {
   state = {
@@ -146,7 +147,7 @@ export default class SettingPasswords extends Component {
   getColumns = () => {
     const columns = [
       {
-        title: e('password'),
+        title: text('password'),
         dataIndex: 'password',
         key: 'password',
         render: () => {
@@ -160,7 +161,7 @@ export default class SettingPasswords extends Component {
         }
       },
       {
-        title: e('count'),
+        title: text('count') === 'count' ? '数量' : text('count'),
         dataIndex: 'count',
         key: 'count',
         width: 80,
@@ -173,7 +174,7 @@ export default class SettingPasswords extends Component {
         }
       },
       {
-        title: e('host'),
+        title: text('host') === 'host' ? '服务器' : text('host'),
         dataIndex: 'titles',
         key: 'host',
         render: (titles) => {
@@ -188,7 +189,7 @@ export default class SettingPasswords extends Component {
         }
       },
       {
-        title: e('actions'),
+        title: text('actions') === 'actions' ? '操作' : text('actions'),
         key: 'actions',
         width: 80,
         render: (_, record) => {
@@ -203,11 +204,11 @@ export default class SettingPasswords extends Component {
             onClick: () => this.showEditModal(record)
           }
           const copyTooltipProps = {
-            title: e('copy'),
+            title: text('copy') === 'copy' ? '复制' : text('copy'),
             children: <Button {...copyProps0} />
           }
           const editTooltipProps = {
-            title: e('changePassword'),
+            title: text('changePassword') === 'changePassword' ? '修改密码' : text('changePassword'),
             children: <Button {...editProps0} />
           }
           const spaceProps0 = {
@@ -231,7 +232,8 @@ export default class SettingPasswords extends Component {
       return (
         <div className='setting-passwords-empty'>
           <LaptopOutlined style={{ fontSize: 48, color: '#ccc' }} />
-          <p>{e('noPasswordsFound')}</p>
+          <p>暂无已保存密码</p>
+          <span>保存服务器连接密码后，可在这里按密码聚合维护。</span>
         </div>
       )
     }
@@ -239,7 +241,7 @@ export default class SettingPasswords extends Component {
     const searchProps0 = {
       value: search,
       onChange: this.handleSearchChange,
-      placeholder: e('search')
+      placeholder: text('search') === 'search' ? '搜索服务器' : text('search')
     }
     const tableProps0 = {
       dataSource: data,
@@ -262,18 +264,19 @@ export default class SettingPasswords extends Component {
     const { editModalVisible, newPassword, selectedBookmarks } = this.state
 
     const modalProps0 = {
-      title: e('changePassword'),
+      title: text('changePassword') === 'changePassword' ? '修改密码' : text('changePassword'),
       open: editModalVisible,
       onCancel: this.handleEditCancel,
       footer: null
     }
 
     return (
-      <div className='setting-passwords'>
-        <div className='setting-passwords-header'>
-          <h3>
-            <KeyOutlined /> {e('passwords')}
-          </h3>
+      <div className='form-wrap pd1y pd2x cn-setting-detail-form setting-passwords'>
+        <div className='cn-setting-card-title setting-passwords-header'>
+          <strong>
+            <KeyOutlined /> 密码管理
+          </strong>
+          <span>按服务器连接聚合和维护保存的密码</span>
         </div>
 
         {this.renderContent()}
@@ -283,11 +286,11 @@ export default class SettingPasswords extends Component {
             <InputConfirm
               value={newPassword}
               onChange={this.handlePasswordChange}
-              placeholder={e('newPassword')}
+              placeholder={text('newPassword') === 'newPassword' ? '请输入新密码' : text('newPassword')}
               inputComponent={Input.Password}
             />
             <div className='affected-bookmarks pd2y'>
-              <h3>{e('bookmarks')}</h3>
+              <h3>影响的服务器</h3>
               {
                 selectedBookmarks.map(b => (
                   <p key={b.id}>

@@ -97,8 +97,9 @@ export default function WebSession (props) {
   function renderView () {
     if (!urlRegex.test(tab.url)) {
       return (
-        <div>
-          URL: <b>{url}</b> not valid
+        <div className='pd3 aligncenter'>
+          <b>{url}</b>
+          <div className='pd1t'>{window.translate('invalidWebUrl')}</div>
         </div>
       )
     }

@@ -8,11 +8,13 @@ import { CloseOutlined, CopyOutlined, ThunderboltOutlined } from '@ant-design/ic
 import { copy } from '../../common/clipboard'
 import classnames from 'classnames'
 import { auto } from 'manate/react'
+import { getWidgetInstanceTitle } from './widget-i18n'
 
 const e = window.translate
 
 export default auto(function WidgetInstance ({ item }) {
   const { id, title, serverInfo, autoRun } = item
+  const displayTitle = getWidgetInstanceTitle(title)
   const cls = classnames('item-list-unit', {
     'autorun-active': autoRun
   })
@@ -53,17 +55,17 @@ export default auto(function WidgetInstance ({ item }) {
             onClick={handleCopy}
           />
         </div>
-        <div>Path: {serverInfo.path}</div>
+        <div>路径：{serverInfo.path}</div>
       </div>
       )
     : null
   const tag = autoRun ? <Tag color='green'>{e('autoRun')}</Tag> : null
   const titleDiv = (
     <div
-      title={title}
+      title={displayTitle}
       className='elli pd1y pd2x list-item-title'
     >
-      {tag} {title}
+      {tag} {displayTitle}
     </div>
   )
   return (
@@ -84,7 +86,7 @@ export default auto(function WidgetInstance ({ item }) {
             )
           : titleDiv
       }
-      <Tooltip title='Toggle auto-run'>
+      <Tooltip title='切换启动时自动运行'>
         <ThunderboltOutlined
           className='pointer list-item-autorun'
           onClick={handleToggleAutoRun}

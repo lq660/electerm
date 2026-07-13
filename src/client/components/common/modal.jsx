@@ -119,8 +119,8 @@ function createModalInstance (type, options) {
   const {
     title,
     content,
-    okText = 'OK',
-    cancelText = 'Cancel',
+    okText = '确定',
+    cancelText = '取消',
     onOk,
     onCancel,
     ...rest
@@ -191,8 +191,8 @@ function createModalInstance (type, options) {
     const {
       title: newTitle,
       content: newContent,
-      okText: newOkText = 'OK',
-      cancelText: newCancelText = 'Cancel',
+      okText: newOkText = '确定',
+      cancelText: newCancelText = '取消',
       onOk: newOnOk,
       onCancel: newOnCancel,
       ...newRest

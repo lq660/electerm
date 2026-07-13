@@ -29,12 +29,12 @@ export default function ResolutionForm (props) {
   }
   const cols = [
     {
-      title: 'NO.',
+      title: '序号',
       dataIndex: 'index',
       key: 'index',
       render: (k) => k
     }, {
-      title: 'Resolutions',
+      title: '分辨率',
       key: 'customResolutions',
       render: (k, item) => {
         return `${item.width}x${item.height}`

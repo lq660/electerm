@@ -114,6 +114,42 @@ export default class SettingTerminal extends Component {
     this.props.store.setConfig(ext)
   }
 
+  renderSection = (title, desc, children, cls = '') => {
+    return (
+      <section className={`cn-settings-section ${cls}`}>
+        <div className='cn-settings-section-title'>
+          <strong>{title}</strong>
+          {
+            desc
+              ? <span>{desc}</span>
+              : null
+          }
+        </div>
+        <div className='cn-settings-section-body'>
+          {children}
+        </div>
+      </section>
+    )
+  }
+
+  renderField = (label, children, desc = '') => {
+    return (
+      <div className='cn-settings-field'>
+        <div className='cn-settings-label'>
+          <strong>{label}</strong>
+          {
+            desc
+              ? <span>{desc}</span>
+              : null
+          }
+        </div>
+        <div className='cn-settings-control'>
+          {children}
+        </div>
+      </div>
+    )
+  }
+
   handleSubmitKeywords = (data) => {
     return this.saveConfig(data)
   }
@@ -122,7 +158,7 @@ export default class SettingTerminal extends Component {
     const checked = !!this.props.config[name]
     const txt = label || e(name)
     return (
-      <div className={cls} key={'rt' + name}>
+      <div className={`${cls} cn-settings-toggle`} key={'rt' + name}>
         <Switch
           checked={checked}
           checkedChildren={txt}
@@ -137,7 +173,7 @@ export default class SettingTerminal extends Component {
     try {
       const st = await window.fs.statCustom(path)
       if (!st.isD) {
-        message.error('invalid log folder')
+        message.error(e('invalidLogFolder'))
         return false
       }
       const testFile = osResolve(path, uid + '.test.log')
@@ -145,7 +181,7 @@ export default class SettingTerminal extends Component {
       await window.fs.unlink(testFile)
       return true
     } catch (err) {
-      message.error('invalid log folder')
+      message.error(e('invalidLogFolder'))
       return false
     }
   }
@@ -295,35 +331,35 @@ export default class SettingTerminal extends Component {
             this.renderNumber(
               'terminalBackgroundFilterOpacity',
               numberOpts,
-              e('Opacity')
+              '透明度'
             )
           }
           {
             this.renderNumber(
               'terminalBackgroundFilterBlur',
               { ...numberOpts, min: 0, max: 50, step: 0.5 },
-              e('Blur')
+              '模糊'
             )
           }
           {
             this.renderNumber(
               'terminalBackgroundFilterBrightness',
               { ...numberOpts, min: 0, max: 10, step: 0.1 },
-              e('Brightness')
+              '亮度'
             )
           }
           {
             this.renderNumber(
               'terminalBackgroundFilterGrayscale',
               numberOpts,
-              e('Grayscale')
+              '灰度'
             )
           }
           {
             this.renderNumber(
               'terminalBackgroundFilterContrast',
               { ...numberOpts, min: 0, max: 10, step: 0.1 },
-              e('Contrast')
+              '对比度'
             )
           }
         </div>
@@ -334,7 +370,7 @@ export default class SettingTerminal extends Component {
       <div className='pd2b'>
         <div className='pd1b'>
           <Tooltip
-            title='eg: https://xx.com/xx.png or /path/to/xx.png'
+            title={e('imagePathExample')}
           >
             <AutoComplete
               value={value}
@@ -481,125 +517,148 @@ export default class SettingTerminal extends Component {
     const startDirectoryLocalTxt = `${e('startDirectory')}:${e('local')}`
     return (
       <div className='form-wrap pd1y pd2x'>
-        <div className='pd1y font16 bold'>
-          <CodeOutlined className='mg1r' />
-          {e('terminal')} {e('settings')}
+        <div className='cn-setting-card-title'>
+          <strong>
+            <CodeOutlined className='mg1r' />
+            {e('terminal')} {e('settings')}
+          </strong>
+          <span>终端显示、输入、日志和背景</span>
         </div>
         {
-          this.renderNumber('scrollback', {
-            step: 200,
-            min: 1000
-          }, e('scrollBackDesc'), 400)
-        }
-        <div className='pd2b'>
-          <span className='inline-title mg1r'>{e('rendererType')}</span>
-          <Select
-            onChange={this.handleChangeRenderType}
-            value={rendererType}
-            popupMatchSelectWidth={false}
-          >
-            {
-              Object.keys(rendererTypes).map(id => {
-                return (
-                  <Option key={id} value={id}>{id}</Option>
+          this.renderSection(
+            '显示与字体',
+            '渲染方式、滚动缓冲和默认字体',
+            <>
+              {this.renderField(e('scrollBackDesc'), this.renderNumber('scrollback', { step: 200, min: 1000 }, e('scrollBackDesc'), 400))}
+              {
+                this.renderField(
+                  e('rendererType'),
+                  <Select
+                    onChange={this.handleChangeRenderType}
+                    value={rendererType}
+                    popupMatchSelectWidth={false}
+                  >
+                    {
+                      Object.keys(rendererTypes).map(id => {
+                        return (
+                          <Option key={id} value={id}>{id}</Option>
+                        )
+                      })
+                    }
+                  </Select>
                 )
-              })
-            }
-          </Select>
-        </div>
-        {
-          this.renderNumber('fontSize', {
-            step: 1,
-            min: 9
-          }, `${e('default')} ${e('fontSize')}`, 400)
-        }
-        <div className='pd2b'>
-          <Flex align='center' gap='middle'>
-            <Flex><div className='inline-title'>{e('default')} {e('fontFamily')}</div></Flex>
-            <Flex flex='auto'>{this.renderFontFamily()}</Flex>
-          </Flex>
-        </div>
-        <div>
-          <div className='pd1b'>
-            <span className='inline-title mg1r'>{e('keywordsHighlight')}</span>
-            <HelpIcon
-              title={tip}
-            />
-            <span className='mg1l'>
-              <KeywordsTransport
-                store={this.props.store}
-                resetKeywordForm={this.resetKeywordForm}
-              />
-            </span>
-          </div>
-          <KeywordForm
-            {...ps}
-          />
-        </div>
-        <div className='pd2b'>
-          <span className='inline-title mg1r'>{e('defaultTerminalType')}</span>
-          {
-            this.renderDefaultTerminalType()
-          }
-        </div>
-        <div className='pd1b'>{e('terminalBackgroundImage')}</div>
-        <TerminalBackgroundConfig {...bgProps} />
-        <div className='pd1b'>{startDirectoryLocalTxt}</div>
-        {
-          this.renderText('startDirectoryLocal', startDirectoryLocalTxt)
-        }
-        <div className='pd1b'>{e('terminalWordSeparator')}</div>
-        {
-          this.renderText('terminalWordSeparator', e('terminalWordSeparator'))
+              }
+              {this.renderField(`${e('default')} ${e('fontSize')}`, this.renderNumber('fontSize', { step: 1, min: 9 }, `${e('default')} ${e('fontSize')}`, 400))}
+              {
+                this.renderField(
+                  `${e('default')} ${e('fontFamily')}`,
+                  <Flex align='center' gap='middle'>
+                    <Flex flex='auto'>{this.renderFontFamily()}</Flex>
+                  </Flex>
+                )
+              }
+              {this.renderCursorStyleSelect()}
+              {this.renderField(e('defaultTerminalType'), this.renderDefaultTerminalType())}
+            </>
+          )
         }
         {
-          this.renderCursorStyleSelect()
+          this.renderSection(
+            '关键字高亮',
+            '匹配错误、告警或关键业务字段',
+            <div>
+              <div className='cn-settings-inline-head'>
+                <strong>{e('keywordsHighlight')}</strong>
+                <HelpIcon title={tip} />
+                <KeywordsTransport
+                  store={this.props.store}
+                  resetKeywordForm={this.resetKeywordForm}
+                />
+              </div>
+              <KeywordForm {...ps} />
+            </div>
+          )
         }
         {
-          this.renderLogPathControl()
+          this.renderSection(
+            '背景与路径',
+            '终端背景、本地启动目录和分词规则',
+            <>
+              {this.renderField(e('terminalBackgroundImage'), <TerminalBackgroundConfig {...bgProps} />)}
+              {this.renderField(startDirectoryLocalTxt, this.renderText('startDirectoryLocal', startDirectoryLocalTxt))}
+              {this.renderField(e('terminalWordSeparator'), this.renderText('terminalWordSeparator', e('terminalWordSeparator')))}
+            </>
+          )
         }
         {
-          this.renderToggle('saveTerminalLogToFile')
+          this.renderSection(
+            '日志与文件',
+            '会话日志保存位置和写入格式',
+            <>
+              {this.renderField(e('terminalLogPath'), this.renderLogPathControl())}
+              <div className='cn-settings-toggle-grid'>
+                {this.renderToggle('saveTerminalLogToFile')}
+                {this.renderToggle('addTimeStampToTermLog')}
+              </div>
+            </>
+          )
         }
-        {this.renderToggle('addTimeStampToTermLog')}
         {
-          [
-            'cursorBlink',
-            'rightClickSelectsWord',
-            'pasteWhenContextMenu',
-            'copyWhenSelect',
-            'ctrlOrMetaOpenTerminalLink',
-            'sftpPathFollowSsh',
-            'sshSftpSplitView',
-            'showCmdSuggestions',
-            'autoReconnectTerminal'
-          ].map(d => this.renderToggle(d))
+          this.renderSection(
+            '交互行为',
+            '选择、粘贴、SFTP 联动和重连策略',
+            <>
+              <div className='cn-settings-toggle-grid'>
+                {
+                  [
+                    'cursorBlink',
+                    'rightClickSelectsWord',
+                    'pasteWhenContextMenu',
+                    'copyWhenSelect',
+                    'ctrlOrMetaOpenTerminalLink',
+                    'sftpPathFollowSsh',
+                    'sshSftpSplitView',
+                    'showCmdSuggestions',
+                    'autoReconnectTerminal'
+                  ].map(d => this.renderToggle(d))
+                }
+              </div>
+              {
+                this.renderField(
+                  e('dragDropBehavior'),
+                  <Select
+                    onChange={this.handleChangeDragDropBehavior}
+                    value={dragDropBehavior}
+                    popupMatchSelectWidth={false}
+                  >
+                    {['ask', 'trz', 'rz', 'inputOnly'].map(id => (
+                      <Option key={id} value={id}>{e(id)}</Option>
+                    ))}
+                  </Select>
+                )
+              }
+              {
+                this.renderField(
+                  e('terminalBackSpaceMode'),
+                  <Select
+                    onChange={this.handleChangeDelMode}
+                    value={backspaceMode}
+                    popupMatchSelectWidth={false}
+                  >
+                    {
+                      ['^?', '^H'].map(id => {
+                        return (
+                          <Option key={id} value={id}>{id}</Option>
+                        )
+                      })
+                    }
+                  </Select>
+                )
+              }
+              {this.renderReset()}
+            </>
+          )
         }
-        <div className='pd1b'>{e('dragDropBehavior')}</div>
-        <Select
-          onChange={this.handleChangeDragDropBehavior}
-          value={dragDropBehavior}
-          popupMatchSelectWidth={false}
-        >
-          {['ask', 'trz', 'rz', 'inputOnly'].map(id => (
-            <Option key={id} value={id}>{e(id)}</Option>
-          ))}
-        </Select>
-        <div className='pd1b'>{e('terminalBackSpaceMode')}</div>
-        <Select
-          onChange={this.handleChangeDelMode}
-          value={backspaceMode}
-          popupMatchSelectWidth={false}
-        >
-          {
-            ['^?', '^H'].map(id => {
-              return (
-                <Option key={id} value={id}>{id}</Option>
-              )
-            })
-          }
-        </Select>
-        {this.renderReset()}
       </div>
     )
   }

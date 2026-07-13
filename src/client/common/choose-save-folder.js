@@ -3,9 +3,10 @@ const {
 } = window.api
 
 export async function chooseSaveDirectory (opts) {
+  const title = window.translate('chooseFolderToSaveFiles')
   const savePaths = await openDialog({
-    title: 'Choose a folder to save file(s)',
-    message: 'Choose a folder to save file(s)',
+    title,
+    message: title,
     properties: [
       'openDirectory',
       'showHiddenFiles',

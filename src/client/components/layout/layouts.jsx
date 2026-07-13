@@ -3,6 +3,7 @@ import {
 } from '../../common/constants'
 import LayoutItem from './layout-item'
 import pixed from './pixed'
+import { getHandleOrientation } from './layout-ratios'
 
 export default function LayoutWrap (props) {
   const {
@@ -44,7 +45,7 @@ export default function LayoutWrap (props) {
       {
         new Array(handleCount).fill(0).map((v, i) => {
           const itemProps = {
-            className: 'layout-handle h' + (i + 1),
+            className: `layout-handle h${i + 1} ${getHandleOrientation(layout, i)}`,
             'data-layout': layout,
             'data-index': i,
             style: handleStyles[i],

@@ -33,6 +33,15 @@ const mapper = {
   disks: <PartitionOutlined />
 }
 
+const labelMapper = {
+  uptime: '运行时长',
+  cpu: 'CPU',
+  mem: '内存',
+  activities: '进程',
+  network: '网络',
+  disks: '磁盘'
+}
+
 export default class TerminalInfoBase extends Component {
   state = {
     saveTerminalLogToFile: false,
@@ -151,7 +160,7 @@ export default class TerminalInfoBase extends Component {
                 className='cap'
                 icon={mapper[f]}
               >
-                {f}
+                {labelMapper[f] || f}
               </Button>
             )
           })
@@ -172,6 +181,7 @@ export default class TerminalInfoBase extends Component {
     const fullPath = osResolve(base, fileName)
     return (
       <div className='terminal-info-section terminal-info-base'>
+        <div className='terminal-info-section-title'>会话概览</div>
         <div className='pd1b'>
           <b>ID:</b> {id}
         </div>

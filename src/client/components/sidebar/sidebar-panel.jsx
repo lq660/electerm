@@ -7,19 +7,25 @@ import BookmarkWrap from './bookmark'
 import History from './history'
 import { Tabs, Tooltip } from 'antd'
 import MultiSelectModal from '../common/multi-select-modal'
+import TransferModal from './transfer-modal'
+import getInitItem from '../../common/init-setting-item'
+import {
+  settingMap
+} from '../../common/constants'
 import {
   ArrowsAltOutlined,
   EditOutlined,
   PlusCircleOutlined,
   ShrinkOutlined,
   PushpinOutlined,
-  SelectOutlined
+  SelectOutlined,
+  CloseOutlined
 } from '@ant-design/icons'
 
 const e = window.translate
 
 export default memo(function SidebarPanel (props) {
-  const { sidebarPanelTab, pinned } = props
+  const { sidebarPanelTab, pinned, openedSideBar } = props
   const { store } = window
   const [openSelectModal, setOpenSelectModal] = useState(false)
   const prps = {
@@ -34,12 +40,12 @@ export default memo(function SidebarPanel (props) {
     items: [
       {
         key: 'bookmarks',
-        label: e('bookmarks'),
+        label: '服务器列表',
         children: null
       },
       {
         key: 'history',
-        label: e('history'),
+        label: '最近连接',
         children: null
       }
     ]
@@ -48,6 +54,15 @@ export default memo(function SidebarPanel (props) {
     ...prps,
     onClick: store.onNewSsh
   }
+  // 2026-07-05 coder(lq): Keep the side panel actions distinct: plus creates a server, edit opens the resource manager.
+  const openBookmarkManager = () => {
+    const item = store.bookmarks?.[0] || getInitItem([], settingMap.bookmarks)
+    store.openBookmarkEdit(item)
+  }
+  const popEdit = {
+    ...prps,
+    onClick: openBookmarkManager
+  }
   const pop2 = {
     ...prps,
     onClick: store.expandBookmarks
@@ -55,6 +70,11 @@ export default memo(function SidebarPanel (props) {
   const pop3 = {
     ...prps,
     onClick: store.collapseBookmarks
+  }
+  // 2026-07-04 coder(lq): Transfer panel can be opened from several entry points, so keep a visible close action inside the panel itself.
+  const closeTransferPanel = (event) => {
+    event.stopPropagation()
+    store.setOpenedSideBar('')
   }
 
   function renderExpandIcons () {
@@ -80,6 +100,41 @@ export default memo(function SidebarPanel (props) {
       </Tooltip>
     ]
   }
+  if (openedSideBar === 'transfer') {
+    return (
+      <div
+        className='sidebar-panel bookmarks-panel animate-fast cn-transfer-side-panel'
+      >
+        <div className='sidebar-pin-top cn-side-panel-heading'>
+          <div>
+            <strong>传输中心</strong>
+            <span>查看上传、下载、远程传输和历史记录</span>
+          </div>
+          <div className='cn-side-panel-actions'>
+            <Tooltip title={e('pin')}>
+              <PushpinOutlined
+                {...prps1}
+                onClick={store.handlePin}
+              />
+            </Tooltip>
+            <Tooltip title='关闭'>
+              <CloseOutlined
+                {...prps}
+                className={`${prps.className} cn-side-panel-close`}
+                onClick={closeTransferPanel}
+              />
+            </Tooltip>
+          </div>
+        </div>
+        <TransferModal
+          fileTransfers={props.fileTransfers}
+          transferHistory={props.transferHistory}
+          transferTab={props.transferTab}
+          embedded
+        />
+      </div>
+    )
+  }
   return (
     <div
       className='sidebar-panel bookmarks-panel animate-fast'
@@ -93,7 +148,7 @@ export default memo(function SidebarPanel (props) {
           </Tooltip>
           <Tooltip title={`${e('edit')} ${e('bookmarks')}`}>
             <EditOutlined
-              {...pop1}
+              {...popEdit}
             />
           </Tooltip>
           {
@@ -105,6 +160,12 @@ export default memo(function SidebarPanel (props) {
               onClick={store.handlePin}
             />
           </Tooltip>
+        </div>
+        <div className='cn-side-panel-heading'>
+          <div>
+            <strong>服务器资源</strong>
+            <span>按分组管理服务器、会话和最近访问</span>
+          </div>
         </div>
         <div className='pd1y pd2x'>
           <Tabs {...tabsProps} />

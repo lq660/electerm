@@ -1,0 +1,4042 @@
+// 2026-07-02 coder(lq): Global product skin for a China-oriented operations workbench while keeping electerm's existing component logic intact.
+$cn-bg = #f4f7fb
+$cn-panel = #ffffff
+$cn-panel-soft = #fbfdff
+$cn-border = #dbe3ef
+$cn-border-soft = #edf1f7
+$cn-text = #1f2937
+$cn-muted = #667085
+$cn-primary = #1769e0
+$cn-primary-soft = #eef5ff
+$cn-success = #12b76a
+$cn-warning = #f79009
+$cn-danger = #f04438
+$cn-dark = #101828
+
+html,
+body,
+#container
+  // 2026-07-04 coder(lq): Keep the app shell edge-to-edge; otherwise Electron's window background can show as dark right/bottom borders after resize.
+  width 100%
+  height 100%
+  min-width 100vw
+  min-height 100vh
+  margin 0
+  background $cn-bg
+
+#container
+  .loaded
+    width 100vw
+    height 100vh
+    min-width 100vw
+    min-height 100vh
+    overflow hidden
+    background $cn-bg
+
+  #outside-context
+    width 100vw
+    height 100vh
+    overflow hidden
+
+  // 2026-07-03 coder(lq): Normalize the top-level workbench frame so legacy dark terminal chrome cannot leak as black edges around the sidebar or title bar.
+  .layout-wrap,
+  .layout-item,
+  .tabs-outer,
+  .app-drag
+    background $cn-bg !important
+
+  .layout-item
+    border-color $cn-border !important
+
+  .ant-btn
+    border-radius 6px
+    box-shadow none
+    font-weight 500
+
+  .ant-btn-primary
+    background $cn-primary
+    border-color $cn-primary
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-select,
+  .ant-select-selector,
+  .ant-input-number,
+  .ant-picker
+    border-radius 6px !important
+    border-color $cn-border !important
+    box-shadow none !important
+
+  .ant-select
+    background $cn-panel !important
+    color $cn-text !important
+
+  .ant-select-arrow,
+  .ant-select-selection-item
+    color $cn-muted !important
+
+  .ant-input:focus,
+  .ant-input-affix-wrapper-focused,
+  .ant-select-focused .ant-select-selector,
+  .ant-input-number-focused,
+  .ant-picker-focused
+    border-color $cn-primary !important
+
+  .ant-tabs-tab
+    padding 8px 0
+
+  .ant-tabs-tab-active .ant-tabs-tab-btn
+    color $cn-primary
+    font-weight 600
+
+  .ant-tabs-ink-bar
+    background $cn-primary
+
+  .ant-modal-content,
+  .custom-modal-content
+    border-radius 8px
+    border 1px solid $cn-border
+    box-shadow 0 18px 50px rgba(15, 23, 42, .16)
+    background $cn-panel
+
+  .custom-modal-header
+    padding 14px 18px
+    background $cn-panel-soft
+    border-bottom 1px solid $cn-border
+
+  .custom-modal-title
+    color $cn-text
+    font-size 15px
+
+  .custom-modal-body
+    padding 18px
+
+  .custom-modal-footer
+    padding 12px 18px
+    background $cn-panel-soft
+    border-top 1px solid $cn-border
+
+  .custom-modal-ok-btn,
+  .custom-modal-cancel-btn
+    border-radius 6px
+
+  .custom-modal-ok-btn
+    background $cn-primary
+
+  .custom-modal-cancel-btn
+    border 1px solid $cn-border
+
+  .sidebar
+    background $cn-dark
+    border-right 1px solid #0b1220
+
+  .sidebar-bar.btns
+    background $cn-dark
+
+  .control-icon-wrap
+    padding 12px 0
+
+  .control-icon-wrap .control-icon,
+  .btns .open-about-icon
+    color #8ea0b8
+
+  .control-icon-wrap.active .control-icon,
+  .control-icon-wrap .control-icon:hover,
+  .btns .open-about-icon:hover
+    color #ffffff
+
+  .sidebar-panel
+    background $cn-panel
+    border-right 1px solid $cn-border
+    box-shadow 10px 0 24px rgba(15, 23, 42, .08)
+
+  .type-transfer
+    .cn-transfer-side-panel
+      width 100% !important
+      overflow hidden !important
+
+  .sidebar-pin-top
+    background $cn-panel-soft
+    border-bottom 1px solid $cn-border
+
+  .sidebar-panel-bookmarks,
+  .sidebar-panel-history
+    top 104px
+
+  .tabs
+    background $cn-dark
+    border-bottom 1px solid #0b1220
+
+  .tab
+    background transparent
+    color #98a2b3
+    border-radius 6px 6px 0 0
+    margin 4px 2px 0 0
+    line-height 32px
+    height 32px
+
+    &.active
+      background $cn-panel
+      color $cn-text
+      font-weight 600
+
+    &:hover
+      background rgba(255, 255, 255, .08)
+      color #ffffff
+
+    &.active:hover
+      background $cn-panel
+      color $cn-text
+
+  .tab-close
+    background rgba(15, 23, 42, .08)
+    color $cn-muted
+
+    &:hover
+      background $cn-danger
+      color #fff
+
+  .tabs-extra,
+  .tabs-add-btn,
+  .tab-scroll-icon
+    color #98a2b3
+
+  .tabs-extra:hover,
+  .tabs-add-btn:hover,
+  .tab-scroll-icon:hover
+    color #fff
+
+  .window-controls
+    background $cn-panel
+    border-left 1px solid $cn-border
+    border-bottom 1px solid $cn-border
+
+  .main-footer
+    background $cn-panel
+    border-top 1px solid $cn-border
+    color $cn-muted
+
+  .terminal-footer-unit
+    color $cn-muted
+
+  .setting-wrap
+    background $cn-bg
+    color $cn-text
+
+    .custom-drawer-content-wrapper,
+    .custom-drawer-content
+      background $cn-bg !important
+
+  .cn-setting-header
+    height 86px
+    display flex
+    align-items center
+    justify-content space-between
+    padding 14px 24px 14px 58px
+    background linear-gradient(90deg, #ffffff 0%, #f7fbff 58%, #f8fffd 100%)
+    border-bottom 1px solid $cn-border
+    box-shadow 0 6px 18px rgba(15, 23, 42, .05)
+
+  .cn-setting-brand
+    display flex
+    align-items center
+    gap 12px
+
+    strong
+      display block
+      font-size 18px
+      color $cn-text
+      line-height 24px
+
+    em
+      display block
+      font-style normal
+      color $cn-muted
+      font-size 12px
+      margin-top 2px
+
+  .cn-setting-logo
+    width 38px
+    height 38px
+    display inline-flex
+    align-items center
+    justify-content center
+    border-radius 8px
+    color #fff
+    background $cn-primary
+
+  .cn-setting-status
+    display flex
+    align-items center
+    gap 8px
+    color $cn-muted
+    font-size 12px
+
+    b
+      color $cn-success
+      background #ecfdf3
+      border 1px solid #abefc6
+      border-radius 999px
+      padding 2px 8px
+
+  .close-setting-wrap
+    top 30px
+
+  .alt-close-setting-wrap
+    display none
+
+  .setting-tabs
+    top 86px
+    background $cn-panel
+    border-bottom 1px solid $cn-border
+    box-shadow 0 6px 18px rgba(15, 23, 42, .05)
+    padding 12px 20px 0 50px
+
+    .ant-tabs-nav
+      margin 0
+
+    .ant-tabs-tab
+      border-radius 6px 6px 0 0 !important
+      padding 8px 16px !important
+
+  .setting-row
+    top 154px
+    background $cn-bg !important
+
+  .setting-row-right
+    top 154px
+    padding 16px 18px 28px
+
+  .setting-row-left
+    top 154px
+    padding 16px 0 18px 16px
+
+  .setting-row-left,
+  .setting-row-right
+    background $cn-bg
+
+  .setting-row-left .model-bookmark-tree-wrap,
+  .setting-row-right > div,
+  .setting-col
+    border-radius 8px
+
+  .setting-row-left .model-bookmark-tree-wrap,
+  .item-list,
+  .form-wrap,
+  .setting-row-right > div
+    background $cn-panel
+    border 1px solid $cn-border
+    box-shadow 0 8px 22px rgba(15, 23, 42, .04)
+
+  .setting-tabs-bookmarks
+    .setting-row-left
+      width 320px
+
+    .setting-row-right
+      left 336px
+      padding-left 16px
+
+    .setting-row-left .model-bookmark-tree-wrap
+      padding 12px
+      background $cn-panel
+
+    .setting-row-left .model-bookmark-tree-wrap:before
+      content '服务器分组'
+      display block
+      color $cn-text
+      font-weight 700
+      font-size 14px
+      padding 4px 8px 12px
+
+    .setting-row-left .tree-item
+      margin 2px 0
+
+    .setting-row-left .tree-item-title
+      font-size 13px
+
+  .setting-tabs-setting
+    .setting-row-left
+      width 300px
+
+    .setting-row-right
+      left 320px
+
+  .item-list
+    padding 10px
+
+  .cn-bookmark-form
+    padding 0 !important
+    overflow hidden
+    max-width 1280px
+    margin 6px auto 0
+    min-height calc(100vh - 190px)
+
+  .cn-bookmark-form-title
+    background $cn-panel-soft
+    border-bottom 1px solid $cn-border
+    padding 18px 22px !important
+
+  .cn-bookmark-title-main
+    display flex
+    align-items center
+    gap 4px
+    color $cn-text
+    font-size 16px
+
+  .cn-bookmark-title-sub
+    color $cn-muted
+    font-size 12px
+    font-weight 400
+    margin 4px 0 12px
+
+  .cn-bookmark-type-row
+    display flex
+    align-items center
+    flex-wrap wrap
+    gap 8px
+
+    .ant-radio-group
+      margin-left 0 !important
+
+    .ant-radio-button-wrapper
+      border-radius 6px
+      margin-right 6px
+      border-left-width 1px
+      height 30px
+      line-height 28px
+      font-size 13px
+
+      &:before
+        display none
+
+    .ant-radio-button-wrapper-checked
+      background $cn-primary !important
+      border-color $cn-primary !important
+      color #fff !important
+
+  .cn-bookmark-form form,
+  .cn-bookmark-form .ant-form
+    padding 0
+
+  .cn-bookmark-form .ant-tabs
+    background #fff
+
+  .cn-bookmark-form .ant-tabs-nav
+    margin 0
+    padding 0 22px
+    background #fff
+    border-bottom 1px solid $cn-border
+
+  .cn-bookmark-form .ant-tabs-tab
+    padding 12px 0 !important
+    color $cn-muted
+
+  .cn-bookmark-form .ant-tabs-tab-active .ant-tabs-tab-btn
+    color $cn-primary
+
+  .cn-connection-form-body
+    padding 22px 28px !important
+    max-width 980px
+    margin 0 auto
+
+  .cn-connection-form .ant-form-item
+    margin-bottom 14px
+
+  .cn-connection-form .ant-form-item-row
+    display flex
+    gap 12px
+    align-items center
+    flex-wrap nowrap
+
+  .cn-connection-form .ant-col,
+  .cn-connection-form .ant-col-sm-8,
+  .cn-connection-form .ant-col-sm-16,
+  .cn-connection-form .ant-col-offset-8
+    flex none !important
+    max-width none !important
+    margin-left 0 !important
+
+  .cn-connection-form .ant-form-item-label
+    width 112px !important
+    min-width 112px !important
+    text-align right
+    overflow visible
+    white-space nowrap
+    padding 0
+    line-height 36px
+
+    > label
+      color #344054 !important
+      font-size 13px
+      font-weight 500
+      height 36px
+      line-height 36px
+
+      &:after
+        margin-inline 4px 0
+
+  .cn-connection-form .ant-form-item-control
+    flex 1 1 auto !important
+    min-width 0
+    width auto
+
+  .cn-connection-form .ant-form-item-control-input
+    min-height 36px
+
+  .cn-field-title,
+  .cn-field-host,
+  .cn-field-username,
+  .cn-field-password,
+  .cn-field-category,
+  .cn-field-description,
+  .cn-field-setEnv,
+  .cn-field-startDirectoryLocal,
+  .cn-field-startDirectory,
+  .cn-field-interactiveValues,
+  .cn-field-envLang,
+  .cn-field-encode,
+  .cn-field-auth-type
+    max-width 760px
+
+  .cn-field-port,
+  .cn-field-isMFA,
+  .cn-field-useSshAgent
+    max-width 460px
+
+  .cn-field-type
+    display none
+
+  .cn-field-auth-type .ant-radio-group
+    display flex
+    gap 8px
+
+  .cn-field-auth-type .ant-radio-button-wrapper
+    border-radius 6px
+    border-left-width 1px
+    min-width 80px
+    text-align center
+
+    &:before
+      display none
+
+  .cn-field-auth-type .ant-radio-button-wrapper-checked
+    background $cn-primary !important
+    border-color $cn-primary !important
+    color #fff !important
+
+  .cn-bookmark-form .ant-input,
+  .cn-bookmark-form .ant-input-affix-wrapper,
+  .cn-bookmark-form .ant-input-number,
+  .cn-bookmark-form .ant-select-selector,
+  .cn-bookmark-form .ant-auto-complete,
+  .cn-bookmark-form textarea
+    background #fff !important
+    color $cn-text !important
+    border-color #cfd8e6 !important
+    min-height 36px
+    width 100%
+
+  .cn-bookmark-form .ant-input::placeholder,
+  .cn-bookmark-form textarea::placeholder
+    color #98a2b3 !important
+
+  .cn-bookmark-form .ant-input-number-input
+    color $cn-text !important
+    height 34px
+
+  .cn-bookmark-form .ant-input-number
+    width 120px
+
+  .cn-bookmark-form .ant-select-selection-item,
+  .cn-bookmark-form .ant-select-selection-placeholder
+    color $cn-text !important
+
+  .cn-bookmark-form .ant-select-selection-placeholder
+    color #98a2b3 !important
+
+  .cn-bookmark-form .ant-input-affix-wrapper .ant-input
+    background transparent !important
+
+  .cn-bookmark-form .ant-switch
+    background #d0d5dd
+
+  .cn-bookmark-form .ant-switch.ant-switch-checked
+    background $cn-primary
+
+  .cn-bookmark-form .ant-radio-button-wrapper,
+  .cn-bookmark-form .ant-btn
+    border-radius 6px
+
+  .cn-bookmark-form .ant-form-item-extra,
+  .cn-bookmark-form .ant-form-item-explain
+    color $cn-muted
+    font-size 12px
+
+  .cn-bookmark-form .ant-tabs-content-holder
+    background #fff
+
+  .cn-bookmark-form .ant-tabs-content
+    min-height 460px
+
+  .cn-bookmark-form .ant-tabs-tabpane
+    background #fff
+
+  .cn-bookmark-form .submit-buttons,
+  .cn-bookmark-form .form-buttons,
+  .cn-bookmark-form .ant-form .pd2y.alignright
+    padding 14px 22px
+    border-top 1px solid $cn-border
+    background $cn-panel-soft
+
+  .cn-connection-form > .ant-form-item:last-child
+    margin 0
+    padding 14px 22px
+    border-top 1px solid $cn-border
+    background $cn-panel-soft
+
+    .ant-form-item-row
+      display block
+
+    .ant-form-item-control
+      margin-left 0 !important
+      max-width none
+      width 100%
+
+    p
+      margin 0 0 8px
+      display flex
+      justify-content flex-end
+      flex-wrap wrap
+      gap 8px
+
+      &:last-child
+        margin-bottom 0
+
+    .ant-btn
+      margin 0 !important
+
+  .item-list-unit
+    border-radius 6px
+    padding 6px 8px
+    margin 0 8px 4px 0
+    color $cn-text
+
+    &.active,
+    &:hover
+      background $cn-primary-soft
+      color $cn-primary
+
+  .tree-item
+    border-radius 6px
+    line-height 30px
+    min-height 30px
+    color $cn-text
+
+    &.selected,
+    &.item-dragover,
+    &:hover
+      background $cn-primary-soft
+      color $cn-primary
+
+  .tree-item.is-category .tree-item-title
+    color $cn-muted
+    font-size 12px
+    font-weight 700
+
+  .category-color-tag
+    border-color $cn-border
+    border-radius 3px
+
+  .add-menu-wrap,
+  .layout-workspace-dropdown
+    background $cn-panel
+    border 1px solid $cn-border
+    border-radius 8px
+    box-shadow 0 18px 48px rgba(15, 23, 42, .16)
+
+  .add-menu-header
+    background $cn-panel-soft
+    border-bottom 1px solid $cn-border
+
+  .cn-add-menu-title
+    padding 12px 16px 8px
+    border-bottom 1px solid $cn-border
+
+    strong
+      display block
+      color $cn-text
+      font-size 15px
+
+    span
+      display block
+      color $cn-muted
+      font-size 12px
+      margin-top 2px
+
+  .cn-quick-connect-bar
+    padding 10px 16px !important
+
+    .ant-btn
+      background $cn-dark
+      border-color $cn-dark
+      color #fff
+
+    .ant-btn:last-child
+      background $cn-primary
+      border-color $cn-primary
+
+  .cn-quick-connect-input
+    font-size 13px
+
+  .context-item:hover,
+  .layout-menu-item:hover
+    background $cn-primary-soft
+    color $cn-primary
+
+  .sftp-panel,
+  .sftp-section
+    background $cn-panel
+
+  .sftp-wrap
+    background $cn-bg
+
+  .sftp-file-table-header,
+  .sftp-header-item
+    background $cn-panel-soft
+    color $cn-muted
+    border-bottom 1px solid $cn-border
+    font-weight 600
+
+  .sftp-item
+    margin-bottom 2px
+
+    &:nth-child(even) .sftp-file-prop,
+    .sftp-file-prop
+      background $cn-panel
+
+    &:hover .sftp-file-prop,
+    &.selected .sftp-file-prop
+      background $cn-primary-soft
+      color $cn-primary
+
+  .sftp-file-prop
+    color $cn-text
+    border-bottom 1px solid $cn-border-soft
+
+  .sftp-history
+    background $cn-panel
+    border 1px solid $cn-border
+    border-radius 8px
+    box-shadow 0 12px 32px rgba(15, 23, 42, .14)
+
+  .sftp-history-item
+    border-bottom 1px solid $cn-border-soft
+
+    &:hover
+      background $cn-primary-soft
+      color $cn-primary
+
+  .transports-dd
+    background $cn-panel
+    border 1px solid $cn-border
+    border-radius 8px
+    box-shadow 0 16px 40px rgba(15, 23, 42, .16)
+
+  .transports-title
+    border-bottom 1px solid $cn-border
+    color $cn-text
+    font-weight 600
+
+  .sftp-transport
+    border-radius 6px
+    margin 0 8px 4px
+    color $cn-text
+
+    &:hover
+      background $cn-primary-soft
+      color $cn-primary
+
+  .right-side-panel
+    background $cn-panel
+    border-left 1px solid $cn-border
+    box-shadow -10px 0 24px rgba(15, 23, 42, .08)
+
+  .bookmarks-panel
+    background $cn-panel
+
+  .sidebar-pin-top
+    box-shadow 0 6px 18px rgba(15, 23, 42, .04)
+
+  .cn-side-panel-heading
+    display flex
+    align-items center
+    justify-content space-between
+    gap 12px
+    padding 12px 18px
+    border-bottom 1px solid $cn-border
+    background $cn-panel-soft
+
+    strong
+      display block
+      color $cn-text
+      font-size 15px
+
+    span
+      display block
+      color $cn-muted
+      font-size 12px
+      margin-top 2px
+
+  .cn-transfer-side-panel
+    height 100%
+    display flex
+    flex-direction column
+
+  .cn-transfer-center
+    background $cn-panel
+
+    .ant-tabs-nav
+      margin-bottom 10px
+
+  .cn-transfer-summary
+    display flex
+    flex-direction column
+    gap 3px
+    padding 10px 12px
+    margin-bottom 10px
+    border 1px solid $cn-border
+    border-radius 8px
+    background $cn-panel-soft
+
+    strong
+      color $cn-text
+      font-size 15px
+
+    span
+      color $cn-muted
+      font-size 12px
+
+  .transfer-list-card
+    .ant-popover-inner
+      border-radius 8px
+      border 1px solid $cn-border
+      box-shadow 0 18px 46px rgba(15, 23, 42, .18)
+
+  .transfer-list-card .ant-popover-inner-content
+    padding 0
+
+  .terminal-info-wrap,
+  .ai-chat-wrap
+    background $cn-panel
+
+  .login-wrap
+    background $cn-bg
+
+  .login-wrap .pd3.aligncenter
+    background $cn-panel
+    border 1px solid $cn-border
+    border-radius 8px
+    box-shadow 0 18px 50px rgba(15, 23, 42, .12)
+    max-width 420px
+    margin 18vh auto 0
+
+// 2026-07-02 coder(lq): Workbench design system v2. This block intentionally sits last to normalize legacy electerm setting layouts with one consistent China ops palette.
+#container
+  .setting-wrap.custom-drawer
+    background transparent !important
+
+    .custom-drawer-mask
+      background rgba(15, 23, 42, .08) !important
+
+    .custom-drawer-content-wrapper,
+    .custom-drawer-content
+      background #f5f7fb !important
+      color #1f2937 !important
+
+  .cn-setting-header
+    height 76px !important
+    padding 12px 28px 12px 28px !important
+    background #fff !important
+    border-bottom 1px solid #d8e0ea !important
+    box-shadow none !important
+
+  .cn-setting-brand
+    gap 12px
+
+    strong
+      font-size 18px !important
+      line-height 24px !important
+      font-weight 700
+
+    em
+      font-size 12px !important
+      color #667085 !important
+
+  .cn-setting-logo
+    width 36px !important
+    height 36px !important
+    border-radius 8px !important
+    background #1677ff !important
+
+  .setting-tabs
+    top 76px !important
+    height 58px
+    padding 10px 18px 0 18px !important
+    background #fff !important
+    border-bottom 1px solid #d8e0ea !important
+    box-shadow none !important
+
+    .ant-tabs-nav
+      margin 0 !important
+
+    .ant-tabs-tab
+      height 38px
+      padding 0 18px !important
+      display flex
+      align-items center
+      border 1px solid #d8e0ea !important
+      border-bottom none !important
+      border-radius 7px 7px 0 0 !important
+      background #fff !important
+      color #667085 !important
+
+    .ant-tabs-tab-active
+      background #f5f8ff !important
+      border-color #1677ff !important
+
+    .ant-tabs-tab-active .ant-tabs-tab-btn
+      color #1677ff !important
+      font-weight 700
+
+    .ant-tabs-ink-bar
+      display none
+
+  .cn-setting-context
+    position absolute
+    z-index 3
+    top 134px
+    left 18px
+    right 18px
+    height 44px
+    display flex
+    align-items center
+    justify-content space-between
+    gap 16px
+    padding 0 16px
+    border 1px solid #d8e0ea
+    border-radius 8px
+    background #fff
+    box-shadow 0 6px 16px rgba(15, 23, 42, .04)
+
+    strong
+      color #1f2937
+      font-size 15px
+      line-height 22px
+      font-weight 700
+
+    span
+      min-width 0
+      color #667085
+      font-size 12px
+      line-height 18px
+      text-align right
+
+  .setting-row
+    top 190px !important
+    bottom 0 !important
+    background #f5f7fb !important
+    overflow auto
+
+  .setting-tabs-bookmarks
+    .setting-row-left
+      left 0 !important
+      width 324px !important
+      padding 16px 0 16px 18px !important
+
+    .setting-row-right
+      left 342px !important
+      right 0 !important
+      padding 16px 18px 24px 0 !important
+
+  .setting-tabs-setting
+    .setting-row-left
+      width 292px !important
+      padding 16px 0 16px 18px !important
+
+    .setting-row-right
+      left 310px !important
+      padding 16px 18px 24px 0 !important
+
+  .setting-row-left .model-bookmark-tree-wrap,
+  .item-list,
+  .form-wrap,
+  .setting-row-right > div
+    background #fff !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    box-shadow 0 8px 20px rgba(15, 23, 42, .04) !important
+
+  .setting-row-left .model-bookmark-tree-wrap
+    padding 14px !important
+    min-height calc(100vh - 232px)
+
+    &:before
+      content '服务器分组'
+      display block
+      padding 2px 6px 12px
+      color #1f2937
+      font-size 14px
+      font-weight 700
+
+  .setting-row-left .tree-item,
+  .item-list-unit
+    height 32px
+    min-height 32px
+    line-height 32px
+    border-radius 6px !important
+    color #344054 !important
+    margin 2px 0 !important
+    padding 0 8px !important
+
+    &:hover,
+    &.selected,
+    &.active
+      background #eef5ff !important
+      color #1677ff !important
+
+  .cn-bookmark-form
+    max-width none !important
+    min-height calc(100vh - 176px)
+    margin 0 !important
+    overflow hidden
+
+  .cn-bookmark-form-title
+    min-height 112px
+    padding 18px 24px !important
+    background #fff !important
+    border-bottom 1px solid #d8e0ea !important
+
+  .cn-bookmark-title-main
+    font-size 17px !important
+    line-height 24px
+    color #1f2937 !important
+
+  .cn-bookmark-title-sub
+    margin 4px 0 14px !important
+    color #667085 !important
+    font-size 12px !important
+
+  .cn-bookmark-type-row
+    gap 8px !important
+
+    .ant-radio-button-wrapper
+      height 30px !important
+      line-height 28px !important
+      padding 0 12px !important
+      border 1px solid #d8e0ea !important
+      border-radius 6px !important
+      background #fff !important
+      color #344054 !important
+      font-size 13px !important
+      font-weight 600
+
+      &:before
+        display none !important
+
+    .ant-radio-button-wrapper-checked
+      background #1677ff !important
+      border-color #1677ff !important
+      color #fff !important
+
+  .cn-bookmark-form .ant-tabs
+    background #fff !important
+
+  .cn-bookmark-form .ant-tabs-nav
+    height 48px
+    margin 0 !important
+    padding 0 24px !important
+    background #fff !important
+    border-bottom 1px solid #d8e0ea !important
+
+  .cn-bookmark-form .ant-tabs-tab
+    height 48px
+    padding 0 0 !important
+    margin 0 34px 0 0 !important
+    color #667085 !important
+    font-size 14px
+
+  .cn-bookmark-form .ant-tabs-tab-active .ant-tabs-tab-btn
+    color #1677ff !important
+    font-weight 700
+
+  .cn-bookmark-form .ant-tabs-ink-bar
+    height 2px !important
+    background #1677ff !important
+
+  .cn-connection-form
+    background #fff !important
+
+  .cn-connection-form-body
+    padding 24px 24px 18px !important
+    max-width 920px !important
+    margin 0 auto !important
+
+  .cn-form-section-title
+    display flex
+    align-items baseline
+    gap 12px
+    margin 0 0 20px 132px
+
+    strong
+      color #1f2937
+      font-size 15px
+      line-height 22px
+      font-weight 700
+
+    span
+      color #667085
+      font-size 12px
+
+  .cn-form-fields
+    width 100%
+
+  .cn-connection-form .ant-form-item
+    margin 0 0 16px !important
+    max-width 820px
+
+  .cn-connection-form .ant-form-item-row
+    display flex !important
+    align-items flex-start !important
+    flex-wrap nowrap !important
+    gap 16px !important
+    width 100%
+
+  .cn-connection-form .ant-col,
+  .cn-connection-form .ant-col-sm-8,
+  .cn-connection-form .ant-col-sm-16,
+  .cn-connection-form .ant-col-offset-8
+    flex none !important
+    max-width none !important
+    margin-left 0 !important
+
+  .cn-connection-form .ant-form-item-label
+    width 116px !important
+    min-width 116px !important
+    padding 0 !important
+    text-align right !important
+    white-space nowrap !important
+    overflow visible !important
+
+    > label
+      height 36px !important
+      line-height 36px !important
+      color #344054 !important
+      font-size 13px !important
+      font-weight 600 !important
+
+  .cn-connection-form .ant-form-item-control
+    flex 1 1 auto !important
+    width auto !important
+    min-width 0
+
+  .cn-connection-form .ant-form-item-control-input
+    min-height 36px !important
+
+  .cn-bookmark-form .ant-input,
+  .cn-bookmark-form .ant-input-affix-wrapper,
+  .cn-bookmark-form .ant-input-number,
+  .cn-bookmark-form .ant-select-selector,
+  .cn-bookmark-form textarea
+    height 36px
+    min-height 36px !important
+    border 1px solid #cfd8e6 !important
+    border-radius 6px !important
+    background #fff !important
+    color #1f2937 !important
+    box-shadow none !important
+
+  .cn-bookmark-form textarea
+    height auto
+
+  .cn-bookmark-form .ant-input:focus,
+  .cn-bookmark-form .ant-input-affix-wrapper-focused,
+  .cn-bookmark-form .ant-input-number-focused,
+  .cn-bookmark-form .ant-select-focused .ant-select-selector
+    border-color #1677ff !important
+    box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+
+  .cn-bookmark-form .ant-input::placeholder,
+  .cn-bookmark-form textarea::placeholder
+    color #98a2b3 !important
+
+  .cn-field-category,
+  .cn-field-title,
+  .cn-field-host,
+  .cn-field-username,
+  .cn-field-password,
+  .cn-field-description,
+  .cn-field-setEnv,
+  .cn-field-startDirectoryLocal,
+  .cn-field-startDirectory,
+  .cn-field-interactiveValues,
+  .cn-field-envLang,
+  .cn-field-encode,
+  .cn-field-auth-type
+    width 820px !important
+    max-width 820px !important
+
+  .cn-field-port,
+  .cn-field-isMFA
+    width 360px !important
+    max-width 360px !important
+
+  .cn-field-useSshAgent
+    width 560px !important
+    max-width 560px !important
+
+    .ant-space
+      display grid !important
+      grid-template-columns auto 220px 20px
+      gap 10px !important
+      align-items center
+
+  .cn-field-auth-type .ant-radio-group
+    display flex !important
+    gap 8px
+
+  .cn-field-auth-type .ant-radio-button-wrapper
+    min-width 86px
+    height 32px
+    line-height 30px
+    border 1px solid #d8e0ea !important
+    border-radius 6px !important
+    text-align center
+    font-weight 600
+
+    &:before
+      display none !important
+
+  .cn-field-auth-type .ant-radio-button-wrapper-checked
+    background #1677ff !important
+    border-color #1677ff !important
+    color #fff !important
+
+  .cn-connection-form > .ant-form-item:last-child
+    margin 0 !important
+    max-width none !important
+    padding 14px 24px !important
+    border-top 1px solid #d8e0ea !important
+    background #fbfdff !important
+
+    .ant-form-item-row
+      display block !important
+
+    .ant-form-item-control
+      width 100% !important
+
+    p
+      display flex
+      justify-content flex-end
+      gap 8px
+      margin 0 0 8px !important
+
+      &:last-child
+        margin-bottom 0 !important
+
+    .ant-btn
+      height 34px
+      margin 0 !important
+      border-radius 6px !important
+
+// 2026-07-02 coder(lq): Color normalization for settings and connection pages. Only selected states and primary commands use blue; all secondary controls stay white with neutral borders.
+#container
+  .setting-wrap
+    .ant-btn
+      height 32px
+      border-radius 6px !important
+      border-color #d8e0ea !important
+      background #fff !important
+      color #344054 !important
+      box-shadow none !important
+
+      &:hover
+        border-color #1677ff !important
+        color #1677ff !important
+        background #f5f8ff !important
+
+    .ant-btn-primary
+      background #1677ff !important
+      border-color #1677ff !important
+      color #fff !important
+
+      &:hover
+        background #0958d9 !important
+        border-color #0958d9 !important
+        color #fff !important
+
+    .ant-btn-dashed
+      background #fff !important
+      border-color #d8e0ea !important
+      color #344054 !important
+
+  .setting-row-left
+    .ant-btn,
+    button,
+    .control-icon,
+    .tree-control-icon,
+    .bookmark-toolbar .ant-btn
+      background #fff !important
+      border-color #d8e0ea !important
+      color #344054 !important
+
+      &:hover
+        background #f5f8ff !important
+        border-color #1677ff !important
+        color #1677ff !important
+
+    .ant-input,
+    .ant-input-affix-wrapper,
+    input
+      background #fff !important
+      border-color #d8e0ea !important
+      color #1f2937 !important
+
+      &::placeholder
+        color #98a2b3 !important
+
+  .setting-row-left .model-bookmark-tree-wrap
+    .ant-space-compact
+      gap 4px
+
+    .ant-space-compact .ant-btn,
+    .pd1b .ant-btn,
+    .upload-bookmark-icon .ant-btn
+      width 34px !important
+      height 32px !important
+      padding 0 !important
+      border 1px solid #d8e0ea !important
+      border-radius 6px !important
+      background #fff !important
+      color #344054 !important
+
+      &:hover
+        background #f5f8ff !important
+        border-color #1677ff !important
+        color #1677ff !important
+
+    .ant-input-search,
+    .ant-input-affix-wrapper,
+    .ant-input
+      height 34px !important
+      background #fff !important
+      color #1f2937 !important
+      border-color #d8e0ea !important
+
+    .ant-input-group-addon .ant-btn,
+    .ant-input-search-button
+      background #fff !important
+      border-color #d8e0ea !important
+      color #344054 !important
+
+      &:hover
+        background #f5f8ff !important
+        border-color #1677ff !important
+        color #1677ff !important
+
+  .cn-bookmark-form
+    .ant-select-selector,
+    .ant-select-single .ant-select-selector,
+    .ant-select:not(.ant-select-customize-input) .ant-select-selector
+      background #fff !important
+      border-color #cfd8e6 !important
+      color #1f2937 !important
+
+    .ant-select-selection-item
+      color #1f2937 !important
+
+    .ant-select-arrow
+      color #667085 !important
+
+    .cn-category-tree-select,
+    .cn-category-tree-select .ant-select-selector
+      background #fff !important
+      border-color #cfd8e6 !important
+      color #1f2937 !important
+
+    .cn-category-tree-select .ant-select-selection-item
+      color #1f2937 !important
+
+    .cn-category-tree-select .ant-select-selection-search-input
+      background transparent !important
+      color #1f2937 !important
+
+    .ant-radio-button-wrapper
+      background #fff !important
+      border-color #d8e0ea !important
+      color #344054 !important
+      box-shadow none !important
+
+      &:hover
+        color #1677ff !important
+        border-color #1677ff !important
+
+      &:before
+        display none !important
+
+    .ant-radio-button-wrapper-checked
+      background #1677ff !important
+      border-color #1677ff !important
+      color #fff !important
+
+    .create-ai-btn,
+    .cn-bookmark-type-row .create-ai-btn
+      background #fff !important
+      border-color #d8e0ea !important
+      color #344054 !important
+
+      &:hover
+        background #f5f8ff !important
+        border-color #1677ff !important
+        color #1677ff !important
+
+    .ant-input-affix-wrapper .ant-input,
+    .ant-auto-complete .ant-input,
+    .ant-input-number-input
+      background transparent !important
+      color #1f2937 !important
+
+    .ant-input-affix-wrapper-focused,
+    .ant-input:focus,
+    .ant-input-number-focused,
+    .ant-select-focused .ant-select-selector
+      border-color #1677ff !important
+      box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+
+    .category-color-tag,
+    .color-picker-choose
+      border 1px solid #d8e0ea !important
+      background #1677ff !important
+
+    .ant-input-prefix .color-picker-choose,
+    .ant-input-prefix .category-color-tag
+      width 14px !important
+      height 14px !important
+      border-radius 3px !important
+      margin-right 8px !important
+      background #1677ff !important
+
+    .ant-input-password,
+    .ant-input-password .ant-input
+      background #fff !important
+      color #1f2937 !important
+
+    .ant-input-password-icon
+      color #98a2b3 !important
+
+  .cn-bookmark-type-row
+    .ant-radio-button-wrapper
+      background #fff !important
+      color #344054 !important
+      border-color #d8e0ea !important
+
+    .ant-radio-button-wrapper-checked
+      background #1677ff !important
+      border-color #1677ff !important
+      color #fff !important
+
+  .cn-field-auth-type
+    .ant-radio-button-wrapper
+      background #fff !important
+      color #344054 !important
+      border-color #d8e0ea !important
+
+    .ant-radio-button-wrapper-checked
+      background #1677ff !important
+      border-color #1677ff !important
+      color #fff !important
+
+  .cn-connection-form > .ant-form-item:last-child
+    .ant-btn
+      background #fff !important
+      border-color #d8e0ea !important
+      color #344054 !important
+
+      &:hover
+        background #f5f8ff !important
+        border-color #1677ff !important
+        color #1677ff !important
+
+.cn-category-tree-dropdown
+  background #fff !important
+  border 1px solid #d8e0ea !important
+  border-radius 8px !important
+  box-shadow 0 12px 30px rgba(15, 23, 42, .14) !important
+
+  .ant-select-tree
+    background #fff !important
+    color #1f2937 !important
+
+  .ant-select-tree-node-content-wrapper
+    color #344054 !important
+    border-radius 6px !important
+
+    &:hover
+      background #f5f8ff !important
+      color #1677ff !important
+
+  .ant-select-tree-node-selected
+    background #eef5ff !important
+    color #1677ff !important
+
+  .ant-select-tree-switcher,
+  .ant-select-tree-iconEle
+    color #667085 !important
+
+// 2026-07-02 coder(lq): Normalize every settings tab after users drill into sub-pages, keeping the enterprise China ops palette consistent beyond the landing workbench.
+#container
+  .setting-wrap
+    .setting-tabs .ant-tabs-nav:before,
+    .cn-bookmark-form .ant-tabs-nav:before,
+    .form-wrap .ant-tabs-nav:before,
+    .cn-widgets-list .ant-tabs-nav:before
+      border-bottom 1px solid #d8e0ea !important
+
+    .setting-tabs-terminal-themes,
+    .setting-tabs-quick-commands,
+    .setting-tabs-profile,
+    .setting-tabs-widgets
+      .setting-row-left
+        left 0 !important
+        width 304px !important
+        padding 16px 0 16px 18px !important
+        background #f5f7fb !important
+
+      .setting-row-right
+        left 322px !important
+        right 0 !important
+        padding 16px 18px 24px 0 !important
+        background #f5f7fb !important
+
+  .setting-tabs-setting
+    .setting-row-right
+      .form-wrap,
+      .setting-passwords,
+      .cn-setting-detail-form
+          min-height calc(100vh - 232px)
+
+    .setting-tabs-terminal-themes,
+    .setting-tabs-quick-commands,
+    .setting-tabs-profile,
+    .setting-tabs-widgets,
+    .setting-tabs-setting
+      .item-list
+        min-height calc(100vh - 232px)
+        padding 12px !important
+        overflow hidden
+
+        &:before
+          display block
+          padding 2px 6px 12px
+          color #1f2937
+          font-size 14px
+          font-weight 700
+
+      .item-list .pd1y,
+      .item-list .pd1b
+        padding 0 0 10px !important
+
+      .item-list-wrap
+        padding 2px 0 !important
+        max-height calc(100vh - 340px)
+        overflow auto
+
+      .item-list-unit
+        height auto
+        min-height 36px
+        line-height 20px
+        display flex
+        align-items center
+        padding 0 8px !important
+        border 1px solid transparent !important
+        border-radius 6px !important
+        background transparent !important
+        color #344054 !important
+
+        > div:first-child
+          flex 1
+          padding 8px 32px 8px 8px !important
+          color inherit !important
+
+        svg
+          color inherit
+
+        &:hover
+          background #f5f8ff !important
+          border-color #d8e0ea !important
+          color #1677ff !important
+
+        &.active,
+        &.current
+          background #eef5ff !important
+          border-color #b8d8ff !important
+          color #1677ff !important
+          font-weight 700
+
+      .list-item-edit,
+      .list-item-apply,
+      .list-item-remove,
+      .list-item-duplicate
+        top 6px !important
+        color #667085 !important
+
+        &:hover
+          color #1677ff !important
+
+      .form-wrap,
+      .widget-control,
+      .setting-row-right > .pd2l
+        min-height calc(100vh - 232px)
+        padding 18px 22px !important
+        overflow auto
+
+    .setting-tabs-setting .item-list:before
+      content '设置分类'
+
+    .setting-tabs-terminal-themes .item-list:before
+      content '主题列表'
+
+    .setting-tabs-quick-commands .item-list:before
+      content '命令列表'
+
+    .setting-tabs-profile .item-list:before
+      content '模板列表'
+
+    .setting-tabs-widgets .item-list:before
+      content '工具列表'
+
+    .setting-tabs-setting .setting-row-left,
+    .setting-tabs-terminal-themes .setting-row-left,
+    .setting-tabs-quick-commands .setting-row-left,
+    .setting-tabs-profile .setting-row-left,
+    .setting-tabs-widgets .setting-row-left
+      .item-list,
+      .cn-widgets-list
+        background #fff !important
+        border 1px solid #d8e0ea !important
+        border-radius 8px !important
+        box-shadow 0 8px 20px rgba(15, 23, 42, .04) !important
+
+    // 2026-07-03 coder(lq): Use explicit column headers for the settings master-detail layout instead of hidden pseudo titles that made page hierarchy ambiguous.
+    .cn-setting-column-head
+      min-height 48px
+      margin 0 0 10px
+      padding 10px 14px
+      border 1px solid #d8e0ea
+      border-radius 8px
+      background #fff
+      box-shadow 0 6px 16px rgba(15, 23, 42, .04)
+
+      strong
+        display block
+        color #1f2937
+        font-size 14px
+        line-height 20px
+        font-weight 700
+
+      span
+        display block
+        margin-top 2px
+        color #667085
+        font-size 12px
+        line-height 18px
+
+      &.detail
+        background #fbfdff
+
+    .setting-row-left .model-bookmark-tree-wrap:before,
+    .setting-tabs-setting .item-list:before,
+    .setting-tabs-terminal-themes .item-list:before,
+    .setting-tabs-quick-commands .item-list:before,
+    .setting-tabs-profile .item-list:before,
+    .setting-tabs-widgets .item-list:before
+      display none !important
+      content none !important
+
+    .cn-setting-detail-form,
+    .cn-theme-form,
+    .widget-control,
+    .setting-passwords
+      background #fff !important
+      border 1px solid #d8e0ea !important
+      border-radius 8px !important
+      box-shadow 0 8px 20px rgba(15, 23, 42, .04) !important
+      color #1f2937 !important
+
+    .cn-setting-card-title,
+    .form-wrap > h2,
+    .form-wrap > .font16.bold,
+    .widget-form > .pd1b
+      display flex
+      align-items center
+      justify-content space-between
+      gap 12px
+      min-height 44px
+      margin -18px -22px 18px !important
+      padding 14px 22px !important
+      border-bottom 1px solid #d8e0ea
+      background #fbfdff
+      color #1f2937 !important
+      font-size 15px !important
+      line-height 22px
+      font-weight 700
+
+      strong,
+      h3,
+      h4
+        margin 0 !important
+        color #1f2937 !important
+        font-size 15px !important
+        line-height 22px
+        font-weight 700
+
+      span,
+      p,
+      em
+        margin 0 !important
+        color #667085 !important
+        font-size 12px !important
+        line-height 18px
+        font-weight 400
+
+    .form-wrap > h2
+      &:after
+        content '常用偏好和全局行为'
+        color #667085
+        font-size 12px
+        font-weight 400
+
+    .form-wrap > .font16.bold
+      &:after
+        content '终端显示、输入、日志和背景'
+        color #667085
+        font-size 12px
+        font-weight 400
+
+    .setting-passwords-header
+      h3
+        display none
+
+    .ant-form-item
+      margin-bottom 16px !important
+
+    .ant-form-item-label > label,
+    .inline-title,
+    .pd1b,
+    .pd2b > span:first-child
+      color #344054 !important
+      font-size 13px !important
+      font-weight 600
+
+    .ant-input,
+    .ant-input-affix-wrapper,
+    .ant-input-number,
+    .ant-select-selector,
+    .ant-auto-complete .ant-input,
+    .shortcut-input,
+    input.form-control
+      min-height 34px !important
+      border 1px solid #cfd8e6 !important
+      border-radius 6px !important
+      background #fff !important
+      color #1f2937 !important
+      box-shadow none !important
+
+    textarea.ant-input,
+    .ant-input-textarea textarea
+      min-height 86px !important
+      height auto !important
+      line-height 20px
+
+    .ant-input::placeholder,
+    textarea.ant-input::placeholder,
+    .ant-select-selection-placeholder
+      color #98a2b3 !important
+
+    .ant-input:focus,
+    .ant-input-focused,
+    .ant-input-affix-wrapper-focused,
+    .ant-input-number-focused,
+    .ant-select-focused .ant-select-selector,
+    .shortcut-input:focus
+      border-color #1677ff !important
+      box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+
+    .ant-select-selection-item,
+    .ant-select-selection-search-input,
+    .ant-input-number-input,
+    .ant-input-affix-wrapper .ant-input
+      color #1f2937 !important
+      background transparent !important
+
+    .ant-select-arrow,
+    .ant-input-suffix,
+    .ant-input-prefix
+      color #667085 !important
+
+    .ant-switch
+      background #cfd8e6 !important
+
+    .ant-switch-checked
+      background #1677ff !important
+
+    .ant-switch-inner
+      color #fff !important
+
+    .ant-tabs
+      color #1f2937 !important
+
+    .ant-tabs-nav
+      margin 0 0 16px !important
+
+    .ant-tabs-tab
+      padding 8px 12px !important
+      border-radius 6px !important
+      color #667085 !important
+      font-size 13px
+
+      &:hover
+        color #1677ff !important
+
+    .ant-tabs-tab-active
+      background #eef5ff !important
+
+    .ant-tabs-tab-active .ant-tabs-tab-btn
+      color #1677ff !important
+      font-weight 700
+
+    .ant-tabs-ink-bar
+      background #1677ff !important
+
+    .ant-table
+      color #1f2937 !important
+      border-radius 8px !important
+      overflow hidden
+
+    .ant-table,
+    .ant-table-container,
+    .ant-table-content,
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td
+      background #fff !important
+      border-color #d8e0ea !important
+
+    .ant-table-thead > tr > th
+      background #f8fafc !important
+      color #344054 !important
+      font-weight 700
+
+    .ant-table-tbody > tr:hover > td
+      background #f5f8ff !important
+
+    .ant-pagination
+      margin 12px 0 0 !important
+
+    .ant-pagination-simple .ant-pagination-simple-pager input
+      background #fff !important
+      border-color #d8e0ea !important
+      color #1f2937 !important
+
+    .shortcut-unit
+      display inline-flex
+      align-items center
+      min-height 24px
+      margin 2px 4px 2px 0
+      padding 0 8px
+      border 1px solid #d8e0ea
+      border-radius 5px
+      background #f8fafc
+      color #344054
+
+    .edit-shortcut-button,
+    .shortcut-edit-icon
+      color #1677ff !important
+
+    .editor-u-picker
+      display grid
+      grid-template-columns repeat(auto-fill, minmax(260px, 1fr))
+      gap 10px 14px
+      padding 12px
+      border 1px solid #d8e0ea
+      border-radius 8px
+      background #fbfdff
+
+    .theme-edit-slot
+      display flex
+      align-items center
+      justify-content space-between
+      gap 10px
+      min-height 34px
+      padding 8px 10px
+      border 1px solid #e4eaf2
+      border-radius 6px
+      background #fff
+      color #344054
+
+    .editor-u-picker
+      display grid !important
+      grid-template-columns repeat(auto-fill, minmax(220px, 1fr)) !important
+      gap 10px !important
+      padding 12px !important
+      border 1px solid #d8e0ea !important
+      border-radius 8px !important
+      background #fbfdff !important
+
+    .theme-edit-slot
+      min-height 54px !important
+      padding 10px 12px !important
+      border 1px solid #e4eaf2 !important
+      border-radius 8px !important
+      background #fff !important
+      color #344054 !important
+
+    .theme-edit-slot-label
+      min-width 0 !important
+      display flex !important
+      flex-direction column !important
+      gap 2px !important
+
+      strong
+        color #1f2937 !important
+        font-size 13px !important
+        line-height 18px !important
+        font-weight 700 !important
+
+      em
+        max-width 150px !important
+        overflow hidden !important
+        text-overflow ellipsis !important
+        white-space nowrap !important
+        color #667085 !important
+        font-style normal !important
+        font-size 11px !important
+
+    .theme-edit-slot-picker
+      flex 0 0 auto !important
+
+    .widget-control-empty
+      min-height calc(100vh - 176px)
+      display flex
+      align-items center
+      justify-content center
+      border 1px dashed #cfd8e6
+      border-radius 8px
+      background #fbfdff
+      color #667085
+
+    .widget-form
+      color #1f2937
+
+      p
+        color #667085
+
+    .cn-widgets-list
+      min-height calc(100vh - 176px)
+      padding 12px !important
+      overflow hidden
+
+      > .ant-tabs
+        margin -2px 0 8px
+
+      > .pd2x
+        padding 0 !important
+
+    .setting-tabs-widgets .item-list
+      min-height auto
+      border none !important
+      box-shadow none !important
+      padding 0 !important
+
+      &:before
+        display none
+
+    .theme-item .ant-tag
+      border-radius 5px !important
+      min-width 24px
+      text-align center
+
+    .ant-alert
+      border-radius 8px !important
+      border-color #b8d8ff !important
+      background #f5f8ff !important
+      color #344054 !important
+
+.ant-select-dropdown,
+.ant-tree-select-dropdown,
+.ant-dropdown,
+.ant-popover-inner,
+.ant-tooltip-inner
+  border-radius 8px !important
+
+.ant-select-dropdown
+  background #fff !important
+  border 1px solid #d8e0ea !important
+  box-shadow 0 12px 30px rgba(15, 23, 42, .14) !important
+
+  .ant-select-item
+    color #344054 !important
+    border-radius 6px !important
+
+  .ant-select-item-option-active,
+  .ant-select-item-option-selected
+    background #eef5ff !important
+    color #1677ff !important
+
+.ant-popover-inner
+  background #fff !important
+  border 1px solid #d8e0ea !important
+  color #1f2937 !important
+
+.ant-popover-title,
+.ant-popover-inner-content
+  color #1f2937 !important
+
+// 2026-07-03 coder(lq): Bookmark forms use compound AntD inputs for host color markers and password visibility; reset the inner input so global field rules do not create nested borders or vertical drift.
+#container .setting-wrap .cn-bookmark-form
+  .ant-input-affix-wrapper
+    display flex !important
+    align-items center !important
+    height 36px !important
+    min-height 36px !important
+    padding 0 10px !important
+    border 1px solid #cfd8e6 !important
+    border-radius 6px !important
+    background #fff !important
+    box-shadow none !important
+
+    &.ant-input-affix-wrapper-focused
+      border-color #1677ff !important
+      box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+
+    .ant-input
+      height 34px !important
+      min-height 0 !important
+      padding 0 !important
+      border 0 !important
+      border-radius 0 !important
+      background transparent !important
+      box-shadow none !important
+      line-height 34px !important
+
+      &:focus
+        border 0 !important
+        box-shadow none !important
+
+  .ant-input-prefix,
+  .ant-input-suffix
+    display inline-flex !important
+    align-items center !important
+    height 34px !important
+
+  .ant-input-prefix
+    margin-right 8px !important
+
+  .ant-input-suffix
+    margin-left 8px !important
+
+  .ant-input-password
+    overflow hidden !important
+
+    .ant-input-password-icon
+      display inline-flex !important
+      align-items center !important
+      color #98a2b3 !important
+
+  .ant-auto-complete
+    width 100% !important
+
+    .ant-input-affix-wrapper
+      width 100% !important
+
+// 2026-07-03 coder(lq): Final layout baseline for the bookmark editor. Earlier skin layers touched the same form several times; this block pins the editor to a predictable master-detail and form-row structure.
+#container .setting-wrap
+  .setting-tabs-bookmarks
+    .setting-row-right > .cn-setting-column-head.detail
+      display none !important
+
+    .setting-row-right
+      display flex !important
+      flex-direction column !important
+      min-width 0 !important
+      overflow hidden !important
+
+  .cn-bookmark-form
+    display flex !important
+    flex-direction column !important
+    width 100% !important
+    max-width none !important
+    min-height calc(100vh - 232px) !important
+    margin 0 !important
+    overflow hidden !important
+
+    .cn-bookmark-form-title
+      flex 0 0 auto !important
+
+    .cn-connection-form
+      flex 1 1 auto !important
+      min-height 0 !important
+      display flex !important
+      flex-direction column !important
+      background #fff !important
+
+    .ant-tabs
+      flex 1 1 auto !important
+      min-height 0 !important
+      display flex !important
+      flex-direction column !important
+
+    .ant-tabs-content-holder
+      flex 1 1 auto !important
+      min-height 0 !important
+      overflow auto !important
+
+    .ant-tabs-content,
+    .ant-tabs-tabpane,
+    .ant-tabs-tabpane-active
+      min-height 0 !important
+
+    .cn-connection-form-body
+      width 100% !important
+      max-width 960px !important
+      margin 0 auto !important
+      padding 24px 24px 18px !important
+      box-sizing border-box !important
+
+    .cn-form-section-title
+      width 100% !important
+      max-width 820px !important
+      margin 0 auto 20px !important
+      padding-left 132px !important
+      box-sizing border-box !important
+
+    .cn-form-fields
+      width 100% !important
+
+    .cn-connection-form .ant-form-item
+      width 100% !important
+      max-width 820px !important
+      margin 0 auto 16px !important
+      box-sizing border-box !important
+
+    .cn-connection-form .ant-form-item-row
+      display grid !important
+      grid-template-columns 116px minmax(0, 1fr) !important
+      gap 16px !important
+      align-items start !important
+      width 100% !important
+
+    .cn-connection-form .ant-form-item-label
+      width 116px !important
+      min-width 116px !important
+      padding 0 !important
+      text-align right !important
+      line-height 36px !important
+
+      > label
+        height 36px !important
+        line-height 36px !important
+
+    .cn-connection-form .ant-form-item-control
+      width 100% !important
+      min-width 0 !important
+      grid-column 2 !important
+
+    .cn-connection-form .ant-form-item-control-input,
+    .cn-connection-form .ant-form-item-control-input-content
+      width 100% !important
+      min-width 0 !important
+
+    .dns-section
+      display none !important
+
+    .cn-connection-form > .ant-form-item:last-child
+      flex 0 0 auto !important
+      max-width none !important
+      width 100% !important
+      margin auto 0 0 !important
+      padding 14px 24px !important
+      border-top 1px solid #d8e0ea !important
+      background #fbfdff !important
+
+      .ant-form-item-row
+        display block !important
+
+      .ant-form-item-control
+        width 100% !important
+        grid-column auto !important
+
+      p
+        display flex !important
+        justify-content flex-end !important
+        flex-wrap wrap !important
+        gap 8px !important
+        margin 0 0 8px !important
+
+        &:last-child
+          margin-bottom 0 !important
+
+// 2026-07-03 coder(lq): Resource management pages use a Resource Master template, separate from the Settings template.
+#container .setting-wrap.cn-area-resource
+  .custom-drawer-content
+    background #f5f7fb !important
+
+  .cn-setting-header
+    height 72px !important
+    padding 12px 24px 12px 28px !important
+    background #fff !important
+    border-bottom 1px solid #d8e0ea !important
+    box-shadow none !important
+
+  .cn-setting-brand
+    strong
+      font-size 18px !important
+      line-height 24px !important
+
+    em
+      max-width 760px
+      color #667085 !important
+      font-size 12px !important
+
+  .cn-setting-status
+    b
+      color #1677ff !important
+      background #eef5ff !important
+      border-color #b8d8ff !important
+
+  .setting-tabs
+    top 72px !important
+    height 52px !important
+    padding 8px 18px 0 18px !important
+    background #fff !important
+    border-bottom 1px solid #d8e0ea !important
+    box-shadow none !important
+
+    .ant-tabs-tab
+      height 36px !important
+      padding 0 16px !important
+      border-radius 6px 6px 0 0 !important
+
+  .cn-setting-context
+    top 124px !important
+    left 18px !important
+    right 18px !important
+    height 42px !important
+    box-shadow none !important
+
+  .setting-row
+    top 178px !important
+    bottom 0 !important
+
+  .setting-tabs-bookmarks
+    .setting-row-left
+      left 0 !important
+      width 328px !important
+      padding 14px 0 16px 18px !important
+      overflow hidden !important
+
+    .setting-row-right
+      left 346px !important
+      right 0 !important
+      padding 14px 18px 16px 0 !important
+      overflow hidden !important
+
+  .cn-resource-master-template
+    .cn-master-pane
+      display flex !important
+      flex-direction column !important
+      min-height 0 !important
+
+    .cn-detail-pane
+      display flex !important
+      flex-direction column !important
+      min-width 0 !important
+      min-height 0 !important
+
+  .cn-master-pane
+    .cn-setting-column-head
+      flex 0 0 auto
+      margin 0 0 10px !important
+      padding 10px 14px !important
+      border 1px solid #d8e0ea !important
+      border-radius 8px !important
+      background #fff !important
+      box-shadow none !important
+
+      strong
+        font-size 14px !important
+        color #1f2937 !important
+
+      span
+        color #667085 !important
+
+  .model-bookmark-tree-wrap
+    flex 1 1 auto !important
+    min-height 0 !important
+    height auto !important
+    padding 0 !important
+    overflow hidden !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    box-shadow none !important
+
+    &:before
+      display none !important
+      content none !important
+
+  .tree-list
+    height 100% !important
+    display flex !important
+    flex-direction column !important
+    min-height 0 !important
+
+  .tree-list-header
+    flex 0 0 auto !important
+    padding 12px !important
+    border-bottom 1px solid #edf1f7 !important
+    background #fbfdff !important
+
+    .pd1b,
+    .pd1r,
+    .pd1y
+      padding 0 !important
+      margin 0 !important
+
+    .pd1b
+      margin-bottom 10px !important
+
+    .ant-space-compact
+      display flex !important
+
+    .ant-btn
+      width 30px !important
+      height 30px !important
+      padding 0 !important
+      border-color #d8e0ea !important
+      background #fff !important
+      color #344054 !important
+
+      &:hover
+        border-color #1677ff !important
+        color #1677ff !important
+
+    .ant-input,
+    .ant-input-affix-wrapper
+      height 32px !important
+      min-height 32px !important
+      border-color #d8e0ea !important
+      background #fff !important
+
+  .item-list-wrap
+    flex 1 1 auto !important
+    min-height 0 !important
+    max-height none !important
+    padding 8px !important
+    overflow auto !important
+
+  .tree-list-row
+    min-height 34px !important
+
+  .tree-list-row-group
+    display flex !important
+    align-items center !important
+    min-height 34px !important
+
+  .tree-item
+    min-height 32px !important
+    height 32px !important
+    line-height 32px !important
+    border 1px solid transparent !important
+    border-radius 6px !important
+    color #344054 !important
+    background transparent !important
+
+    &:hover,
+    &.selected,
+    &.active
+      background #eef5ff !important
+      border-color #b8d8ff !important
+      color #1677ff !important
+
+  .tree-item-title
+    overflow hidden !important
+    text-overflow ellipsis !important
+    white-space nowrap !important
+
+  .cn-detail-pane > .cn-setting-column-head.detail
+    display none !important
+
+  .cn-bookmark-form
+    height 100% !important
+    min-height 0 !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    box-shadow none !important
+
+    .cn-bookmark-form-title
+      min-height 96px !important
+      padding 16px 22px !important
+      border-bottom 1px solid #d8e0ea !important
+      background #fff !important
+
+    .cn-bookmark-title-main
+      font-size 18px !important
+      line-height 24px !important
+      color #1f2937 !important
+
+    .cn-bookmark-title-sub
+      margin 4px 0 12px !important
+      color #667085 !important
+
+    .cn-bookmark-type-row
+      display flex !important
+      gap 8px !important
+      align-items center !important
+      flex-wrap wrap !important
+
+      .ant-radio-group
+        margin 0 !important
+
+      .ant-radio-button-wrapper
+        height 32px !important
+        line-height 30px !important
+        padding 0 14px !important
+
+    .ant-tabs-nav
+      height 46px !important
+      padding 0 22px !important
+      margin 0 !important
+      border-bottom 1px solid #d8e0ea !important
+      background #fbfdff !important
+
+    .ant-tabs-tab
+      height 46px !important
+      margin 0 28px 0 0 !important
+      padding 0 !important
+
+    .cn-connection-form-body
+      max-width 960px !important
+      padding 22px 24px 18px !important
+
+    .cn-form-section-title
+      padding-left 132px !important
+      margin-bottom 18px !important
+
+    .cn-connection-form > .ant-form-item:last-child
+      padding 12px 22px !important
+      background #fbfdff !important
+
+// 2026-07-03 coder(lq): Final template split for settings and tool pages; keeps non-resource tabs from inheriting server-tree layout.
+#container .setting-wrap.cn-area-settings,
+#container .setting-wrap.cn-area-tools
+  .custom-drawer-content
+    background #f5f7fb !important
+
+  .cn-setting-header
+    height 72px !important
+    padding 12px 24px 12px 28px !important
+    background #fff !important
+    border-bottom 1px solid #d8e0ea !important
+    box-shadow none !important
+
+  .cn-setting-brand
+    strong
+      font-size 18px !important
+      line-height 24px !important
+      color #1f2937 !important
+
+    em
+      color #667085 !important
+      font-size 12px !important
+      line-height 18px !important
+
+  .cn-setting-status
+    span
+      color #667085 !important
+
+    b
+      color #1677ff !important
+      background #eef5ff !important
+      border 1px solid #b8d8ff !important
+
+  .setting-tabs
+    top 72px !important
+    height 52px !important
+    padding 8px 18px 0 18px !important
+    background #fff !important
+    border-bottom 1px solid #d8e0ea !important
+    box-shadow none !important
+
+    .ant-tabs-nav
+      margin 0 !important
+
+    .ant-tabs-tab
+      height 36px !important
+      padding 0 16px !important
+      border-radius 6px 6px 0 0 !important
+      background #fff !important
+      border-color transparent !important
+      color #667085 !important
+
+      &:hover
+        color #1677ff !important
+
+    .ant-tabs-tab-active
+      background #eef5ff !important
+      border-color #b8d8ff !important
+
+      .ant-tabs-tab-btn
+        color #1677ff !important
+        font-weight 700 !important
+
+  .cn-setting-context
+    top 124px !important
+    left 18px !important
+    right 18px !important
+    height 42px !important
+    padding 0 14px !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    box-shadow none !important
+
+    strong
+      color #1f2937 !important
+
+    span
+      color #667085 !important
+
+  .setting-row
+    top 178px !important
+    bottom 0 !important
+    overflow hidden !important
+
+  .setting-tabs-setting,
+  .setting-tabs-terminal-themes,
+  .setting-tabs-quick-commands,
+  .setting-tabs-profile,
+  .setting-tabs-widgets
+    .setting-row-left
+      left 0 !important
+      width 312px !important
+      padding 14px 0 16px 18px !important
+      background #f5f7fb !important
+      overflow hidden !important
+
+    .setting-row-right
+      left 330px !important
+      right 0 !important
+      padding 14px 18px 16px 0 !important
+      background #f5f7fb !important
+      overflow hidden !important
+
+  .cn-settings-template,
+  .cn-tools-template
+    .cn-master-pane,
+    .cn-detail-pane
+      display flex !important
+      flex-direction column !important
+      min-height 0 !important
+
+    .cn-detail-pane
+      min-width 0 !important
+
+  .cn-setting-column-head
+    flex 0 0 auto !important
+    min-height 48px !important
+    margin 0 0 10px !important
+    padding 10px 14px !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    box-shadow none !important
+
+    strong
+      display block !important
+      color #1f2937 !important
+      font-size 14px !important
+      line-height 20px !important
+      font-weight 700 !important
+
+    span
+      display block !important
+      margin-top 2px !important
+      color #667085 !important
+      font-size 12px !important
+      line-height 18px !important
+
+    &.detail
+      background #fbfdff !important
+
+  .item-list,
+  .cn-widgets-list
+    flex 1 1 auto !important
+    min-height 0 !important
+    height auto !important
+    padding 12px !important
+    overflow hidden !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    box-shadow none !important
+
+    &:before
+      display none !important
+      content none !important
+
+  .item-list .pd1y,
+  .item-list .pd1b,
+  .cn-widgets-list .pd1y,
+  .cn-widgets-list .pd2x
+    padding 0 0 10px !important
+
+  .item-list-wrap
+    flex 1 1 auto !important
+    min-height 0 !important
+    max-height none !important
+    padding 2px 0 !important
+    overflow auto !important
+
+  .item-list-unit
+    position relative !important
+    display flex !important
+    align-items center !important
+    min-height 36px !important
+    height auto !important
+    margin 0 0 4px !important
+    padding 0 8px !important
+    border 1px solid transparent !important
+    border-radius 6px !important
+    background transparent !important
+    color #344054 !important
+    line-height 20px !important
+
+    > div:first-child
+      flex 1 1 auto !important
+      min-width 0 !important
+      padding 8px 54px 8px 8px !important
+      color inherit !important
+
+    svg
+      color inherit !important
+
+    &:hover
+      background #f5f8ff !important
+      border-color #d8e0ea !important
+      color #1677ff !important
+
+    &.active,
+    &.current
+      background #eef5ff !important
+      border-color #b8d8ff !important
+      color #1677ff !important
+      font-weight 700 !important
+
+  .list-item-edit,
+  .list-item-remove,
+  .list-item-duplicate,
+  .list-item-apply
+    top 8px !important
+    color #667085 !important
+
+    &:hover
+      color #1677ff !important
+
+  .setting-row-right > .form-wrap,
+  .setting-row-right > .cn-setting-detail-form,
+  .setting-row-right > .widget-control,
+  .setting-row-right > .widget-control-empty
+    flex 1 1 auto !important
+    min-height 0 !important
+    height 100% !important
+    margin 0 !important
+    padding 18px 22px !important
+    overflow auto !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    box-shadow none !important
+    color #1f2937 !important
+
+  .cn-setting-card-title,
+  .widget-form > .pd1b,
+  .form-wrap > h2,
+  .form-wrap > .font16.bold
+    display flex !important
+    align-items center !important
+    justify-content space-between !important
+    gap 12px !important
+    min-height 48px !important
+    margin -18px -22px 18px !important
+    padding 14px 22px !important
+    border-bottom 1px solid #d8e0ea !important
+    background #fbfdff !important
+    color #1f2937 !important
+    font-size 15px !important
+    line-height 22px !important
+    font-weight 700 !important
+
+    strong,
+    h3,
+    h4
+      margin 0 !important
+      color #1f2937 !important
+      font-size 15px !important
+      line-height 22px !important
+      font-weight 700 !important
+
+    span,
+    p,
+    em
+      margin 0 !important
+      color #667085 !important
+      font-size 12px !important
+      line-height 18px !important
+      font-weight 400 !important
+
+  .cn-settings-section
+    margin 0 0 16px !important
+    overflow hidden !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+
+  .cn-settings-section-title
+    min-height 42px !important
+    padding 11px 16px !important
+    border-bottom 1px solid #edf1f7 !important
+    background #fbfdff !important
+
+  .cn-settings-section-body
+    padding 16px 16px 4px !important
+
+  .cn-settings-field
+    display grid !important
+    grid-template-columns 160px minmax(0, 1fr) !important
+    gap 16px !important
+    align-items start !important
+    padding 0 0 14px !important
+
+  .ant-form-item
+    margin-bottom 16px !important
+
+  .ant-form-item-label > label,
+  .cn-settings-label strong,
+  .inline-title
+    color #344054 !important
+    font-size 13px !important
+    font-weight 600 !important
+
+  .cn-settings-label span,
+  .ant-form-item-extra,
+  .ant-form-item-explain
+    color #667085 !important
+    font-size 12px !important
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-number,
+  .ant-select-selector,
+  .ant-auto-complete .ant-input,
+  textarea.ant-input,
+  input.form-control,
+  .shortcut-input
+    min-height 34px !important
+    border 1px solid #cfd8e6 !important
+    border-radius 6px !important
+    background #fff !important
+    color #1f2937 !important
+    box-shadow none !important
+
+  .ant-input::placeholder,
+  textarea.ant-input::placeholder,
+  .ant-select-selection-placeholder
+    color #98a2b3 !important
+
+  .ant-input:focus,
+  .ant-input-focused,
+  .ant-input-affix-wrapper-focused,
+  .ant-input-number-focused,
+  .ant-select-focused .ant-select-selector,
+  .shortcut-input:focus
+    border-color #1677ff !important
+    box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+
+  .ant-btn
+    border-radius 6px !important
+
+  .ant-btn-primary
+    background #1677ff !important
+    border-color #1677ff !important
+    color #fff !important
+
+  .ant-btn-dashed,
+  .ant-btn-default
+    background #fff !important
+    border-color #cfd8e6 !important
+    color #344054 !important
+
+    &:hover
+      border-color #1677ff !important
+      color #1677ff !important
+
+  .ant-switch
+    background #cfd8e6 !important
+
+    &.ant-switch-checked
+      background #1677ff !important
+
+  .ant-tabs-tab
+    color #667085 !important
+
+    &:hover
+      color #1677ff !important
+
+  .ant-tabs-tab-active .ant-tabs-tab-btn
+    color #1677ff !important
+    font-weight 700 !important
+
+  .ant-table,
+  .ant-table-container,
+  .ant-table-content,
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td
+    background #fff !important
+    border-color #d8e0ea !important
+    color #1f2937 !important
+
+  .ant-table-thead > tr > th
+    background #f8fafc !important
+    color #344054 !important
+    font-weight 700 !important
+
+  .widget-control-empty
+    display flex !important
+    align-items center !important
+    justify-content center !important
+    color #667085 !important
+
+// 2026-07-03 coder(lq): The window drag layer sits over the settings drawer in Electron; keep it transparent and below page chrome so page titles remain visible.
+#container .setting-wrap
+  .app-drag
+    z-index 1 !important
+    background transparent !important
+
+  .cn-setting-header
+    position relative !important
+    z-index 6 !important
+    -webkit-app-region drag
+
+  .setting-tabs
+    z-index 5 !important
+
+  .cn-setting-context
+    z-index 4 !important
+
+  .close-setting-wrap,
+  .close-setting-wrap-icon
+    z-index 890 !important
+    -webkit-app-region no-drag
+
+// 2026-07-03 coder(lq): Main workspace template for terminal chrome, file manager, transfer tasks, and status bars.
+#container
+  .sessions
+    background #f5f7fb !important
+
+  .session-wrap
+    background #f5f7fb !important
+    box-shadow none !important
+
+  .terminal-control
+    display flex !important
+    align-items center !important
+    gap 6px !important
+    height 36px !important
+    padding 0 12px !important
+    border-bottom 1px solid #d8e0ea !important
+    background #fff !important
+    color #344054 !important
+    box-shadow none !important
+
+  .term-sftp-tabs
+    display inline-flex !important
+    align-items center !important
+    flex 0 0 auto !important
+    float none !important
+    height 36px !important
+    gap 4px !important
+
+  .type-tab
+    height 28px !important
+    min-width 72px !important
+    margin 4px 4px 0 0 !important
+    padding 0 10px !important
+    border 1px solid transparent !important
+    border-radius 6px !important
+    color #667085 !important
+    font-size 13px !important
+    line-height 26px !important
+    text-align center !important
+
+    &:hover
+      color #1677ff !important
+      background #f5f8ff !important
+      border-color #d8e0ea !important
+
+    &.active
+      color #1677ff !important
+      background #eef5ff !important
+      border-color #b8d8ff !important
+      font-weight 700 !important
+
+      .type-tab-line
+        display none !important
+
+  .sess-icon
+    display inline-flex !important
+    align-items center !important
+    justify-content center !important
+    width 28px !important
+    height 28px !important
+    margin 4px 4px 0 0 !important
+    border 1px solid transparent !important
+    border-radius 6px !important
+    color #667085 !important
+
+    &:hover
+      color #1677ff !important
+      background #f5f8ff !important
+      border-color #d8e0ea !important
+
+    &.active
+      color #1677ff !important
+      background #eef5ff !important
+      border-color #b8d8ff !important
+
+  .cn-transfer-toolbar-toggle
+    position relative !important
+
+    &.has-transfer::after
+      content '' !important
+      position absolute !important
+      top 3px !important
+      right 3px !important
+      width 6px !important
+      height 6px !important
+      border-radius 50% !important
+      background #fa8c16 !important
+      box-shadow 0 0 0 2px #fff !important
+
+  .term-controls
+    display inline-flex !important
+    align-items center !important
+    flex 0 0 auto !important
+    float none !important
+    margin-left 0 !important
+    gap 4px !important
+
+  .cn-session-toolbar-actions
+    margin-left auto !important
+    flex 0 0 auto !important
+    display inline-flex !important
+    align-items center !important
+    gap 4px !important
+    height 36px !important
+    padding-left 8px !important
+    border-left 1px solid #e5ebf3 !important
+
+    .term-controls
+      margin-left 0 !important
+
+    .sftp-follow-ssh-icon
+      min-width 78px !important
+      height 28px !important
+      display inline-flex !important
+      align-items center !important
+      justify-content center !important
+      gap 5px !important
+      padding 0 9px !important
+      border 1px solid #dbe3ef !important
+      border-radius 6px !important
+      background #fff !important
+      color #667085 !important
+      font-size 12px !important
+
+      &.active
+        color #fff !important
+        border-color #1677ff !important
+        background #1677ff !important
+
+      &.auto
+        color #fff !important
+        border-color #13c2c2 !important
+        background #13c2c2 !important
+
+      .sftp-follow-ssh-label
+        white-space nowrap !important
+
+  .cn-terminal-session-tabs,
+  .cn-file-session-tabs
+    flex 0 1 auto !important
+    min-width 0 !important
+    height 36px !important
+    padding 4px 4px !important
+    border-left 0 !important
+    border-bottom 0 !important
+    background transparent !important
+
+    button
+      height 28px !important
+      border-radius 6px !important
+      font-size 13px !important
+
+      &:not(.add)
+        border-color #bfd3f2 !important
+        background #f3f7ff !important
+        color #5b78a5 !important
+
+      &.active
+        background #1677ff !important
+        border-color #1677ff !important
+        color #fff !important
+
+  .sftp-wrap
+    gap 12px !important
+    padding 12px !important
+    background #f5f7fb !important
+
+  .sftp-section
+    min-width 0 !important
+    padding 0 !important
+    background transparent !important
+
+  .sftp-section + .sftp-section
+    border-left 0 !important
+
+  .sftp-panel
+    height 100% !important
+    padding 0 !important
+    overflow hidden !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    box-shadow none !important
+    color #1f2937 !important
+
+  .sftp-panel-title
+    display flex !important
+    align-items center !important
+    gap 8px !important
+    min-height 44px !important
+    padding 11px 14px !important
+    border-bottom 1px solid #d8e0ea !important
+    background #fbfdff !important
+    color #1f2937 !important
+
+  .sftp-panel-title-main
+    color #1f2937 !important
+    font-size 14px !important
+    font-weight 700 !important
+    line-height 20px !important
+
+  .sftp-panel-title-sub
+    flex 1 1 auto !important
+    min-width 0 !important
+    overflow hidden !important
+    text-overflow ellipsis !important
+    white-space nowrap !important
+    color #667085 !important
+    font-size 12px !important
+
+  .sftp-panel-title-action
+    flex 0 0 auto !important
+    margin 0 0 0 auto !important
+    color #667085 !important
+
+    &:hover
+      color #1677ff !important
+
+  .sftp-title-wrap
+    padding 10px 12px !important
+    border-bottom 1px solid #edf1f7 !important
+    background #fff !important
+
+  .sftp-title
+    .ant-input-affix-wrapper,
+    .ant-input
+      height 34px !important
+      min-height 34px !important
+      border-color #cfd8e6 !important
+      border-radius 6px !important
+      background #fff !important
+      color #1f2937 !important
+      box-shadow none !important
+
+    .ant-input-prefix,
+    .ant-input-suffix
+      color #667085 !important
+
+      svg
+        cursor pointer !important
+
+        &:hover
+          color #1677ff !important
+
+  .file-list
+    background #fff !important
+
+  .sftp-table
+    background #fff !important
+
+  .sftp-file-table-header
+    height 36px !important
+    border-bottom 1px solid #d8e0ea !important
+    background #f8fafc !important
+
+  .sftp-header-item
+    height 36px !important
+    padding 0 10px !important
+    border-bottom 0 !important
+    background #f8fafc !important
+    color #344054 !important
+    font-size 12px !important
+    font-weight 700 !important
+    line-height 36px !important
+
+    &.is-sorting
+      color #1677ff !important
+
+  .sftp-table-content
+    background #fff !important
+
+  .sftp-item
+    min-height 34px !important
+    height 34px !important
+    margin 0 !important
+    border-radius 0 !important
+
+  .sftp-file-prop,
+  .sftp-item:nth-child(even) .sftp-file-prop
+    height 34px !important
+    padding 0 10px !important
+    border-bottom 1px solid #edf1f7 !important
+    background #fff !important
+    color #344054 !important
+    font-size 12px !important
+    line-height 34px !important
+
+  .sftp-item:hover .sftp-file-prop,
+  .sftp-item.selected .sftp-file-prop,
+  .sftp-item.sftp-dragover .sftp-file-prop
+    background #eef5ff !important
+    color #1677ff !important
+
+  .virtual-file
+    .sftp-file-prop
+      color #98a2b3 !important
+
+  .pager-wrap
+    height 40px !important
+    border-top 1px solid #d8e0ea !important
+    background #fbfdff !important
+
+  .sftp-history
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    box-shadow 0 12px 30px rgba(15, 23, 42, .14) !important
+
+  .sftp-history-item
+    color #344054 !important
+    border-bottom 1px solid #edf1f7 !important
+
+    &:hover
+      background #eef5ff !important
+      color #1677ff !important
+
+  .main-footer
+    height 36px !important
+    background #fff !important
+    border-top 1px solid #d8e0ea !important
+    color #667085 !important
+    box-shadow 0 -4px 12px rgba(15, 23, 42, .03) !important
+
+  .terminal-footer-flex
+    align-items center !important
+    height 36px !important
+
+  .terminal-footer-unit
+    display inline-flex !important
+    align-items center !important
+    min-height 36px !important
+    margin-left 8px !important
+    color #667085 !important
+    line-height 36px !important
+
+    .ant-select-selector,
+    .ant-input,
+    textarea.ant-input
+      min-height 28px !important
+      height 28px !important
+      border-color #cfd8e6 !important
+      border-radius 6px !important
+      background #fff !important
+      color #1f2937 !important
+
+  .terminal-info-icon,
+  .terminal-footer-ai,
+  .terminal-footer-history
+    color #667085 !important
+
+    &:hover
+      color #1677ff !important
+
+  .qm-wrap-tooltip
+    left 43px !important
+    right 0 !important
+    bottom 36px !important
+    border-top 1px solid #d8e0ea !important
+    background #fff !important
+    box-shadow 0 -12px 28px rgba(15, 23, 42, .08) !important
+
+  .cn-qm-header
+    margin 0 0 10px !important
+
+    strong
+      display block !important
+      color #1f2937 !important
+      font-size 15px !important
+      line-height 22px !important
+
+    span
+      display block !important
+      margin-top 2px !important
+      color #667085 !important
+      font-size 12px !important
+      line-height 18px !important
+
+  .qm-flex
+    align-items center !important
+    gap 10px !important
+
+    .ant-btn
+      border-radius 6px !important
+      border-color #cfd8e6 !important
+      background #fff !important
+      color #344054 !important
+
+      &:hover
+        border-color #1677ff !important
+        color #1677ff !important
+
+    .ant-btn-primary
+      border-color #1677ff !important
+      background #1677ff !important
+      color #fff !important
+
+  .qm-search-input
+    width 240px !important
+    max-width 240px !important
+
+    .ant-input,
+    .ant-input-group-addon,
+    .ant-btn
+      height 32px !important
+      border-color #cfd8e6 !important
+      background #fff !important
+      color #1f2937 !important
+
+  .qm-label-select
+    min-width 132px !important
+
+    &.ant-select
+      height 32px !important
+
+    .ant-select-selector
+      height 32px !important
+      border-color #cfd8e6 !important
+      border-radius 6px !important
+      background #fff !important
+      color #1f2937 !important
+
+  .qm-list-wrap
+    max-height 220px !important
+    padding 12px 0 0 !important
+    background #fff !important
+
+  .qm-item.ant-btn
+    height 30px !important
+    margin 0 8px 8px 0 !important
+    border 1px solid #d8e0ea !important
+    border-radius 6px !important
+    background #fbfdff !important
+    color #344054 !important
+    box-shadow none !important
+
+    &:hover
+      border-color #b8d8ff !important
+      background #eef5ff !important
+      color #1677ff !important
+
+  .right-side-panel
+    top 36px !important
+    background #f5f7fb !important
+    color #1f2937 !important
+    border-left 1px solid #d8e0ea !important
+    box-shadow -10px 0 24px rgba(15, 23, 42, .08) !important
+
+    &.right-side-panel-pinned
+      top 0 !important
+
+  .right-panel-title
+    min-height 68px !important
+    padding 12px 14px !important
+    border-bottom 1px solid #d8e0ea !important
+    background #fff !important
+
+  .right-panel-heading
+    min-width 0 !important
+    flex 1 1 auto !important
+
+  .right-panel-title-main
+    display flex !important
+    align-items center !important
+    gap 6px !important
+    color #1f2937 !important
+    font-size 15px !important
+    font-weight 700 !important
+    line-height 22px !important
+
+  .right-panel-title-sub
+    margin-top 2px !important
+    overflow hidden !important
+    text-overflow ellipsis !important
+    white-space nowrap !important
+    color #667085 !important
+    font-size 12px !important
+    line-height 18px !important
+
+  .right-panel-tag
+    margin-right 0 !important
+    border-color #b8d8ff !important
+    background #eef5ff !important
+    color #1677ff !important
+    font-weight 700 !important
+
+  .right-panel-tag-icon
+    color #1677ff !important
+
+  .right-side-panel-controls
+    display inline-flex !important
+    align-items center !important
+    justify-content center !important
+    width 28px !important
+    height 28px !important
+    border-radius 6px !important
+    color #667085 !important
+
+    &:hover,
+    &.right-side-panel-pin.pinned
+      background #eef5ff !important
+      color #1677ff !important
+
+  .right-side-panel-content
+    top 68px !important
+    padding 12px !important
+    background #f5f7fb !important
+    color #344054 !important
+
+  .terminal-info-section
+    margin 0 0 10px !important
+    padding 12px !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    color #344054 !important
+
+  .terminal-info-section-title
+    display flex !important
+    align-items center !important
+    gap 6px !important
+    margin 0 0 10px !important
+    color #1f2937 !important
+    font-size 14px !important
+    font-weight 700 !important
+    line-height 20px !important
+
+  .terminal-info-line
+    color #344054 !important
+    font-size 13px !important
+    line-height 20px !important
+
+  .terminal-info-section
+    .ant-space-compact
+      display grid !important
+      grid-template-columns repeat(3, minmax(0, 1fr)) !important
+      gap 6px !important
+
+      .ant-btn
+        width 100% !important
+        border-radius 6px !important
+
+    .ant-table,
+    .ant-table-container,
+    .ant-table-content,
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td
+      background #fff !important
+      border-color #d8e0ea !important
+      color #344054 !important
+
+    .ant-table-thead > tr > th
+      background #f8fafc !important
+      color #344054 !important
+      font-weight 700 !important
+
+  .transfer-list-card
+    width calc(100vw - 72px) !important
+    max-width 1120px !important
+
+    .ant-popover-inner
+      overflow hidden !important
+      border 1px solid #d8e0ea !important
+      border-radius 8px !important
+      background #fff !important
+      box-shadow 0 18px 46px rgba(15, 23, 42, .18) !important
+
+    .ant-popover-inner-content
+      padding 0 !important
+
+  .cn-transfer-center
+    min-width 720px !important
+    background #fff !important
+    color #1f2937 !important
+
+    .ant-tabs-nav
+      margin 0 0 10px !important
+
+    .ant-tabs-tab
+      color #667085 !important
+
+      &:hover
+        color #1677ff !important
+
+    .ant-tabs-tab-active .ant-tabs-tab-btn
+      color #1677ff !important
+      font-weight 700 !important
+
+  .cn-transfer-summary
+    margin 0 0 10px !important
+    padding 12px 14px !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fbfdff !important
+
+    strong
+      color #1f2937 !important
+      font-size 15px !important
+
+    span
+      color #667085 !important
+      font-size 12px !important
+
+  .transports-wrap-side
+    min-height 42px !important
+    margin 0 0 8px !important
+    padding 8px 10px !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fbfdff !important
+    color #344054 !important
+
+  .cn-transfer-toolbar
+    display flex !important
+    align-items center !important
+    justify-content space-between !important
+    gap 12px !important
+
+    .ant-select-selector
+      min-width 140px !important
+      height 30px !important
+      border-color #cfd8e6 !important
+      border-radius 6px !important
+      background #fff !important
+      color #1f2937 !important
+
+  .cn-transfer-actions
+    display inline-flex !important
+    align-items center !important
+    justify-content flex-end !important
+    gap 8px !important
+    min-width 0 !important
+
+    .ant-btn
+      border-radius 6px !important
+
+  .cn-transfer-progress
+    max-width 280px !important
+    overflow hidden !important
+    text-overflow ellipsis !important
+    white-space nowrap !important
+    color #667085 !important
+    font-size 12px !important
+
+  .cn-transfer-history-actions
+    display flex !important
+    justify-content flex-end !important
+    margin 0 0 8px !important
+
+  .cn-transfer-clear
+    color #667085 !important
+
+    &:hover
+      color #d92d20 !important
+
+  .transports-content
+    max-height 420px !important
+    padding 0 !important
+    overflow auto !important
+
+  .sftp-transport
+    display grid !important
+    grid-template-columns 132px minmax(140px, 1fr) 18px minmax(140px, 1fr) 120px 120px 28px 28px 28px !important
+    align-items center !important
+    gap 8px !important
+    min-height 42px !important
+    margin 0 0 6px !important
+    padding 8px 10px !important
+    border 1px solid #edf1f7 !important
+    border-radius 8px !important
+    background #fff !important
+    color #344054 !important
+    font-weight 400 !important
+
+    &:hover
+      border-color #b8d8ff !important
+      background #f5f8ff !important
+      color #1677ff !important
+      font-weight 400 !important
+
+    > .ant-flex
+      min-width 0 !important
+
+  .transfer-tag
+    display inline-flex !important
+    align-items center !important
+    justify-content center !important
+    min-height 24px !important
+    padding 0 8px !important
+    border-radius 999px !important
+    background #eef5ff !important
+    color #1677ff !important
+    font-size 12px !important
+    font-weight 700 !important
+
+  .transfer-status-started
+    background #ecfdf3 !important
+    color #039855 !important
+
+  .transfer-status-error
+    background #fff1f3 !important
+    color #d92d20 !important
+
+  .sftp-transfer-arrow
+    color #98a2b3 !important
+
+  .sftp-file-percent
+    color #667085 !important
+    font-size 12px !important
+
+  .transfer-control-icon
+    display inline-flex !important
+    align-items center !important
+    justify-content center !important
+    width 24px !important
+    height 24px !important
+    margin 0 !important
+    border-radius 6px !important
+    color #667085 !important
+
+    &:hover
+      color #fff !important
+      background #1677ff !important
+
+  .table-scroll-wrap
+    overflow auto !important
+
+    .ant-table,
+    .ant-table-container,
+    .ant-table-content,
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td
+      background #fff !important
+      border-color #d8e0ea !important
+      color #1f2937 !important
+
+    .ant-table-thead > tr > th
+      background #f8fafc !important
+      color #344054 !important
+      font-weight 700 !important
+
+@media (max-width: 1200px)
+  #container
+    .sftp-transport
+      grid-template-columns 120px minmax(110px, 1fr) 18px minmax(110px, 1fr) 86px 92px 24px 24px 24px !important
+
+    .cn-transfer-center
+      min-width 640px !important
+
+@media (max-width: 1100px)
+  #container .setting-wrap.cn-area-settings,
+  #container .setting-wrap.cn-area-tools
+    .setting-row
+      position static !important
+
+    .setting-tabs-setting,
+    .setting-tabs-terminal-themes,
+    .setting-tabs-quick-commands,
+    .setting-tabs-profile,
+    .setting-tabs-widgets
+      .setting-row-left,
+      .setting-row-right
+        position static !important
+        width auto !important
+        left auto !important
+        right auto !important
+        padding 12px 14px !important
+
+// 2026-07-04 coder(lq): Final fallback for deep pages and portal popups so secondary flows keep the same YunDuo workbench palette.
+#container
+  .cn-sync-setting-form
+    .cn-settings-section
+      margin-bottom 14px !important
+
+    .cn-settings-section-title
+      display flex !important
+      align-items center !important
+      justify-content space-between !important
+      gap 12px !important
+
+      strong
+        color #1f2937 !important
+        font-size 14px !important
+        font-weight 700 !important
+
+      span
+        color #667085 !important
+        font-size 12px !important
+
+    .cn-sync-provider-section
+      .ant-tabs-nav
+        margin 0 0 14px !important
+        padding 0 16px !important
+        border-bottom 1px solid #edf1f7 !important
+
+      .ant-tabs-tab
+        height 38px !important
+        padding 0 12px !important
+
+    .cn-sync-provider-form
+      width 100% !important
+      max-width 820px !important
+      margin 0 auto !important
+      padding 4px 16px 14px !important
+      background transparent !important
+      border 0 !important
+      box-shadow none !important
+
+      .ant-form-item
+        display block !important
+        margin-bottom 14px !important
+
+      .ant-form-item-row
+        display grid !important
+        grid-template-columns 150px minmax(0, 1fr) !important
+        gap 14px !important
+        align-items start !important
+        width 100% !important
+
+      .ant-form-item-label
+        grid-column 1 !important
+        width 150px !important
+        text-align right !important
+
+        > label
+          color #344054 !important
+          font-size 13px !important
+          font-weight 600 !important
+
+      .ant-form-item-control
+        grid-column 2 !important
+        min-width 0 !important
+        width 100% !important
+
+      .ant-form-item-control-input-content,
+      .ant-input,
+      .ant-input-affix-wrapper,
+      .ant-input-number,
+      .ant-select,
+      .ant-select-selector
+        width 100% !important
+
+      .cn-settings-action-row
+        display block !important
+        max-width none !important
+        padding-top 8px !important
+        border-top 1px solid #edf1f7 !important
+
+        .ant-form-item-row,
+        .ant-form-item-control
+          display block !important
+          width 100% !important
+
+    .cn-sync-action-buttons
+      display flex !important
+      align-items center !important
+      flex-wrap wrap !important
+      gap 8px !important
+      margin-bottom 10px !important
+
+      .ant-btn
+        margin 0 !important
+
+    .cn-sync-status-line
+      margin 4px 0 0 !important
+      color #667085 !important
+      font-size 12px !important
+
+    .sync-data-compare
+      padding 10px 12px !important
+      border 1px solid #d8e0ea !important
+      border-radius 8px !important
+      background #fbfdff !important
+
+    .sync-diff-text
+      color #344054 !important
+      font-size 12px !important
+      line-height 20px !important
+
+    .sync-suggest-action
+      color #1677ff !important
+      font-weight 700 !important
+
+    .ant-checkbox-wrapper
+      min-height 30px !important
+      margin 0 12px 8px 0 !important
+      padding 4px 10px !important
+      border 1px solid #d8e0ea !important
+      border-radius 6px !important
+      background #fff !important
+      color #344054 !important
+
+      &:hover
+        border-color #1677ff !important
+        color #1677ff !important
+
+  .cn-shortcuts-form
+    .ant-table-wrapper
+      overflow hidden !important
+      border 1px solid #d8e0ea !important
+      border-radius 8px !important
+      background #fff !important
+
+    .ant-table
+      border-radius 8px !important
+
+    .ant-table-thead > tr > th
+      height 40px !important
+      background #f8fafc !important
+      color #344054 !important
+      font-size 12px !important
+      font-weight 700 !important
+
+    .ant-table-tbody > tr > td
+      height 42px !important
+      color #344054 !important
+      border-color #edf1f7 !important
+
+    .edit-shortcut-button
+      min-width 150px !important
+      justify-content space-between !important
+      border-color #cfd8e6 !important
+      background #fff !important
+      color #344054 !important
+
+      &:hover
+        border-color #1677ff !important
+        color #1677ff !important
+
+    .shortcut-input
+      width 180px !important
+
+  .setting-passwords-empty
+    min-height 220px !important
+    display flex !important
+    flex-direction column !important
+    align-items center !important
+    justify-content center !important
+    gap 8px !important
+    color #667085 !important
+
+    p
+      margin 0 !important
+      color #344054 !important
+      font-size 14px !important
+      font-weight 700 !important
+
+    span
+      color #667085 !important
+      font-size 12px !important
+
+  .cn-profile-form
+    .ant-input-affix-wrapper
+      display flex !important
+      align-items center !important
+      height 36px !important
+      min-height 36px !important
+      padding 0 10px !important
+      border 1px solid #cfd8e6 !important
+      border-radius 6px !important
+      background #fff !important
+
+      .ant-input
+        height 34px !important
+        min-height 0 !important
+        padding 0 !important
+        border 0 !important
+        background transparent !important
+        box-shadow none !important
+
+        &:focus
+          border 0 !important
+          box-shadow none !important
+
+    .ant-input-prefix,
+    .ant-input-suffix
+      display inline-flex !important
+      align-items center !important
+      height 34px !important
+
+  .cn-widgets-list
+    .ant-tabs-nav
+      margin 0 0 10px !important
+
+    .item-type-widgets
+      border 0 !important
+      padding 0 !important
+      box-shadow none !important
+
+    .ant-input-search
+      width 100% !important
+
+    .item-list-wrap
+      max-height none !important
+
+  .widget-form
+    .ant-form
+      max-width 820px !important
+      margin 0 auto !important
+
+    .ant-form-item
+      display grid !important
+      grid-template-columns 150px minmax(0, 1fr) !important
+      gap 14px !important
+      align-items start !important
+
+    .ant-form-item-label
+      text-align right !important
+
+    .ant-form-item-control
+      min-width 0 !important
+
+  .cn-web-auth-modal
+    color #344054 !important
+
+    .cn-web-auth-tip
+      margin 0 0 14px !important
+      padding 10px 12px !important
+      border 1px solid #d8e0ea !important
+      border-radius 8px !important
+      background #fbfdff !important
+      color #344054 !important
+      line-height 20px !important
+
+      b
+        color #1f2937 !important
+
+    .cn-web-auth-label
+      color #344054 !important
+      font-size 13px !important
+      font-weight 600 !important
+
+body
+  background #f4f7fb !important
+
+  .ant-modal-root,
+  .ant-drawer-root,
+  .ant-popover,
+  .ant-dropdown,
+  .ant-select-dropdown,
+  .ant-picker-dropdown
+    color #1f2937 !important
+
+  .ant-modal-content,
+  .ant-drawer-content,
+  .ant-popover-inner,
+  .ant-dropdown-menu,
+  .ant-select-dropdown,
+  .ant-picker-panel-container
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    color #1f2937 !important
+    box-shadow 0 18px 48px rgba(15, 23, 42, .16) !important
+
+  .ant-modal-header,
+  .ant-drawer-header,
+  .ant-popover-title
+    border-bottom 1px solid #d8e0ea !important
+    background #fbfdff !important
+    color #1f2937 !important
+
+  .ant-modal-title,
+  .ant-drawer-title
+    color #1f2937 !important
+    font-size 15px !important
+    font-weight 700 !important
+
+  .ant-modal-body,
+  .ant-drawer-body,
+  .ant-popover-inner-content
+    background #fff !important
+    color #344054 !important
+
+  .ant-modal-footer,
+  .ant-drawer-footer
+    border-top 1px solid #d8e0ea !important
+    background #fbfdff !important
+
+  .ant-dropdown-menu-item,
+  .ant-select-item
+    border-radius 6px !important
+    color #344054 !important
+
+    &:hover
+      background #eef5ff !important
+      color #1677ff !important
+
+  .ant-dropdown-menu-item-selected,
+  .ant-select-item-option-selected
+    background #eef5ff !important
+    color #1677ff !important
+
+  .ant-message-notice-content,
+  .ant-notification-notice
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    color #1f2937 !important
+    box-shadow 0 12px 30px rgba(15, 23, 42, .14) !important
+
+// 2026-07-04 coder(lq): Theme editor sits outside the system-settings tab scope, so pin its picker styles at the drawer level.
+#container .setting-wrap
+  .editor-u-picker
+    display grid !important
+    grid-template-columns repeat(auto-fill, minmax(220px, 1fr)) !important
+    gap 10px !important
+    padding 12px !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fbfdff !important
+
+  .theme-edit-slot
+    display flex !important
+    align-items center !important
+    justify-content space-between !important
+    gap 10px !important
+    min-height 54px !important
+    padding 10px 12px !important
+    border 1px solid #e4eaf2 !important
+    border-radius 8px !important
+    background #fff !important
+    color #344054 !important
+    box-sizing border-box !important
+
+  .theme-edit-slot-label
+    min-width 0 !important
+    display flex !important
+    flex-direction column !important
+    gap 2px !important
+
+    strong
+      color #1f2937 !important
+      font-size 13px !important
+      line-height 18px !important
+      font-weight 700 !important
+
+    em
+      max-width 150px !important
+      overflow hidden !important
+      text-overflow ellipsis !important
+      white-space nowrap !important
+      color #667085 !important
+      font-style normal !important
+      font-size 11px !important
+
+  .theme-edit-slot-picker
+    flex 0 0 auto !important
+
+// 2026-07-04 coder(lq): Top navigation is task-scoped now; single resource/settings tabs should read as the current module, while tools stay switchable.
+#container .setting-wrap
+  .cn-setting-tabs-single
+    .ant-tabs-nav
+      &:before
+        display none !important
+
+    .ant-tabs-tab
+      pointer-events none !important
+      border 1px solid #b8d8ff !important
+      border-radius 6px !important
+      background #eef5ff !important
+      color #1677ff !important
+
+    .ant-tabs-tab-btn
+      color #1677ff !important
+      font-weight 700 !important
+
+  .cn-setting-tabs-tools
+    .ant-tabs-tab
+      min-width 92px !important
+      justify-content center !important
+
+  .cn-setting-context
+    strong
+      white-space nowrap
+
+    span
+      overflow hidden
+      text-overflow ellipsis
+      white-space nowrap
+
+  .cn-submit-actions
+    display flex
+    flex-wrap wrap
+    gap 8px
+    padding-top 4px
+
+    .ant-btn
+      margin 0 !important
+      min-width 92px
+
+    .ant-btn-primary
+      min-width 116px

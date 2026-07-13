@@ -17,7 +17,7 @@ export default function ProfileFormTelnet (props) {
         hasFeedback
         name={['telnet', 'username']}
         rules={[{
-          max: 128, message: '128 chars max'
+          max: 128, message: '最多 128 个字符'
         }]}
       >
         <Input />

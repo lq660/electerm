@@ -35,7 +35,7 @@ export default auto(function WorkspaceSaveModal ({ store }) {
       message.success(e('saved'))
     } else {
       if (!selectedId) {
-        message.error('please Select Workspace')
+        message.error('请选择工作区')
         return
       }
       const ws = workspaces.find(w => w.id === selectedId)

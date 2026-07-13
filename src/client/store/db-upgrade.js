@@ -8,6 +8,7 @@ import delay from '../common/wait'
 export default (Store) => {
   Store.prototype.checkForDbUpgrade = async function () {
     const { store } = window
+    const e = window.translate
     if (store.isSecondInstance) {
       return false
     }
@@ -29,14 +30,14 @@ export default (Store) => {
     }
     if (shouldMigrate) {
       mod = Modal.info({
-        title: 'Migrating database',
-        content: 'Migrating database... please wait',
+        title: e('migratingDatabase'),
+        content: e('migratingDatabaseWait'),
         ...commonProps
       })
       await window.pre.runGlobalAsync('migrate')
       mod.update({
-        title: 'Done',
-        content: 'Database Migrated',
+        title: e('Done'),
+        content: e('databaseMigrated'),
         okButtonProps: {}
       })
       await delay(2000)
@@ -48,14 +49,14 @@ export default (Store) => {
         packVersion
       } = shouldUpgrade
       mod = Modal.info({
-        title: 'Upgrading database',
-        content: `Upgrading database... from v${dbVersion} to v${packVersion} please wait`,
+        title: e('upgradingDatabase'),
+        content: `${e('upgradingDatabaseFrom')} v${dbVersion} ${e('to')} v${packVersion}，${e('pleaseWait')}`,
         ...commonProps
       })
       await window.pre.runGlobalAsync('doUpgrade')
       mod.update({
-        title: 'Done',
-        content: 'Database Upgraded',
+        title: e('Done'),
+        content: e('databaseUpgraded'),
         okButtonProps: {}
       })
       await delay(2000)

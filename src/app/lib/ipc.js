@@ -13,7 +13,7 @@ const {
 } = require('electron')
 const globalState = require('./glob-state')
 const ipcSyncFuncs = require('./ipc-sync')
-const { dbAction } = require('./db')
+const { dbAction, getStorageStatus } = require('./db')
 const { listItermThemes } = require('./iterm-theme')
 const installSrc = require('./install-src')
 const { getConfig } = require('./get-config')
@@ -173,6 +173,7 @@ function initIpc () {
     safeEncrypt: (str) => safeEncrypt(str),
     safeDecrypt: (str) => safeDecrypt(str),
     dbAction,
+    getDbStorageStatus: getStorageStatus,
     getScreenSize,
     closeApp: (closeAction = '') => {
       globalState.set('closeAction', closeAction)
@@ -210,7 +211,7 @@ function initIpc () {
     stopStream,
     setTitle: (title) => {
       const win = globalState.get('win')
-      win && win.setTitle(packInfo.name + ' - ' + title)
+      win && win.setTitle((packInfo.productName || packInfo.name) + ' - ' + title)
     },
     setBackgroundColor: (color = '#33333300') => {
       const win = globalState.get('win')

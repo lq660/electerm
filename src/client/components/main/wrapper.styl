@@ -4,6 +4,47 @@
   height 100%
   position fixed
   overflow-y scroll
+  inset 0
+
+.cn-error-logo
+  width 52px
+  height 52px
+  display flex
+  align-items center
+  justify-content center
+  margin-bottom 16px
+  border-radius 8px
+  background #1677ff
+  color #fff
+  font-size 26px
+  font-weight 700
+
+.cn-error-actions
+  display flex
+  gap 8px
+  margin 12px 0
+
+.cn-error-stack
+  max-width 960px
+  overflow auto
+
+.cn-error-command
+  max-width 960px
+  display flex
+  align-items center
+  justify-content space-between
+  gap 12px
+  padding 10px 12px
+  border 1px solid #dbe3ef
+  border-radius 6px
+  background #f8fafc
+
+  code
+    overflow-wrap anywhere
+
+  .anticon
+    flex none
+    cursor pointer
 
 #container
   .xterm

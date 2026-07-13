@@ -1,19 +1,17 @@
 import {
-  BookOutlined,
-  CloudSyncOutlined,
-  InfoCircleOutlined,
-  PictureOutlined,
-  PlusCircleOutlined,
+  BgColorsOutlined,
+  CloudServerOutlined,
+  PlusOutlined,
+  QuestionCircleOutlined,
   SettingOutlined,
+  SyncOutlined,
   UpCircleOutlined,
-  AppstoreOutlined,
-  ThunderboltOutlined
+  ToolOutlined
 } from '@ant-design/icons'
-import { Tooltip, Popover } from 'antd'
+import { Dropdown, Tooltip } from 'antd'
 import SideBarPanel from './sidebar-panel'
 import TransferList from './transfer-list'
 import MenuBtn from '../sys-menu/menu-btn'
-import QuickConnect from '../tabs/quick-connect'
 import {
   sidebarWidth,
   settingMap,
@@ -31,7 +29,6 @@ export default function Sidebar (props) {
     height,
     upgradeInfo,
     settingTab,
-    settingItem,
     isSyncingSetting,
     leftSidebarWidth,
     pinned,
@@ -100,11 +97,49 @@ export default function Sidebar (props) {
     shouldUpgrade
   } = upgradeInfo
   const showSetting = showModal === modals.setting
-  const settingActive = showSetting && settingTab === settingMap.setting && settingItem.id === 'setting-common'
-  const syncActive = showSetting && settingTab === settingMap.setting && settingItem.id === 'setting-sync'
-  const themeActive = showSetting && settingTab === settingMap.terminalThemes
   const bookmarksActive = showSetting && settingTab === settingMap.bookmarks
-  const widgetsActive = showSetting && settingTab === settingMap.widgets
+  const resourcesActive = openedSideBar === 'bookmarks' || bookmarksActive
+  const manageActive = showSetting && settingTab !== settingMap.bookmarks
+  const manageMenuItems = [{
+    type: 'group',
+    label: '配置管理',
+    children: [
+      {
+        key: 'settings',
+        icon: <SettingOutlined />,
+        label: '系统设置'
+      },
+      {
+        key: 'theme',
+        icon: <BgColorsOutlined />,
+        label: '终端主题'
+      },
+      {
+        key: 'sync',
+        icon: <SyncOutlined spin={isSyncingSetting} />,
+        label: '数据同步'
+      }
+    ]
+  }, {
+    type: 'group',
+    label: '扩展能力',
+    children: [
+      {
+        key: 'tools',
+        icon: <ToolOutlined />,
+        label: '扩展工具'
+      }
+    ]
+  }]
+  const handleManageMenuClick = ({ key }) => {
+    const actions = {
+      settings: openSetting,
+      theme: openTerminalThemes,
+      sync: openSettingSync,
+      tools: openWidgetsModal
+    }
+    actions[key]?.()
+  }
   const sideProps = openedSideBar
     ? {
         className: 'sidebar-list',
@@ -130,98 +165,84 @@ export default function Sidebar (props) {
   return (
     <div {...sidebarProps}>
       <div className='sidebar-bar btns'>
-        <div className='control-icon-wrap'>
-          <MenuBtn store={store} config={store.config} />
-        </div>
-        <SideIcon
-          title={e('newBookmark')}
-        >
-          <PlusCircleOutlined
-            className='font22 iblock control-icon'
-            onClick={onNewSsh}
-          />
-        </SideIcon>
-        <Popover
-          content={<QuickConnect inputOnly />}
-          trigger='click'
-          placement='right'
-        >
-          <div className='control-icon-wrap' title={e('quickConnect')}>
-            <ThunderboltOutlined
-              className='font20 iblock control-icon'
+        <div className='cn-sidebar-primary'>
+          <SideIcon title='应用菜单' className='cn-side-icon-menu'>
+            <MenuBtn store={store} config={store.config} />
+          </SideIcon>
+          <div className='cn-sidebar-divider' />
+          <SideIcon
+            title='新建连接'
+            className='cn-side-icon-new'
+          >
+            <PlusOutlined
+              className='font18 iblock control-icon'
+              onClick={onNewSsh}
             />
-          </div>
-        </Popover>
-        <SideIcon
-          title={e(settingMap.bookmarks)}
-          active={bookmarksActive}
-        >
-          <BookOutlined
-            onClick={handleClickBookmark}
-            className='font20 iblock control-icon'
+          </SideIcon>
+          <SideIcon
+            title='服务器资源'
+            active={resourcesActive}
+            className='cn-side-icon-server'
+          >
+            <CloudServerOutlined
+              onClick={handleClickBookmark}
+              className='font18 iblock control-icon'
+            />
+          </SideIcon>
+          <TransferList
+            {...transferProps}
+            active={openedSideBar === 'transfer'}
           />
-        </SideIcon>
-        <TransferList {...transferProps} />
-        <SideIcon
-          title={e(settingMap.terminalThemes)}
-          active={themeActive}
-        >
-          <PictureOutlined
-            className='font20 iblock pointer control-icon'
-            onClick={openTerminalThemes}
-          />
-        </SideIcon>
-        <SideIcon
-          title={e(settingMap.setting)}
-          active={settingActive}
-        >
-          <SettingOutlined className='iblock font20 control-icon' onClick={openSetting} />
-        </SideIcon>
-        <SideIcon
-          title={e('settingSync')}
-          active={syncActive}
-        >
-          <CloudSyncOutlined
-            className='iblock font20 control-icon'
-            onClick={openSettingSync}
-            spin={isSyncingSetting}
-          />
-        </SideIcon>
-        <SideIcon
-          title={e('widgets')}
-          active={widgetsActive}
-        >
-          <AppstoreOutlined className='iblock font20 control-icon' onClick={openWidgetsModal} />
-        </SideIcon>
-
-        <SideIcon
-          title={e('about')}
-          active={showInfoModal}
-        >
-          <InfoCircleOutlined
-            className='iblock font16 control-icon open-about-icon'
-            onClick={openAbout}
-          />
-        </SideIcon>
-        {
-          !checkingRemoteVersion && !showUpgradeModal && shouldUpgrade
-            ? (
-              <Tooltip
-                title={`${e('upgrading')} ${upgradePercent || 0}%`}
-                placement='right'
-              >
-                <div
-                  className='control-icon-wrap'
+        </div>
+        <div className='cn-sidebar-secondary'>
+          <div className='cn-sidebar-divider' />
+          <Dropdown
+            menu={{
+              items: manageMenuItems,
+              onClick: handleManageMenuClick
+            }}
+            placement='rightBottom'
+            trigger={['click']}
+            classNames={{ root: 'cn-sidebar-manage-menu' }}
+          >
+            <SideIcon
+              title='管理中心'
+              active={manageActive}
+              className='cn-side-icon-manage'
+            >
+              <SettingOutlined className='iblock font18 control-icon' />
+            </SideIcon>
+          </Dropdown>
+          {
+            !checkingRemoteVersion && !showUpgradeModal && shouldUpgrade
+              ? (
+                <Tooltip
+                  title={`${e('upgrading')} ${upgradePercent || 0}%`}
+                  placement='right'
                 >
-                  <UpCircleOutlined
-                    className='iblock font18 control-icon upgrade-icon'
-                    onClick={handleShowUpgrade}
-                  />
-                </div>
-              </Tooltip>
-              )
-            : null
-        }
+                  <div
+                    className='control-icon-wrap'
+                  >
+                    <UpCircleOutlined
+                      className='iblock font18 control-icon upgrade-icon'
+                      onClick={handleShowUpgrade}
+                    />
+                  </div>
+                </Tooltip>
+                )
+              : null
+          }
+          <SideIcon
+            title='帮助与关于'
+            active={showInfoModal}
+            className='cn-side-icon-about'
+          >
+            <QuestionCircleOutlined
+              className='iblock font18 control-icon open-about-icon'
+              onClick={openAbout}
+            />
+          </SideIcon>
+        </div>
       </div>
       <SidePanel
         sideProps={sideProps}
@@ -231,6 +252,10 @@ export default function Sidebar (props) {
         <SideBarPanel
           pinned={pinned}
           sidebarPanelTab={sidebarPanelTab}
+          openedSideBar={openedSideBar}
+          fileTransfers={fileTransfers}
+          transferHistory={transferHistory}
+          transferTab={transferTab}
         />
       </SidePanel>
     </div>

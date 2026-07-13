@@ -6,6 +6,9 @@ import { refsStatic } from '../components/common/ref'
 
 export default Store => {
   Store.prototype.onCheckUpdate = (isManual = false) => {
+    if (!isManual) {
+      return
+    }
     refsStatic.get('upgrade')?.appUpdateCheck(isManual)
   }
   Store.prototype.getProxySetting = function () {

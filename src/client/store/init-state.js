@@ -53,6 +53,8 @@ export default () => {
     lastDataUpdateTime: 0,
     tabs: [],
     activeTabId: '',
+    // 2026-07-12 coder(lq): Maps each outer SSH/local tab to its currently selected child terminal.
+    activeTerminalIds: {},
     history: [],
     sshConfigs: [],
     bookmarks: [],
@@ -108,6 +110,8 @@ export default () => {
       }
     }),
     layout,
+    // 2026-07-12 coder(lq): User-adjusted multi-window divider positions, keyed by layout name.
+    layoutSplitRatios: {},
     prevLayout: layout,
     resizeTrigger: 0,
     currentLayoutBatch: 0,
@@ -161,7 +165,8 @@ export default () => {
     // sidebar
     openedSideBar: ls.getItem(openedSidebarKey) || '',
     leftSidebarWidth: parseInt(ls.getItem(leftSidebarWidthKey), 10) || 300,
-    addPanelWidth: parseInt(ls.getItem(addPanelWidthLsKey), 10) || 300,
+    // 2026-07-13 coder(lq): The server selector needs room for grouped server names, accounts, and addresses.
+    addPanelWidth: parseInt(ls.getItem(addPanelWidthLsKey), 10) || 480,
     menuOpened: false,
     pinned: ls.getItem(sidebarPinnedKey) === 'true',
 

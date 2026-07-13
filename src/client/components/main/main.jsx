@@ -217,6 +217,7 @@ export default auto(function Index (props) {
   const sshConfigProps = {
     ...pick(store, [
       'settingTab',
+      'settingItem',
       'showModal',
       'sshConfigs'
     ])

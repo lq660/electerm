@@ -5,7 +5,9 @@
 import { Component } from 'react'
 import {
   AutoComplete,
-  Input
+  Button,
+  Input,
+  Popover
 } from 'antd'
 import {
   batchInputLsKey,
@@ -33,7 +35,7 @@ export default class BatchInput extends Component {
     clearTimeout(this.timer)
   }
 
-  handleEnter = (e) => {
+  handleSubmitCommand = (e) => {
     const { batchInputSelectedTabIds } = window.store
     const { cmd } = this.state
     if (!cmd.trim()) {
@@ -48,6 +50,17 @@ export default class BatchInput extends Component {
     e.stopPropagation()
   }
 
+  handleEnter = (e) => {
+    this.handleSubmitCommand(e)
+  }
+
+  handleMultilineKeyDown = (e) => {
+    if (e.key !== 'Enter' || (!e.ctrlKey && !e.metaKey)) {
+      return
+    }
+    this.handleSubmitCommand(e)
+  }
+
   handleChange = (v = '') => {
     let vv = v.replace(/^\d+:/, '').replace(/\n$/, '')
     if (vv === batchInputLsKey) {
@@ -58,6 +71,22 @@ export default class BatchInput extends Component {
       cmd: vv,
       open: false
     })
+  }
+
+  handleTextAreaChange = (e) => {
+    this.setState({
+      cmd: e.target.value
+    })
+  }
+
+  handleSelectHistory = (cmd) => {
+    this.setState({
+      cmd
+    })
+  }
+
+  handleClearHistory = () => {
+    window.store.clearBatchInput()
   }
 
   handleClick = () => {
@@ -96,6 +125,50 @@ export default class BatchInput extends Component {
       ]
     }
     return []
+  }
+
+  renderMultilineHistory = () => {
+    const { batchInputs = [] } = this.props
+    if (!batchInputs.length) {
+      return (
+        <Button
+          size='small'
+          disabled
+        >
+          历史
+        </Button>
+      )
+    }
+    const content = (
+      <div className='batch-input-history-popover'>
+        <div className='batch-input-history-head'>
+          <strong>历史命令</strong>
+          <span onClick={this.handleClearHistory}>清空</span>
+        </div>
+        <div className='batch-input-history-list'>
+          {
+            batchInputs.map((item, index) => (
+              <button
+                key={`${index}-${item}`}
+                onClick={() => this.handleSelectHistory(item)}
+                title={item}
+              >
+                {item}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+    )
+    return (
+      <Popover
+        content={content}
+        trigger='click'
+        placement='topRight'
+      >
+        <Button size='small'>历史</Button>
+      </Popover>
+    )
   }
 
   handleMouseEnter = () => {
@@ -148,9 +221,10 @@ export default class BatchInput extends Component {
         'bi-show': open || enter
       }
     )
+    const placeholder = this.props.placeholder || e('batchInput')
     const inputProps = {
       size: 'small',
-      placeholder: e('batchInput'),
+      placeholder,
       className: 'batch-input-holder'
     }
     const textAreaProps = {
@@ -159,7 +233,7 @@ export default class BatchInput extends Component {
       onBlur: this.handleBlur,
       size: 'small',
       autoSize: { minRows: 1 },
-      placeholder: e('batchInput'),
+      placeholder,
       allowClear: true
     }
     const tabSelectProps = {
@@ -169,6 +243,34 @@ export default class BatchInput extends Component {
       onSelectAll: window.store.selectAllBatchInputTabs,
       onSelectNone: window.store.selectNoneBatchInputTabs,
       onSelect: window.store.onSelectBatchInputSelectedTabId
+    }
+    if (this.props.multiline) {
+      return (
+        <div className='batch-input-outer batch-input-multiline'>
+          <Input.TextArea
+            value={cmd}
+            onChange={this.handleTextAreaChange}
+            onKeyDown={this.handleMultilineKeyDown}
+            onClick={this.handleClick}
+            size='small'
+            rows={this.props.rows || 5}
+            placeholder={placeholder}
+          />
+          <div className='batch-input-multiline-actions'>
+            <span>Ctrl/Cmd+Enter 发送</span>
+            {this.renderMultilineHistory()}
+            <Button
+              type='primary'
+              size='small'
+              onClick={this.handleSubmitCommand}
+              disabled={!cmd.trim()}
+            >
+              发送
+            </Button>
+          </div>
+          <TabSelect {...tabSelectProps} />
+        </div>
+      )
     }
     return (
       <span

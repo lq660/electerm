@@ -62,7 +62,7 @@ export default function TerminalInfoResource (props) {
     return (
       <div className='pd1b' key={name}>
         <Progress
-          style={{ width: '50%' }}
+          style={{ width: '100%' }}
           percent={p}
           format={fmt}
           strokeColor={color}
@@ -91,6 +91,7 @@ export default function TerminalInfoResource (props) {
   }
   return (
     <div className='terminal-info-section terminal-info-resource'>
+      <div className='terminal-info-section-title'>资源用量</div>
       {
         data.map(renderItem)
       }

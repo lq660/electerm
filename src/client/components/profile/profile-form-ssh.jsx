@@ -18,7 +18,7 @@ export default function ProfileFormSsh (props) {
         hasFeedback
         name='username'
         rules={[{
-          max: 128, message: '128 chars max'
+          max: 128, message: '最多 128 个字符'
         }]}
       >
         <Input />

@@ -17,6 +17,19 @@ async function runCmd (ws, msg) {
   })
 }
 
+async function getTerminalCwd (ws, msg) {
+  const { id, pid } = msg
+  const term = terminals(pid)
+  let cwd = ''
+  if (term && typeof term.getCwd === 'function') {
+    cwd = await term.getCwd(id)
+  }
+  ws.s({
+    id,
+    data: cwd
+  })
+}
+
 function resize (ws, msg) {
   const { id, pid, cols, rows } = msg
   const term = terminals(pid)
@@ -131,6 +144,7 @@ exports.createTerm = createTerm
 exports.testTerm = testTerm
 exports.resize = resize
 exports.runCmd = runCmd
+exports.getTerminalCwd = getTerminalCwd
 exports.toggleTerminalLog = toggleTerminalLog
 exports.toggleTerminalLogTimestamp = toggleTerminalLogTimestamp
 exports.setTerminalLogPath = setTerminalLogPath

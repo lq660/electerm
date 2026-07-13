@@ -7,12 +7,11 @@ import {
   MenuOutlined,
   EditOutlined
 } from '@ant-design/icons'
-import { Button, Space, Dropdown, Flex } from 'antd'
+import { Button, Space, Dropdown, Flex, Tooltip } from 'antd'
 import copy from 'json-deep-copy'
 import time from '../../common/time'
 import download from '../../common/download'
-import Upload from '../common/upload'
-import { beforeBookmarkUpload } from './bookmark-upload'
+import ConnectionImport from './connection-import-modal'
 
 const e = window.translate
 
@@ -25,8 +24,6 @@ export default function BookmarkToolbar (props) {
     bookmarkGroups,
     bookmarks
   } = props
-  const beforeUpload = beforeBookmarkUpload
-
   const handleDownload = () => {
     const txt = JSON.stringify({
       bookmarkGroups: copy(bookmarkGroups || []),
@@ -38,8 +35,13 @@ export default function BookmarkToolbar (props) {
   const handleToggleEdit = () => {
     window.store.bookmarkSelectMode = true
   }
-  const titleNew = `${e('new')} ${e('bookmarks')}`
-  const titleEdit = `${e('new')} ${e('bookmarkCategory')}`
+  const titleNew = e('newServer')
+  const titleGroup = e('newGroup')
+  const titleEdit = e('batchEdit')
+  const titleExport = e('exportServerResources')
+  const titleImport = e('importServerResources')
+  const titleSshConfigs = e('loadSshConfig')
+  const titleMore = e('moreActions')
   const items = [
     {
       label: titleNew,
@@ -47,17 +49,17 @@ export default function BookmarkToolbar (props) {
       icon: <BookOutlined />
     },
     {
-      label: titleEdit,
+      label: titleGroup,
       onClick: onNewBookmarkGroup,
       icon: <FolderOutlined />
     },
     {
-      label: e('edit'),
+      label: titleEdit,
       onClick: handleToggleEdit,
       icon: <EditOutlined />
     },
     {
-      label: e('import'),
+      label: titleImport,
       onClick: () => {
         const fileInput = document.querySelector('.upload-bookmark-icon')
         if (fileInput) {
@@ -67,12 +69,12 @@ export default function BookmarkToolbar (props) {
       icon: <ImportOutlined />
     },
     {
-      label: e('export'),
+      label: titleExport,
       onClick: onExport,
       icon: <ExportOutlined />
     },
     {
-      label: e('loadSshConfigs'),
+      label: titleSshConfigs,
       onClick: onSshConfigs,
       icon: <CodeOutlined />
     }
@@ -86,46 +88,60 @@ export default function BookmarkToolbar (props) {
 
   return (
 
-    <div className='pd1b pd1r'>
+    <div className='pd1b pd1r cn-bookmark-toolbar'>
       <Flex justify='space-between' align='center'>
         <div>
           <Space.Compact>
-            <Button onClick={onNewBookmark}>
-              <BookOutlined className='with-plus' />
-            </Button>
-            <Button onClick={onNewBookmarkGroup}>
-              <FolderOutlined className='with-plus' />
-            </Button>
-            <Button
-              icon={<EditOutlined />}
-              onClick={handleToggleEdit}
-              title={e('edit')}
-            />
-            <Button
-              icon={<ExportOutlined />}
-              onClick={handleDownload}
-              title={e('export')}
-              className='download-bookmark-icon'
-            />
-            <Upload
-              beforeUpload={beforeUpload}
-              fileList={[]}
-              className='upload-bookmark-icon'
-            >
+            <Tooltip title={titleNew} placement='bottom' mouseEnterDelay={0.2}>
               <Button
-                icon={<ImportOutlined />}
-                title={e('importFromFile')}
+                icon={<BookOutlined className='with-plus' />}
+                onClick={onNewBookmark}
+                aria-label={titleNew}
               />
-            </Upload>
-            <Button onClick={onSshConfigs}>
-              <CodeOutlined />
-            </Button>
+            </Tooltip>
+            <Tooltip title={titleGroup} placement='bottom' mouseEnterDelay={0.2}>
+              <Button
+                icon={<FolderOutlined className='with-plus' />}
+                onClick={onNewBookmarkGroup}
+                aria-label={titleGroup}
+              />
+            </Tooltip>
+            <Tooltip title={titleEdit} placement='bottom' mouseEnterDelay={0.2}>
+              <Button
+                icon={<EditOutlined />}
+                onClick={handleToggleEdit}
+                aria-label={titleEdit}
+              />
+            </Tooltip>
+            <Tooltip title={titleExport} placement='bottom' mouseEnterDelay={0.2}>
+              <Button
+                icon={<ExportOutlined />}
+                onClick={handleDownload}
+                aria-label={titleExport}
+                className='download-bookmark-icon'
+              />
+            </Tooltip>
+            <ConnectionImport title={titleImport} />
+            <Tooltip title={titleSshConfigs} placement='bottom' mouseEnterDelay={0.2}>
+              <Button
+                icon={<CodeOutlined />}
+                onClick={onSshConfigs}
+                aria-label={titleSshConfigs}
+              />
+            </Tooltip>
           </Space.Compact>
         </div>
         <div>
-          <Dropdown {...ddProps}>
-            <MenuOutlined />
-          </Dropdown>
+          <Tooltip title={titleMore} placement='bottom' mouseEnterDelay={0.2}>
+            <Dropdown {...ddProps} trigger={['click']}>
+              <Button
+                type='text'
+                icon={<MenuOutlined />}
+                aria-label={titleMore}
+                className='cn-bookmark-more-button'
+              />
+            </Dropdown>
+          </Tooltip>
         </div>
       </Flex>
     </div>

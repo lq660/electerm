@@ -66,18 +66,21 @@ export default function ProfileFormElem (props) {
     <Form
       form={form}
       onFinish={handleSubmit}
-      className='form-wrap pd2l'
+      className='form-wrap pd2l cn-setting-detail-form cn-profile-form'
       layout='vertical'
       initialValues={props.formData}
     >
-      <p>ID: {props.formData.id || genId()}</p>
+      <div className='cn-setting-card-title'>
+        <strong>连接模板</strong>
+        <span>ID: {props.formData.id || genId()}</span>
+      </div>
       <FormItem
         label={e('profileName')}
         {...formItemLayout}
         rules={[{
-          max: 60, message: '60 chars max'
+          max: 60, message: '最多 60 个字符'
         }, {
-          required: true, message: 'Name required'
+          required: true, message: '请输入名称'
         }]}
         hasFeedback
         name='name'

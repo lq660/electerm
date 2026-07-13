@@ -109,9 +109,7 @@ export default function ThemeForm (props) {
     } = res
     const converted = convertTheme(themeText)
 
-    if (converted.uiThemeConfig.main !== converted.themeConfig.background) {
-      converted.themeConfig.background = converted.uiThemeConfig.main
-    }
+    // 2026-07-13 coder(lq): Keep the app workspace and terminal canvas backgrounds independently configurable.
     const update = {
       name: themeName,
       ...converted
@@ -213,10 +211,10 @@ export default function ThemeForm (props) {
         name='themeText'
         hasFeedback
         rules={[{
-          max: 1000, message: '1000 chars max'
+          max: 1000, message: '最多 1000 个字符'
         }, {
           required: true,
-          message: 'theme config required'
+          message: '请输入主题配置'
         }, {
           validator: validateInput
         }]}
@@ -249,41 +247,43 @@ export default function ThemeForm (props) {
       onFinish={handleSubmit}
       form={form}
       initialValues={initialValues}
-      className={editor}
+      className={`form-wrap cn-setting-detail-form cn-theme-form ${editor}`}
       name='terminal-theme-form'
       layout='vertical'
     >
-      {renderFuncs(id)}
-      <FormItem
-        label={e('themeName')}
-        hasFeedback
-        name='themeName'
-        rules={[{
-          max: 30, message: '30 chars max'
-        }, {
-          required: true, message: 'theme name required'
-        }]}
-      >
-        <InputAutoFocus
-          selectall='yes'
-          disabled={disabled}
-        />
-      </FormItem>
-      <FormItem
-        label={e('themeConfig')}
-      >
-        <div className='mg1b fix'>
-          <span className='fleft'>
-            <Space>
-              <Button
-                type='dashed'
-                onClick={handleSwitchEditor}
-              >
-                {switchTxt}
-              </Button>
-            </Space>
-          </span>
-          <span className='fright'>
+      <div className='cn-setting-card-title'>
+        <strong>终端主题</strong>
+        <span>界面与终端可分别配色，保存后立即应用</span>
+      </div>
+      <section className='cn-settings-section'>
+        <div className='cn-settings-section-title'>
+          <strong>主题信息</strong>
+          <span>名称、导入导出和编辑方式</span>
+        </div>
+        {renderFuncs(id)}
+        <FormItem
+          label={e('themeName')}
+          hasFeedback
+          name='themeName'
+          rules={[{
+            max: 30, message: '最多 30 个字符'
+          }, {
+            required: true, message: '请输入主题名称'
+          }]}
+        >
+          <InputAutoFocus
+            selectall='yes'
+            disabled={disabled}
+          />
+        </FormItem>
+        <div className='cn-theme-toolbar'>
+          <Space>
+            <Button
+              type='dashed'
+              onClick={handleSwitchEditor}
+            >
+              {switchTxt}
+            </Button>
             <Upload
               beforeUpload={beforeUpload}
               fileList={[]}
@@ -296,24 +296,16 @@ export default function ThemeForm (props) {
                 {e('importFromFile')}
               </Button>
             </Upload>
-          </span>
+          </Space>
         </div>
-        {
-          editor === 'theme-editor-txt'
-            ? renderTxt()
-            : (
-              <ThemePicker
-                {...pickerProps}
-              />
-              )
-        }
-      </FormItem>
+      </section>
       {
         disabled
           ? null
           : (
-            <FormItem>
-              <p>
+            <FormItem className='cn-settings-action-row cn-theme-action-row'>
+              <div>
+                <span className='cn-theme-save-hint'>修改颜色后，点击“保存并应用”更新当前终端</span>
                 <Button
                   type='primary'
                   htmlType='submit'
@@ -326,10 +318,29 @@ export default function ThemeForm (props) {
                   onClick={saveOnly}
                 >{e('save')}
                 </Button>
-              </p>
+              </div>
             </FormItem>
             )
       }
+      <section className='cn-settings-section cn-theme-editor-section'>
+        <div className='cn-settings-section-title'>
+          <strong>{e('themeConfig')}</strong>
+          <span>{editor === 'theme-editor-txt' ? '按键值文本编辑主题变量' : '界面主背景与终端底色相互独立'}</span>
+        </div>
+        <FormItem
+          label={e('themeConfig')}
+        >
+          {
+            editor === 'theme-editor-txt'
+              ? renderTxt()
+              : (
+                <ThemePicker
+                  {...pickerProps}
+                />
+                )
+          }
+        </FormItem>
+      </section>
       {
         renderSrc(type)
       }

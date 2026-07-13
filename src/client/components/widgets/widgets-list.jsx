@@ -12,6 +12,7 @@ import highlight from '../common/highlight'
 import {
   auto
 } from 'manate/react'
+import { getWidgetTitle } from './widget-i18n'
 
 const e = window.translate
 
@@ -54,7 +55,7 @@ export default auto(function WidgetsList ({ activeItemId, store }) {
   }
 
   const renderWidgetItem = (widget, i) => {
-    const title = widget.info.name
+    const title = getWidgetTitle(widget)
     const tag = ''
     const cls = classnames(
       'item-list-unit',
@@ -84,7 +85,11 @@ export default auto(function WidgetsList ({ activeItemId, store }) {
 
   const renderWidgetsList = () => {
     const filteredWidgets = keyword
-      ? widgets.filter(widget => widget.info.name.toLowerCase().includes(keyword.toLowerCase()))
+      ? widgets.filter(widget => {
+        const title = getWidgetTitle(widget)
+        return title.toLowerCase().includes(keyword.toLowerCase()) ||
+          widget.info.name.toLowerCase().includes(keyword.toLowerCase())
+      })
       : widgets
 
     return (
@@ -92,7 +97,7 @@ export default auto(function WidgetsList ({ activeItemId, store }) {
         <div className='pd1y'>
           <Input.Search
             type='text'
-            placeholder='Search widgets...'
+            placeholder='搜索工具...'
             value={keyword}
             onChange={handleSearch}
             className='form-control'
@@ -106,16 +111,15 @@ export default auto(function WidgetsList ({ activeItemId, store }) {
   }
 
   const renderTabs = () => {
-    const instancesTag = e('runningInstances') + ` (${widgetInstances.length})`
     const items = [
       {
         key: 'widgets',
-        label: e('widgets'),
+        label: '工具库',
         children: null
       },
       {
         key: 'instances',
-        label: instancesTag,
+        label: `运行中 (${widgetInstances.length})`,
         children: null
       }
     ]
@@ -141,7 +145,7 @@ export default auto(function WidgetsList ({ activeItemId, store }) {
   }
 
   return (
-    <div>
+    <div className='cn-widgets-list'>
       {renderTabs()}
       <div className='pd2x pd1y'>
         {

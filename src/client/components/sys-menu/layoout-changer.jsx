@@ -12,7 +12,16 @@ import {
   splitMapDesc
 } from '../../common/constants'
 
-const e = window.translate
+const layoutNameMap = {
+  single: '单窗口',
+  twoColumns: '左右两栏',
+  threeColumns: '三栏布局',
+  twoRows: '上下两行',
+  threeRows: '三行布局',
+  grid2x2: '四宫格',
+  twoRowsRight: '右侧上下分栏',
+  twoColumnsBottom: '底部左右分栏'
+}
 
 export default function LayoutChanger (props) {
   const getLayoutIcon = (layout) => {
@@ -43,7 +52,7 @@ export default function LayoutChanger (props) {
         onClick={() => handleChangeLayout({ key: t })}
       >
         <span>
-          <Icon /> {e(v)}
+          <Icon /> {layoutNameMap[v] || v}
         </span>
       </div>
     )

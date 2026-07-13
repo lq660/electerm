@@ -33,7 +33,7 @@ const localConfig = {
         commonFields.description,
         commonFields.enableTerminalImage,
         commonFields.runScripts,
-        { type: 'input', name: 'type', label: 'type', hidden: true }
+        { type: 'input', name: 'type', label: () => e('type'), hidden: true }
       ]
     },
     {

@@ -22,7 +22,13 @@ export default function TabProfiles (props) {
     <div
       className='setting-tabs-profile'
     >
-      <SettingCol>
+      <SettingCol
+        className='cn-tools-template'
+        leftTitle='模板列表'
+        leftDesc='复用连接默认配置'
+        rightTitle='模板详情'
+        rightDesc='编辑协议参数和默认行为'
+      >
         <ProfileList
           {...listProps}
           quickCommandId={store.quickCommandId}

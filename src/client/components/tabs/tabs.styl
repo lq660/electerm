@@ -12,7 +12,8 @@
   margin-left 42px
 .not-system-ui.is-mac.not-webapp .layout-item.v1
   .tabs-inner
-    margin-left 72px
+    // 2026-07-04 coder(lq): Keep only the native traffic-light drag clearance; the old wide gap looked like an unnamed, unclickable first tab.
+    margin-left 28px
 .not-system-ui.is-mac.not-webapp.pinned .layout-item.v1
   .tabs-inner
     margin-left 0
@@ -293,3 +294,117 @@
   .tab-reload
   .tabs-extra
     -webkit-app-region no-drag
+
+// 2026-07-02 coder(lq): Dropdown pages opened from the tab bar use the light workbench menu style; session tabs themselves keep contrast for terminal focus.
+.layout-workspace-dropdown
+  background #fff !important
+  color #1f2937 !important
+  border 1px solid #d8e0ea !important
+  border-radius 8px !important
+  box-shadow 0 16px 40px rgba(15, 23, 42, .14) !important
+
+.layout-menu-item,
+.workspace-item
+  color #344054 !important
+  border-radius 6px !important
+  &:hover,
+  &.active
+    background #eef5ff !important
+    color #1677ff !important
+
+.workspace-delete-icon
+  color #667085 !important
+  &:hover
+    color #f04438 !important
+
+// 2026-07-03 coder(lq): Light outer tab/title frame for the China workbench. Terminal canvases keep their dark theme; the app chrome should not.
+#container
+  .tabs
+    background #fff !important
+    border-bottom 1px solid #d8e0ea !important
+    box-shadow 0 4px 14px rgba(15, 23, 42, .04) !important
+
+  .tabs-inner,
+  .tabs-wrapper
+    background #fff !important
+
+  .tab
+    height 32px
+    line-height 32px
+    margin 3px 2px 0 0
+    border 1px solid transparent !important
+    border-radius 6px 6px 0 0 !important
+    background transparent !important
+    color #667085 !important
+
+    &:hover
+      background #f5f8ff !important
+      border-color #d8e0ea !important
+      color #1677ff !important
+
+    &.active
+      background #f5f8ff !important
+      border-color #b8d8ff !important
+      color #1677ff !important
+      font-weight 700
+
+    &.home-tab
+      min-width 76px
+      max-width 92px
+      padding 0 12px
+      color #344054 !important
+
+      &:before
+        content '⌂'
+        margin-right 5px
+        color #1677ff
+        font-size 13px
+
+      &.active
+        background #eef5ff !important
+        border-color #b8d8ff !important
+        color #1677ff !important
+
+  .tab-close
+    background #eef2f7 !important
+    color #667085 !important
+
+    &:hover
+      background #f04438 !important
+      color #fff !important
+
+  .tabs-add-btn,
+  .tabs-extra,
+  .tab-scroll-icon,
+  .tabs-dd-icon
+    color #667085 !important
+
+    &:hover
+      color #1677ff !important
+
+  .window-controls
+    background #fff !important
+    border-left 1px solid #d8e0ea !important
+    border-bottom 1px solid #d8e0ea !important
+    box-shadow none !important
+
+  .window-control-box
+    color #667085 !important
+
+    &:hover
+      background #f5f8ff !important
+      color #1677ff !important
+
+  .window-control-close:hover
+    background #f04438 !important
+    color #fff !important
+
+  .window-control-minimize:hover,
+  .window-control-maximize:hover
+    background #f5f8ff !important
+
+  .icon-maximize
+    border-color #667085 !important
+
+  .window-control-box:hover .icon-maximize
+    border-color #1677ff !important

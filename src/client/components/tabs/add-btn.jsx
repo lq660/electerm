@@ -90,6 +90,10 @@ export default class AddBtn extends Component {
     e.stopPropagation()
   }
 
+  handleCloseMenu = () => {
+    this.setState({ open: false })
+  }
+
   handleTabAdd = () => {
     if (!window.store.hasNodePty) {
       window.store.onNewSsh()
@@ -109,6 +113,7 @@ export default class AddBtn extends Component {
       menuTop,
       menuLeft,
       onMenuScroll: this.handleMenuScroll,
+      onClose: this.handleCloseMenu,
       onTabAdd: this.handleTabAdd,
       batch: this.props.batch,
       addPanelWidth: this.props.addPanelWidth,

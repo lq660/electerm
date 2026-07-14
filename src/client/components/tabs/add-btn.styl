@@ -43,6 +43,7 @@
   box-shadow 0 18px 48px rgba(15, 23, 42, .16) !important
 
   .add-menu-header
+    position relative
     padding 0 14px
     background #fff !important
     color #1f2937 !important
@@ -50,6 +51,7 @@
 
     .cn-add-menu-title
       padding 14px 2px 8px
+      padding-right 38px
       border-bottom 0
 
       strong
@@ -67,6 +69,33 @@
 
     .ant-tabs-nav
       margin 0
+
+  // 2026-07-14 coder(lq): The large server chooser needs an explicit close affordance in addition to outside-click and Escape handling.
+  .cn-add-menu-close
+    position absolute
+    z-index 2
+    top 10px
+    right 10px
+    width 28px
+    height 28px
+    padding 0
+    border 0
+    border-radius 6px
+    background transparent
+    color #667085
+    display inline-flex
+    align-items center
+    justify-content center
+    cursor pointer
+
+    &:hover,
+    &:focus-visible
+      background #f2f4f7
+      color #1f2937
+
+    &:focus-visible
+      outline 2px solid rgba(22, 119, 255, .24)
+      outline-offset 1px
 
   .add-menu-list
     padding 10px 14px 12px
@@ -115,5 +144,61 @@
     color #344054 !important
     border-radius 6px !important
     &:hover
+      background #eef5ff !important
+      color #1677ff !important
+
+// 2026-07-14 coder(lq): The server chooser is rendered in a body-level portal, so scope its light controls to the actual portal instead of #container.
+.add-btn-menu-portal .add-menu-wrap
+  .ant-input-search,
+  .ant-input-group-wrapper,
+  .ant-input-group,
+  .ant-input-group-addon
+    background transparent !important
+
+  .ant-input,
+  .ant-input-affix-wrapper
+    border-color #cfd8e6 !important
+    background #fff !important
+    color #1f2937 !important
+    box-shadow none !important
+
+  .ant-input::placeholder
+    color #98a2b3 !important
+
+  .ant-input:focus,
+  .ant-input-focused,
+  .ant-input-affix-wrapper-focused
+    border-color #1677ff !important
+    box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+
+  // 2026-07-14 coder(lq): AntD Search already draws the field on its affix wrapper; keep the nested input borderless to avoid a double frame.
+  .ant-input-affix-wrapper .ant-input,
+  .ant-input-affix-wrapper .ant-input:focus
+    border 0 !important
+    border-radius 0 !important
+    outline none !important
+    background transparent !important
+    box-shadow none !important
+
+  .ant-input-group-addon .ant-btn,
+  .ant-input-search-btn,
+  .ant-input-search-button
+    border-color #cfd8e6 !important
+    background #fff !important
+    color #667085 !important
+    box-shadow none !important
+
+    &:hover,
+    &:focus
+      border-color #1677ff !important
+      background #f5f8ff !important
+      color #1677ff !important
+
+  .tree-item
+    color #344054 !important
+
+    &:hover,
+    &.selected,
+    &.search-selected
       background #eef5ff !important
       color #1677ff !important

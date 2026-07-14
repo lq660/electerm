@@ -19,35 +19,66 @@ import Upload from '../common/upload'
 import {
   getConnectionIdentity,
   importSelectedConnections,
-  prepareConnectionImport
+  prepareConnectionImports,
+  preserveSourceGroupsValue
 } from './bookmark-upload'
+import formatBookmarkGroups from '../bookmark-form/common/bookmark-group-tree-format'
 import './connection-import-modal.styl'
 
 const e = window.translate
+
+function flattenGroupOptions (groups, parentTitles = []) {
+  return groups.flatMap(group => {
+    const titles = [...parentTitles, group.title]
+    const option = {
+      label: titles.join(' / '),
+      value: group.value
+    }
+    return [option, ...flattenGroupOptions(group.children || [], titles)]
+  })
+}
 
 export default function ConnectionImport ({ title }) {
   const [prepared, setPrepared] = useState(null)
   const [selectedIndexes, setSelectedIndexes] = useState([])
   const [conflictStrategy, setConflictStrategy] = useState('skip')
+  const [targetGroupId, setTargetGroupId] = useState(preserveSourceGroupsValue)
   const [importing, setImporting] = useState(false)
 
   const existingIdentities = useMemo(() => new Set(
     (window.store.bookmarks || []).map(getConnectionIdentity)
   ), [prepared])
 
-  const rows = useMemo(() => (prepared?.result.connections || []).map((connection, index) => ({
-    ...connection,
-    index,
-    key: index,
-    conflict: existingIdentities.has(getConnectionIdentity(connection))
-  })), [prepared, existingIdentities])
+  const targetGroupOptions = useMemo(() => [{
+    label: e('preserveSourceGroups'),
+    value: preserveSourceGroupsValue,
+    key: preserveSourceGroupsValue
+  }, ...flattenGroupOptions(
+    formatBookmarkGroups(window.store.bookmarkGroups || [])
+  )], [prepared])
 
-  const handleFile = async file => {
+  const rows = useMemo(() => {
+    const batchIdentities = new Set()
+    return (prepared?.result.connections || []).map((connection, index) => {
+      const identity = getConnectionIdentity(connection)
+      const batchConflict = batchIdentities.has(identity)
+      batchIdentities.add(identity)
+      return {
+        ...connection,
+        index,
+        key: index,
+        conflict: batchConflict || existingIdentities.has(identity)
+      }
+    })
+  }, [prepared, existingIdentities])
+
+  const handleFiles = async files => {
     try {
-      const next = await prepareConnectionImport(file)
+      const next = await prepareConnectionImports(files)
       setPrepared(next)
       setSelectedIndexes(next.result.connections.map((item, index) => index))
       setConflictStrategy('skip')
+      setTargetGroupId(preserveSourceGroupsValue)
     } catch (error) {
       message.error(error.message || e('connectionImportFailed'))
     }
@@ -69,7 +100,8 @@ export default function ConnectionImport ({ title }) {
       const summary = await importSelectedConnections({
         result: prepared.result,
         selectedIndexes,
-        conflictStrategy
+        conflictStrategy,
+        targetGroupId
       })
       message.success(e('connectionImportSummary')
         .replace('{added}', summary.added)
@@ -90,6 +122,13 @@ export default function ConnectionImport ({ title }) {
       key: 'title',
       ellipsis: true,
       width: 150
+    },
+    {
+      title: e('sourceFile'),
+      dataIndex: 'sourceFileName',
+      key: 'sourceFileName',
+      ellipsis: true,
+      width: 140
     },
     {
       title: e('hostAddress'),
@@ -166,7 +205,7 @@ export default function ConnectionImport ({ title }) {
 
   return (
     <>
-      <Upload beforeUpload={handleFile} className='upload-bookmark-icon'>
+      <Upload beforeUpload={handleFiles} className='upload-bookmark-icon' multiple>
         <Tooltip title={title} placement='bottom' mouseEnterDelay={0.2}>
           <Button icon={<ImportOutlined />} aria-label={title} />
         </Tooltip>
@@ -174,7 +213,7 @@ export default function ConnectionImport ({ title }) {
       <Modal
         open={Boolean(prepared)}
         title={e('connectionImportPreview')}
-        width={920}
+        width={1040}
         onCancel={handleCancel}
         maskClosable={!importing}
         footer={footer}
@@ -189,13 +228,29 @@ export default function ConnectionImport ({ title }) {
               </div>
               <div>
                 <span>{e('importFile')}</span>
-                <strong title={prepared.fileName}>{prepared.fileName}</strong>
+                <strong title={prepared.fileNames.join('\n')}>
+                  {
+                    prepared.fileNames.length === 1
+                      ? prepared.fileNames[0]
+                      : e('connectionImportFileCount').replace('{count}', prepared.fileNames.length)
+                  }
+                </strong>
               </div>
               <div>
                 <span>{e('recognizedConnections')}</span>
                 <strong>{prepared.result.connections.length}</strong>
               </div>
             </div>
+            {prepared.failures.length > 0 && (
+              <Alert
+                type='warning'
+                showIcon
+                message={e('connectionImportSkippedFiles').replace('{count}', prepared.failures.length)}
+                description={prepared.failures
+                  .map(item => `${item.fileName}：${item.message}`)
+                  .join('；')}
+              />
+            )}
             {(prepared.result.warnings.length > 0 || rows.some(row => row.warnings.length)) && (
               <Alert
                 type='warning'
@@ -212,13 +267,31 @@ export default function ConnectionImport ({ title }) {
               columns={columns}
               dataSource={rows}
               pagination={false}
-              scroll={{ y: 320, x: 820 }}
+              scroll={{ y: 320, x: 960 }}
               rowSelection={{
                 selectedRowKeys: selectedIndexes,
                 onChange: keys => setSelectedIndexes(keys),
                 preserveSelectedRowKeys: true
               }}
             />
+            <div className='connection-import-target-group'>
+              <div>
+                <strong>{e('importTargetGroup')}</strong>
+                <span>{e('importTargetGroupTip')}</span>
+              </div>
+              <select
+                className='connection-import-group-select'
+                value={targetGroupId}
+                aria-label={e('importTargetGroup')}
+                onChange={event => setTargetGroupId(event.target.value)}
+              >
+                {targetGroupOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className='connection-import-conflict'>
               <div>
                 <strong>{e('conflictHandling')}</strong>

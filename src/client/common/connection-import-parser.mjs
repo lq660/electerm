@@ -327,6 +327,75 @@ function parseOpenSsh (text) {
     : [])
 }
 
+export function mergeConnectionImportResults (preparedFiles) {
+  if (!Array.isArray(preparedFiles) || !preparedFiles.length) {
+    throw new Error('没有可合并的连接文件。')
+  }
+  const fileNames = []
+  const sources = []
+  const sourceLabels = []
+  const connections = []
+  const groups = []
+  const warnings = []
+
+  preparedFiles.forEach((prepared, fileIndex) => {
+    const fileName = cleanText(prepared.fileName) || `file-${fileIndex + 1}`
+    const result = prepared.result
+    fileNames.push(fileName)
+    sources.push(result.source)
+    sourceLabels.push(result.sourceLabel)
+
+    const connectionIds = new Map()
+    result.connections.forEach((connection, connectionIndex) => {
+      const originalId = cleanText(connection.sourceId) || `connection-${connectionIndex}`
+      const sourceId = `batch-${fileIndex}:connection-${connectionIndex}:${originalId}`
+      const mappedIds = connectionIds.get(originalId) || []
+      mappedIds.push(sourceId)
+      connectionIds.set(originalId, mappedIds)
+      connections.push({
+        ...connection,
+        sourceId,
+        sourceFileName: fileName,
+        sourceLabel: result.sourceLabel
+      })
+    })
+
+    const groupIds = new Map()
+    ;(result.groups || []).forEach((group, groupIndex) => {
+      const originalId = cleanText(group.sourceId) || `group-${groupIndex}`
+      groupIds.set(originalId, `batch-${fileIndex}:group-${groupIndex}:${originalId}`)
+    })
+    ;(result.groups || []).forEach((group, groupIndex) => {
+      const originalId = cleanText(group.sourceId) || `group-${groupIndex}`
+      groups.push({
+        ...group,
+        sourceId: groupIds.get(originalId),
+        parentSourceId: group.parentSourceId
+          ? groupIds.get(cleanText(group.parentSourceId)) || ''
+          : '',
+        connectionSourceIds: (group.connectionSourceIds || [])
+          .flatMap(sourceId => connectionIds.get(cleanText(sourceId)) || [])
+      })
+    })
+    warnings.push(...(result.warnings || []).map(warning => `${fileName}：${warning}`))
+  })
+
+  const uniqueSources = [...new Set(sources)]
+  const uniqueSourceLabels = [...new Set(sourceLabels)]
+  // 2026-07-14 coder(lq): Namespace imported IDs per file so multi-file exports cannot corrupt each other's group references.
+  return {
+    fileName: fileNames.join(', '),
+    fileNames,
+    result: {
+      source: uniqueSources.length === 1 ? uniqueSources[0] : 'multiple',
+      sourceLabel: uniqueSourceLabels.join(' / '),
+      connections,
+      groups,
+      warnings
+    }
+  }
+}
+
 export function decodeConnectionImportContent (bytes) {
   const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes)
   if (data[0] === 0xFF && data[1] === 0xFE) {

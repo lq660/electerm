@@ -9,8 +9,11 @@ import delay from '../../common/wait'
 import { fixBookmarks } from '../../common/db-fix'
 import {
   decodeConnectionImportContent,
+  mergeConnectionImportResults,
   parseConnectionImport
 } from '../../common/connection-import-parser.mjs'
+
+export const preserveSourceGroupsValue = '__preserve_source_groups__'
 
 function getFileName (file) {
   const path = file.fileName || file.name || file.filePath || file.path || ''
@@ -40,6 +43,36 @@ export async function prepareConnectionImport (file) {
   return {
     fileName,
     result: parseConnectionImport(text, fileName)
+  }
+}
+
+export async function prepareConnectionImports (files) {
+  const fileList = (Array.isArray(files) ? files : [files]).filter(Boolean)
+  if (!fileList.length) {
+    throw new Error('请选择至少一个连接文件。')
+  }
+  const settled = await Promise.allSettled(
+    fileList.map(file => prepareConnectionImport(file))
+  )
+  const preparedFiles = []
+  const failures = []
+  settled.forEach((item, index) => {
+    if (item.status === 'fulfilled') {
+      preparedFiles.push(item.value)
+      return
+    }
+    failures.push({
+      fileName: getFileName(fileList[index]),
+      message: item.reason?.message || '无法解析文件'
+    })
+  })
+  if (!preparedFiles.length) {
+    throw new Error(failures.map(item => `${item.fileName}：${item.message}`).join('；'))
+  }
+  // 2026-07-14 coder(lq): Keep valid files in the same batch when another selected file is malformed.
+  return {
+    ...mergeConnectionImportResults(preparedFiles),
+    failures
   }
 }
 
@@ -157,11 +190,20 @@ function mergeImportedGroups (store, groups, bookmarkIdBySourceId) {
 export const applyConnectionImport = action(function ({
   result,
   selectedIndexes,
-  conflictStrategy = 'skip'
+  conflictStrategy = 'skip',
+  targetGroupId = preserveSourceGroupsValue
 }) {
   const { store } = window
   const selected = new Set(selectedIndexes)
   const bookmarkIdBySourceId = new Map()
+  const importedBookmarkIds = new Set()
+  const useSourceGroups = targetGroupId === preserveSourceGroupsValue
+  const targetGroup = useSourceGroups
+    ? null
+    : store.bookmarkGroups.find(group => group.id === targetGroupId)
+  if (!useSourceGroups && !targetGroup) {
+    throw new Error('选择的目标分组不存在，请重新选择。')
+  }
   let added = 0
   let updated = 0
   let skipped = 0
@@ -181,6 +223,7 @@ export const applyConnectionImport = action(function ({
       const preservedId = conflict.id
       Object.assign(conflict, bookmark, { id: preservedId })
       bookmarkIdBySourceId.set(connection.sourceId, preservedId)
+      importedBookmarkIds.add(preservedId)
       updated++
       return
     }
@@ -189,11 +232,24 @@ export const applyConnectionImport = action(function ({
     }
     store.bookmarks.push(bookmark)
     bookmarkIdBySourceId.set(connection.sourceId, bookmark.id)
+    importedBookmarkIds.add(bookmark.id)
     added++
   })
 
-  // 2026-07-12 coder(lq): Rebuild group references only after conflict resolution so skipped rows never leave dangling resource IDs.
-  mergeImportedGroups(store, result.groups || [], bookmarkIdBySourceId)
+  if (targetGroup) {
+    // 2026-07-14 coder(lq): A chosen target group overrides source grouping only for connections actually added or overwritten in this batch.
+    store.bookmarkGroups.forEach(group => {
+      group.bookmarkIds = (group.bookmarkIds || [])
+        .filter(id => !importedBookmarkIds.has(id))
+    })
+    targetGroup.bookmarkIds = [
+      ...(targetGroup.bookmarkIds || []),
+      ...importedBookmarkIds
+    ]
+  } else {
+    // 2026-07-12 coder(lq): Rebuild group references only after conflict resolution so skipped rows never leave dangling resource IDs.
+    mergeImportedGroups(store, result.groups || [], bookmarkIdBySourceId)
+  }
   store.fixBookmarkGroups()
   return { added, updated, skipped }
 })

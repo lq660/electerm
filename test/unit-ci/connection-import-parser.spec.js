@@ -114,6 +114,45 @@ Host staging
     assert.equal(result.connections[0].host, '127.0.0.1')
   })
 
+  test('merges multiple import files without colliding source or group ids', async () => {
+    const {
+      mergeConnectionImportResults,
+      parseConnectionImport
+    } = await parserPromise
+    const makeExport = (title, host) => parseConnectionImport(JSON.stringify({
+      bookmarks: [{
+        id: 'shared-server-id',
+        title,
+        host,
+        username: 'root'
+      }],
+      bookmarkGroups: [{
+        id: 'shared-group-id',
+        title: `${title}分组`,
+        bookmarkIds: ['shared-server-id']
+      }]
+    }), `${title}.json`)
+    const merged = mergeConnectionImportResults([
+      { fileName: '生产.json', result: makeExport('生产', '10.0.0.10') },
+      { fileName: '测试.json', result: makeExport('测试', '10.0.0.20') }
+    ])
+
+    assert.deepEqual(merged.fileNames, ['生产.json', '测试.json'])
+    assert.equal(merged.result.connections.length, 2)
+    assert.equal(new Set(merged.result.connections.map(item => item.sourceId)).size, 2)
+    assert.equal(new Set(merged.result.groups.map(item => item.sourceId)).size, 2)
+    assert.deepEqual(
+      merged.result.connections.map(item => item.sourceFileName),
+      ['生产.json', '测试.json']
+    )
+    merged.result.groups.forEach(group => {
+      assert.equal(group.connectionSourceIds.length, 1)
+      assert.ok(merged.result.connections.some(connection => (
+        connection.sourceId === group.connectionSourceIds[0]
+      )))
+    })
+  })
+
   test('rejects invalid files', async () => {
     const { parseConnectionImport } = await parserPromise
     assert.throws(() => parseConnectionImport('not a connection file'), /不是有效/)

@@ -18,10 +18,23 @@ test.describe('China workbench UI smoke test', () => {
     const serverSelectorBox = await serverSelector.boundingBox()
     expect(serverSelectorBox.width).toBeGreaterThanOrEqual(420)
     expect(serverSelectorBox.height).toBeGreaterThanOrEqual(440)
+    // 2026-07-14 coder(lq): Guard the portal search controls against inheriting the active terminal's dark theme.
+    const serverSearchWrapper = serverSelector.locator('.ant-input-affix-wrapper').first()
+    const serverSearchInput = serverSearchWrapper.locator('input').first()
+    const serverSearchButton = serverSelector.locator('.ant-input-search-btn').first()
+    await expect(serverSearchWrapper).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+    await expect(serverSearchWrapper).toHaveCSS('border-top-width', '1px')
+    await expect(serverSearchInput).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
+    await expect(serverSearchInput).toHaveCSS('border-top-width', '0px')
+    await expect(serverSearchInput).toHaveCSS('color', 'rgb(31, 41, 55)')
+    await expect(serverSearchButton).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+    const closeServerSelector = serverSelector.getByRole('button', { name: '关闭服务器选择' })
+    await expect(closeServerSelector).toBeVisible()
     await expect(serverSelector.getByRole('button', { name: '添加服务器' })).toBeVisible()
     await expect(serverSelector.locator('.cn-quick-connect-bar')).toHaveCount(0)
     await expect(serverSelector.getByText('AI 生成连接')).toHaveCount(0)
-    await client.keyboard.press('Escape')
+    await closeServerSelector.click()
+    await expect(serverSelector).toBeHidden()
 
     await expect(client.locator('.cn-side-icon-menu .anticon-appstore')).toBeVisible()
     await expect(client.locator('.cn-side-icon-theme, .cn-side-icon-setting, .cn-side-icon-sync, .cn-side-icon-tools')).toHaveCount(0)
@@ -104,13 +117,18 @@ test.describe('China workbench UI smoke test', () => {
     await electronApp.close()
   })
 
-  test('previews and imports an Xshell connection from the resource toolbar', async () => {
+  test('previews and imports multiple connection files from the resource toolbar', async () => {
     const electronApp = await electron.launch(appOptions)
     const client = await electronApp.firstWindow()
-    const importedTitle = `xshell-import-${Date.now()}`
-    const importFile = path.join(os.tmpdir(), `${importedTitle}.xsh`)
-    let preexistingGroupId = ''
-    fs.writeFileSync(importFile, [
+    const stamp = Date.now()
+    const xshellTitle = `xshell-import-${stamp}`
+    const openSshTitle = `openssh-import-${stamp}`
+    const targetGroupId = `import-target-${stamp}`
+    const targetGroupTitle = `批量导入分组-${stamp}`
+    const xshellFile = path.join(os.tmpdir(), `${xshellTitle}.xsh`)
+    const openSshFile = path.join(os.tmpdir(), `${openSshTitle}.ssh-config`)
+    let preexistingGroupIds = {}
+    fs.writeFileSync(xshellFile, [
       '[CONNECTION]',
       'Host=192.0.2.80',
       'Port=2222',
@@ -119,45 +137,87 @@ test.describe('China workbench UI smoke test', () => {
       'UserName=deploy',
       'Password=encrypted-value'
     ].join('\r\n'))
+    fs.writeFileSync(openSshFile, [
+      `Host ${openSshTitle}`,
+      '  HostName 192.0.2.81',
+      '  Port 2200',
+      '  User ops'
+    ].join('\n'))
 
     try {
       await client.waitForSelector('.cn-workbench-home')
-      preexistingGroupId = await client.evaluate(() => {
-        return window.store.bookmarkGroups.find(item => item.title === 'Xshell 导入')?.id || ''
+      preexistingGroupIds = await client.evaluate(() => {
+        return Object.fromEntries(['Xshell 导入', 'OpenSSH 导入'].map(title => [
+          title,
+          window.store.bookmarkGroups.find(item => item.title === title)?.id || ''
+        ]))
       })
-      await electronApp.evaluate(({ ipcMain }, filePath) => {
+      await client.evaluate(({ id, title }) => {
+        window.store.bookmarkGroups.push({
+          id,
+          title,
+          level: 1,
+          color: '#1677ff',
+          bookmarkIds: [],
+          bookmarkGroupIds: []
+        })
+      }, { id: targetGroupId, title: targetGroupTitle })
+      await electronApp.evaluate(({ ipcMain }, filePaths) => {
         ipcMain.removeHandler('show-open-dialog-sync')
-        ipcMain.handle('show-open-dialog-sync', async () => [filePath])
-      }, importFile)
+        ipcMain.handle('show-open-dialog-sync', async (event, options) => {
+          global.__connectionImportDialogProperties = options.properties
+          return filePaths
+        })
+      }, [xshellFile, openSshFile])
       await client.evaluate(() => {
         window.store.onNewSsh()
       })
 
       await client.getByLabel('导入服务器资源', { exact: true }).click({ timeout: 5000 })
+      const dialogProperties = await electronApp.evaluate(() => {
+        return global.__connectionImportDialogProperties
+      })
+      expect(dialogProperties).toContain('multiSelections')
       const modal = client.locator('.connection-import-modal')
       await expect(modal).toBeVisible()
       await expect(modal).toContainText('Xshell')
-      await expect(modal).toContainText(importedTitle)
+      await expect(modal).toContainText('OpenSSH')
+      await expect(modal).toContainText('已选择 2 个文件')
+      await expect(modal).toContainText(path.basename(xshellFile))
+      await expect(modal).toContainText(path.basename(openSshFile))
       await expect(modal).toContainText('需补充凭据')
       await expect(modal.getByText('跳过已有连接')).toBeVisible()
+      const groupSelect = modal.locator('.connection-import-group-select')
+      await expect(groupSelect).toHaveValue('__preserve_source_groups__')
+      await expect(groupSelect.locator('option:checked'))
+        .toHaveText('保留文件原分组')
+      await groupSelect.selectOption(targetGroupId)
+      await expect(groupSelect).toHaveValue(targetGroupId)
+      await expect(groupSelect.locator('option:checked'))
+        .toHaveText(targetGroupTitle)
 
       await modal.getByRole('button', { name: /导入所选连接/ }).click()
       await expect(modal).toBeHidden()
 
-      const imported = await client.evaluate((title) => {
-        const bookmark = window.store.bookmarks.find(item => item.title === title)
-        const group = window.store.bookmarkGroups.find(item => item.title === 'Xshell 导入')
-        return {
-          bookmark: bookmark && {
-            host: bookmark.host,
-            port: bookmark.port,
-            username: bookmark.username,
-            hasPassword: Boolean(bookmark.password)
-          },
-          inGroup: Boolean(bookmark && group?.bookmarkIds?.includes(bookmark.id))
-        }
-      }, importedTitle)
-      expect(imported).toEqual({
+      const imported = await client.evaluate((specs) => {
+        return specs.map(spec => {
+          const bookmark = window.store.bookmarks.find(item => item.title === spec.title)
+          const group = window.store.bookmarkGroups.find(item => item.title === spec.groupTitle)
+          return {
+            bookmark: bookmark && {
+              host: bookmark.host,
+              port: bookmark.port,
+              username: bookmark.username,
+              hasPassword: Boolean(bookmark.password)
+            },
+            inGroup: Boolean(bookmark && group?.bookmarkIds?.includes(bookmark.id))
+          }
+        })
+      }, [
+        { title: xshellTitle, groupTitle: targetGroupTitle },
+        { title: openSshTitle, groupTitle: targetGroupTitle }
+      ])
+      expect(imported).toEqual([{
         bookmark: {
           host: '192.0.2.80',
           port: 2222,
@@ -165,28 +225,52 @@ test.describe('China workbench UI smoke test', () => {
           hasPassword: false
         },
         inGroup: true
-      })
+      }, {
+        bookmark: {
+          host: '192.0.2.81',
+          port: 2200,
+          username: 'ops',
+          hasPassword: false
+        },
+        inGroup: true
+      }])
     } finally {
-      await client.evaluate(({ title, previousGroupId }) => {
-        const bookmark = window.store.bookmarks.find(item => item.title === title)
-        if (bookmark) {
-          window.store.delItem(bookmark, 'bookmarks')
-          window.store.bookmarkGroups.forEach(group => {
-            group.bookmarkIds = (group.bookmarkIds || []).filter(id => id !== bookmark.id)
-          })
+      await client.evaluate(({ titles, previousGroupIds, targetGroupId }) => {
+        titles.forEach(title => {
+          const bookmark = window.store.bookmarks.find(item => item.title === title)
+          if (bookmark) {
+            window.store.delItem(bookmark, 'bookmarks')
+            window.store.bookmarkGroups.forEach(group => {
+              group.bookmarkIds = (group.bookmarkIds || []).filter(id => id !== bookmark.id)
+            })
+          }
+        })
+        const targetGroupIndex = window.store.bookmarkGroups.findIndex(group => (
+          group.id === targetGroupId
+        ))
+        if (targetGroupIndex >= 0) {
+          window.store.bookmarkGroups.splice(targetGroupIndex, 1)
         }
-        const groupIndex = window.store.bookmarkGroups.findIndex(group =>
-          group.title === 'Xshell 导入' &&
-          group.id !== previousGroupId &&
-          !(group.bookmarkIds || []).length &&
-          !(group.bookmarkGroupIds || []).length
-        )
-        if (groupIndex >= 0) {
-          window.store.bookmarkGroups.splice(groupIndex, 1)
-        }
-      }, { title: importedTitle, previousGroupId: preexistingGroupId }).catch(() => {})
+        const groupTitles = ['Xshell 导入', 'OpenSSH 导入']
+        groupTitles.forEach(groupTitle => {
+          const groupIndex = window.store.bookmarkGroups.findIndex(group => (
+            group.title === groupTitle &&
+            group.id !== previousGroupIds[groupTitle] &&
+            !(group.bookmarkIds || []).length &&
+            !(group.bookmarkGroupIds || []).length
+          ))
+          if (groupIndex >= 0) {
+            window.store.bookmarkGroups.splice(groupIndex, 1)
+          }
+        })
+      }, {
+        titles: [xshellTitle, openSshTitle],
+        previousGroupIds: preexistingGroupIds,
+        targetGroupId
+      }).catch(() => {})
       await electronApp.close()
-      fs.rmSync(importFile, { force: true })
+      fs.rmSync(xshellFile, { force: true })
+      fs.rmSync(openSshFile, { force: true })
     }
   })
 })

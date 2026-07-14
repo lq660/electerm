@@ -1,4 +1,5 @@
 import { Button, ConfigProvider, Input, Progress, Tag, theme } from 'antd'
+import { useState } from 'react'
 import {
   ClockCircleOutlined,
   CloudServerOutlined,
@@ -64,7 +65,6 @@ function buildServerGroups (store) {
           return bookmarkMap.get(id)
         })
         .filter(Boolean)
-        .slice(0, 4)
         .map(bookmark => ({
           id: bookmark.id,
           name: getBookmarkTitle(bookmark),
@@ -83,7 +83,6 @@ function buildServerGroups (store) {
 
   const ungroupedServers = bookmarks
     .filter(bookmark => !groupedBookmarkIds.has(bookmark.id))
-    .slice(0, 4)
     .map(bookmark => ({
       id: bookmark.id,
       name: getBookmarkTitle(bookmark),
@@ -109,6 +108,7 @@ function buildServerGroups (store) {
 
 export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch }) {
   const { store } = window
+  const [serverKeyword, setServerKeyword] = useState('')
   const props = {
     style: {
       height: height + 'px'
@@ -141,12 +141,20 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
   }
 
   const groups = buildServerGroups(store)
-  const savedServers = groups
+  const allSavedServers = groups
     .flatMap(group => group.servers.map(server => ({
       ...server,
       groupTitle: group.title
     })))
-    .slice(0, 8)
+  const normalizedServerKeyword = serverKeyword.trim().toLowerCase()
+  const savedServers = normalizedServerKeyword
+    ? allSavedServers.filter(server => [
+      server.name,
+      server.host,
+      server.groupTitle,
+      server.load
+    ].some(value => String(value || '').toLowerCase().includes(normalizedServerKeyword)))
+    : allSavedServers
   const savedConnectionTotal = (store.bookmarks || []).length
   const transferTotal = store.fileTransfers?.length || 0
   const transferHistoryTotal = store.transferHistory?.length || 0
@@ -279,8 +287,22 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
                     <CloudServerOutlined />
                     <span>服务器资源</span>
                   </div>
-                  <p>已保存 {savedConnectionTotal} 个连接，点击资源卡片直接进入 tab</p>
+                  <p>
+                    {
+                      normalizedServerKeyword
+                        ? `已保存 ${savedConnectionTotal} 个连接，当前显示 ${savedServers.length} 个`
+                        : `已显示全部 ${savedConnectionTotal} 个连接，点击资源卡片直接进入 tab`
+                    }
+                  </p>
                 </div>
+                <Input
+                  className='cn-saved-connection-search'
+                  prefix={<SearchOutlined />}
+                  placeholder='搜索名称、IP、分组或类型'
+                  value={serverKeyword}
+                  allowClear
+                  onChange={event => setServerKeyword(event.target.value)}
+                />
               </div>
               {
                 savedServers.length
@@ -327,8 +349,14 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
                     <div className='cn-empty-connections'>
                       <CloudServerOutlined />
                       <div>
-                        <strong>暂无已保存连接</strong>
-                        <span>使用右上角“新建连接”保存后会显示在这里，也可以先用上方快速连接。</span>
+                        <strong>{normalizedServerKeyword ? '未找到匹配连接' : '暂无已保存连接'}</strong>
+                        <span>
+                          {
+                            normalizedServerKeyword
+                              ? '请更换名称、IP、分组或类型关键词。'
+                              : '使用右上角“新建连接”保存后会显示在这里，也可以先用上方快速连接。'
+                          }
+                        </span>
                       </div>
                     </div>
                     )

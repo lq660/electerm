@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Tabs } from 'antd'
 import {
+  CloseOutlined,
   CodeFilled,
   RightSquareFilled
 } from '@ant-design/icons'
@@ -39,6 +40,7 @@ export default function AddBtnMenu ({
   menuTop,
   menuLeft,
   onMenuScroll,
+  onClose,
   onTabAdd,
   addPanelWidth,
   setAddPanelWidth
@@ -131,6 +133,15 @@ export default function AddBtnMenu ({
           <strong>选择服务器</strong>
           <span>点击已保存的服务器，直接打开连接</span>
         </div>
+        <button
+          type='button'
+          className='cn-add-menu-close'
+          aria-label='关闭服务器选择'
+          title='关闭'
+          onClick={onClose}
+        >
+          <CloseOutlined />
+        </button>
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}

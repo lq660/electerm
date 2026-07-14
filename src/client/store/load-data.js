@@ -13,7 +13,6 @@ import { initWsCommon } from '../common/fetch-from-server'
 import safeParse from '../common/parse-json-safe'
 import initWatch from './watch'
 import { parseQuickConnect } from '../common/parse-quick-connect'
-import { notification } from '../components/common/notification'
 
 function getHost (argv, opts) {
   const arr = argv
@@ -207,15 +206,6 @@ export default (Store) => {
             ext[name] = dt
           }
         })
-      const storageStatus = await window.pre.runGlobalAsync('getDbStorageStatus')
-      if (storageStatus.lockedCount) {
-        // 2026-07-12 coder(lq): Tell the user that old ciphertext was preserved instead of silently presenting it as empty data.
-        notification.warning({
-          message: '部分旧数据暂未解锁',
-          description: `检测到 ${storageStatus.lockedCount} 条旧版加密记录。数据仍保留在本机，恢复钥匙串访问后可以重新加载。`,
-          duration: 0
-        })
-      }
       ext.lastDataUpdateTime = await getData('lastDataUpdateTime') || 0
       ext.initLoadingData = false
       Object.assign(store, ext)

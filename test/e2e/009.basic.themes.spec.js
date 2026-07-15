@@ -28,7 +28,7 @@ describe('terminal themes', function () {
 
     log('open terminal themes')
     await client.evaluate(() => window.store.openTerminalThemes())
-    await client.waitForSelector('.setting-tabs-terminal-themes .cn-theme-form')
+    await client.waitForSelector('#terminal-theme-form.cn-theme-form')
     const sel = '.setting-wrap .ant-tabs-nav-list .ant-tabs-tab-active'
     await client.hasElem(sel)
     await delay(500)
@@ -45,7 +45,7 @@ describe('terminal themes', function () {
     log('apply theme by selecting its list row')
     await client.locator(
       '.theme-item',
-      { hasText: 'default light' }
+      { hasText: '默认浅色' }
     ).first().click()
     await delay(500)
     const selectedThemeState = await client.evaluate(() => {

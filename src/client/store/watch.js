@@ -19,6 +19,10 @@ import deepCopy from 'json-deep-copy'
 import { refsStatic } from '../components/common/ref'
 import dataCompare from '../common/data-compare'
 
+function isLockedLegacyConfigError (error) {
+  return String(error?.message || error).includes('锁定的旧版加密数据')
+}
+
 export default store => {
   for (const name of dbNamesForWatch) {
     window[`watch${name}`] = autoRun(async () => {
@@ -83,10 +87,19 @@ export default store => {
   }).start()
 
   autoRun(() => {
-    if (!isEmpty(store.config)) {
-      window.pre.runGlobalAsync('saveUserConfig', store.config)
+    const config = store.config
+    if (!isEmpty(config) && !store.userConfigSaveLocked) {
+      window.pre.runGlobalAsync('saveUserConfig', config)
+        .catch(error => {
+          // 2026-07-15 coder(lq): A locked legacy row must remain intact; stop retrying its failed write so unrelated pages stay usable.
+          if (isLockedLegacyConfigError(error)) {
+            store.userConfigSaveLocked = true
+            return
+          }
+          store.onError(error)
+        })
     }
-    return store.config
+    return config
   }, func => debounce(func, 100)).start()
 
   autoRun(() => {

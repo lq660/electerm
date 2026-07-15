@@ -75,7 +75,7 @@ export default function BookmarkCategorySelect ({
     >
       <TreeSelect
         className='cn-category-tree-select'
-        popupClassName='cn-category-tree-dropdown'
+        classNames={{ popup: { root: 'cn-category-tree-dropdown' } }}
         treeData={tree}
         treeDefaultExpandAll
         showSearch

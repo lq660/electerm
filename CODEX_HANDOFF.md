@@ -1,6 +1,6 @@
 # Codex 接续说明
 
-> 最后更新：2026-07-14
+> 最后更新：2026-07-15
 >
 > 本文件用于让新的 Codex 快速接手“云舵工作台”改造。详细页面规划另见
 > [`docs/page-architecture.md`](docs/page-architecture.md)。
@@ -12,13 +12,12 @@
 - 产品名称：云舵工作台
 - Git 远程：`git@github.com:lq660/electerm.git`
 - 当前分支：`feature/china-workbench-ui`
-- 已推送提交：`778a86650f54dd5c9d680250b6e024231bf0df5a`
+- 历史基线提交：`778a86650f54dd5c9d680250b6e024231bf0df5a`
 - 提交标题：`feat: redesign China operations workbench`
 - Pull Request 地址：<https://github.com/lq660/electerm/pull/new/feature/china-workbench-ui>
 
-上述提交包含本轮主体改造，共 226 个文件、16537 行新增、2165 行删除。
-创建本文件之前，本地分支与远程分支一致且工作区干净。本文件创建于该提交之后，
-因此在用户再次要求提交前，它会作为新的未提交文件留在工作区。
+上述提交包含主体改造，共 226 个文件、16537 行新增、2165 行删除。本文档只记录历史背景；
+接续开发前必须以 `git status --short` 和 `git log -1 --oneline` 确认当前实际状态。
 
 ## 2. 产品决策与用户偏好
 
@@ -233,8 +232,10 @@
 
 - 新增本地数据库加密封装
 - 无法解密的旧记录不删除、不覆盖
-- 暂不在 UI 弹出旧数据解锁提示，避免干扰正常使用；日志和锁定保护仍保留
+- 无法保存 `userConfig` 时停止重复写入，设置和终端主题页仍可使用
+- 用户在锁定状态下修改设置时，仅提示一次“本次修改仅当前运行有效”
 - 用户恢复钥匙串访问后可以重新加载
+- 主题预设仅在展示层本地化，`default`、`defaultLight` 等保存 ID 和导出数据保持不变
 
 主要文件：
 
@@ -244,6 +245,8 @@
 - `src/app/lib/sqlite.js`
 - `src/client/store/db-upgrade.js`
 - `src/client/store/load-data.js`
+- `src/client/store/watch.js`
+- `src/client/common/get-theme-display-name.js`
 - `test/e2e/00184.storage-encryption.spec.js`
 
 ## 4. 视觉与国际化实现
@@ -362,9 +365,30 @@ DATA_PATH="/tmp/electerm-e2e-$(date +%s)" \
 
 运行 E2E 前必须关闭正在运行的预览 Electron，否则单实例锁会使测试连接到错误进程或直接退出。
 
+### 6.5 2026-07-15 本轮验证
+
+已通过：
+
+```bash
+npm run lint
+git diff --check
+npm run vite-build
+```
+
+另外使用 `work/app` 的真实 Electron 构建产物和隔离数据目录验证：
+
+- 旧版锁定的 `data:userConfig` 不会被覆盖。
+- 设置中心、终端主题页仍可打开。
+- 首次修改设置会提示本次修改仅当前运行有效，运行时设置仍会立即生效。
+- 终端主题页显示“默认”“默认浅色”，主题 ID 不变。
+
+当前机器的 Playwright `1.28.1` 在 Node `25.8.1` 下会报
+`Execution context was destroyed`，不应据此判定应用功能失败；修复环境后应重新跑
+`00184.storage-encryption.spec.js` 和 `009.basic.themes.spec.js`。
+
 ## 7. 当前预览与启动方式
 
-标准启动方式：
+开发调试：
 
 ```bash
 # 终端 1
@@ -375,16 +399,24 @@ npm run app
 ```
 
 - Vite 预览地址：`http://127.0.0.1:5570`
-- Electron 内部服务通常监听：`127.0.0.1:30975`
-- 本文件生成时预览已重新启动；对应工具会话曾为 `86218`（Vite）和 `86621`（Electron），
-  但新 Codex 不应假设这些会话仍然存活，应先检查进程和端口。
+- `npm run app` 使用开发入口 `src/app`，适合调试，不可代替发布前的构建验证。
+
+构建产物验证：
+
+```bash
+npm run vite-build
+npm run t
+```
+
+`npm run t` 启动 `work/app` 中的构建产物；真实 Electron 页面检查、截图和发布前功能走查应使用该方式。
+预览端口会随运行时变化，新 Codex 不应假设已有进程或端口仍然存活。
 
 ## 8. 已知数据状态与技术债
 
 ### 8.1 旧加密记录
 
-本机仍可能存在无法通过 macOS safeStorage 解密的旧记录。当前不再向用户弹出以下提示，
-但日志和锁定保护仍保留：
+本机仍可能存在无法通过 macOS safeStorage 解密的旧记录。应用不会在启动时打断用户；
+若锁定的是 `userConfig`，用户首次修改设置时会收到一次说明，日志和锁定保护仍保留：
 
 ```text
 部分旧数据暂未解锁
@@ -397,8 +429,9 @@ npm run app
 
 开发预览中曾出现以下上游警告，尚未系统处理：
 
-- Ant Design `TreeSelect.popupClassName` 已废弃
 - 少数组件列表缺少唯一 React `key`
+
+`TreeSelect.popupClassName` 的已废弃用法已改为 `classNames.popup.root`。
 
 这些不是当前核心流程阻断项，但后续做质量收尾时应逐个定位。
 

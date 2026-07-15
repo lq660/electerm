@@ -9,6 +9,7 @@ import {
   requiredThemeProps
 } from '../../common/terminal-theme'
 import { defaultTheme, defaultThemeLight } from '../../common/theme-defaults'
+import getThemeDisplayName from '../../common/get-theme-display-name'
 import generate from '../../common/uid'
 import Link from '../common/external-link'
 import InputAutoFocus from '../common/input-auto-focus'
@@ -227,9 +228,9 @@ export default function ThemeForm (props) {
   const {
     readonly,
     id,
-    type,
-    name: themeName
+    type
   } = props.formData
+  const themeName = getThemeDisplayName(props.formData)
   const initialValues = {
     themeName,
     themeText: convertThemeToText(props.formData)

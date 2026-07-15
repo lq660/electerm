@@ -86,4 +86,52 @@ test.describe('database encryption', () => {
     expect(fs.statSync(keyPath).mode & 0o777).toBe(0o600)
     await electronApp.close()
   })
+
+  test('keeps settings pages usable when a legacy user config is locked', async () => {
+    const dataDbPath = path.resolve(
+      process.env.DATA_PATH,
+      'users',
+      'default_user',
+      'electerm_data.db'
+    )
+    fs.mkdirSync(path.dirname(dataDbPath), { recursive: true })
+    const lockedCiphertext = 'enc:v3:local:gcm:invalid-user-config'
+    let db = new DatabaseSync(dataDbPath)
+    db.exec('CREATE TABLE IF NOT EXISTS data (_id TEXT PRIMARY KEY, data TEXT)')
+    db.prepare(
+      'INSERT OR REPLACE INTO data (_id, data) VALUES (?, ?)'
+    ).run('userConfig', lockedCiphertext)
+    db.close()
+
+    const electronApp = await electron.launch(appOptions)
+    const client = await electronApp.firstWindow()
+    await client.waitForSelector('.layout-wrap')
+    await client.waitForFunction(() => window.store.userConfigSaveLocked)
+
+    const configState = await client.evaluate(async () => {
+      window.store.setConfig({ sshReadyTimeout: 12345 })
+      await new Promise(resolve => setTimeout(resolve, 200))
+      return {
+        timeout: window.store.config.sshReadyTimeout,
+        saveLocked: window.store.userConfigSaveLocked,
+        noticeShown: window.store.userConfigLockedNoticeShown
+      }
+    })
+    expect(configState).toEqual({
+      timeout: 12345,
+      saveLocked: true,
+      noticeShown: true
+    })
+
+    await client.evaluate(() => window.store.openTerminalThemes())
+    await client.waitForSelector('#terminal-theme-form.cn-theme-form')
+
+    db = new DatabaseSync(dataDbPath, { readOnly: true })
+    const preservedRow = db.prepare(
+      'SELECT data FROM data WHERE _id = ?'
+    ).get('userConfig')
+    db.close()
+    expect(preservedRow.data).toBe(lockedCiphertext)
+    await electronApp.close()
+  })
 })

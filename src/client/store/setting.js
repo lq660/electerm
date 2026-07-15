@@ -20,6 +20,11 @@ const e = window.translate
 export default Store => {
   Store.prototype.setConfig = function (conf) {
     const { store } = window
+    // 2026-07-15 coder(lq): Do not hide that a protected legacy config cannot persist, but keep the running workspace usable.
+    if (store.userConfigSaveLocked && !store.userConfigLockedNoticeShown) {
+      store.userConfigLockedNoticeShown = true
+      message.warning(e('userConfigSaveLocked'), 8)
+    }
     Object.assign(
       store._config,
       copy(conf)

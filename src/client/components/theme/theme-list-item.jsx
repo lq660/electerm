@@ -12,8 +12,7 @@ import classnames from 'classnames'
 import { defaultTheme } from '../../common/theme-defaults'
 import highlight from '../common/highlight'
 import isColorDark from '../../common/is-color-dark'
-
-const e = window.translate
+import getThemeDisplayName from '../../common/get-theme-display-name'
 
 export default function ThemeListItem (props) {
   const {
@@ -68,9 +67,7 @@ export default function ThemeListItem (props) {
       active: activeItemId === id
     }
   )
-  let title = id === defaultTheme().id
-    ? e(id)
-    : name
+  let title = getThemeDisplayName(item)
   title = highlight(
     title,
     keyword

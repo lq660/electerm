@@ -32,6 +32,7 @@ import StartSession from './start-session-select'
 import HelpIcon from '../common/help-icon'
 import delay from '../../common/wait.js'
 import isColorDark from '../../common/is-color-dark'
+import getThemeDisplayName from '../../common/get-theme-display-name'
 import DeepLinkControl from './deep-link-control'
 import HotkeySetting from './hotkey'
 import './setting.styl'
@@ -537,7 +538,8 @@ export default class SettingCommon extends Component {
                       terminalThemes
                         .filter(d => d.id && d.name && d.uiThemeConfig)
                         .map(l => {
-                          const { id, name, uiThemeConfig } = l
+                          const { id, uiThemeConfig } = l
+                          const displayName = getThemeDisplayName(l)
                           const { main, text } = uiThemeConfig
                           const isDark = isColorDark(main)
                           const txt = isDark ? <MoonOutlined /> : <SunOutlined />
@@ -557,7 +559,7 @@ export default class SettingCommon extends Component {
                           )
                           return (
                             <Option key={id} value={id}>
-                              {tag} {name}
+                              {tag} {displayName}
                             </Option>
                           )
                         })

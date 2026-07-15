@@ -69,6 +69,8 @@ export default () => {
     expandedKeys: ls.getItemJSON(expandedKeysLsKey, [
       defaultBookmarkGroupId
     ]),
+    userConfigSaveLocked: false,
+    userConfigLockedNoticeShown: false,
     bookmarkSelectMode: false,
     checkedKeys: ls.getItemJSON(checkedKeysLsKey, []),
     addressBookmarks: [],

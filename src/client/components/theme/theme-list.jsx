@@ -8,11 +8,9 @@ import { pick } from 'lodash-es'
 import { Pagination } from 'antd'
 import ThemeListItem from './theme-list-item'
 import { settingMap } from '../../common/constants'
-import { defaultTheme } from '../../common/theme-defaults'
 import getInitItem from '../../common/init-setting-item'
+import getThemeDisplayName from '../../common/get-theme-display-name'
 import './terminal-theme-list.styl'
-
-const e = window.translate
 
 export default class ThemeList extends List {
   handlePager = page => {
@@ -48,10 +46,7 @@ export default class ThemeList extends List {
     if (!item) {
       return null
     }
-    const { name, id } = item
-    const title = id === defaultTheme().id
-      ? e(id)
-      : name
+    const title = getThemeDisplayName(item)
     return (
       <div className='pd2'>
         <CheckCircleOutlined className='mg1r' />
@@ -84,7 +79,7 @@ export default class ThemeList extends List {
     const { keyword } = this.state
     return keyword
       ? list.filter(item => {
-        return item.name.toLowerCase().includes(keyword.toLowerCase())
+        return getThemeDisplayName(item).toLowerCase().includes(keyword.toLowerCase())
       })
       : list
   }

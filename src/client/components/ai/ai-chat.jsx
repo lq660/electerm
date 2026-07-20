@@ -53,6 +53,7 @@ export default function AIChat (props) {
       sessionId: null,
       mode,
       toolCalls: [],
+      sessionRootId: props.activeTabId,
       ...pick(props.config, [
         'nameAI',
         'modelAI',
@@ -73,7 +74,7 @@ export default function AIChat (props) {
     if (window.store.aiChatHistory.length > MAX_HISTORY) {
       window.store.aiChatHistory.splice(MAX_HISTORY)
     }
-  }, [prompt, mode])
+  }, [prompt, mode, props.activeTabId, props.config])
 
   function renderHistory () {
     if (!props.aiChatHistory.length) {

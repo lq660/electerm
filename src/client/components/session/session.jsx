@@ -14,6 +14,7 @@ import TransferModal from '../sidebar/transfer-modal'
 import AIChat from '../ai/ai-chat-entry'
 import CommandAssistant from '../terminal/command-assistant'
 import TerminalInfoRunner from '../terminal-info/run-cmd'
+import SolutionRecords from './solution-records'
 import {
   SearchOutlined,
   FullscreenOutlined,
@@ -645,6 +646,7 @@ export default class SessionWrapper extends Component {
     return {
       ...copy(this.props.tab),
       id: session.id,
+      sessionRootId: this.props.tab.id,
       title: session.title,
       tabCount: session.title.replace('终端 ', `${this.props.tab.tabCount}.`),
       pane: paneMap.terminal
@@ -1342,6 +1344,15 @@ export default class SessionWrapper extends Component {
     })
   }
 
+  handleRunSolutionCommand = (command, execute) => {
+    const terminalId = this.getActiveTerminalSessionId()
+    const input = command.split('\n').map(line => line.trim()).filter(Boolean).join('; ')
+    this.editTab({ pane: paneMap.terminal })
+    setTimeout(() => {
+      refs.get('term-' + terminalId)?.runQuickCommand(input, !execute)
+    }, 0)
+  }
+
   handleToggleAiAssistant = () => {
     this.setState(prev => ({
       showAiAssistant: !prev.showAiAssistant
@@ -1952,6 +1963,13 @@ export default class SessionWrapper extends Component {
               : null
           }
         </section>
+
+        <SolutionRecords
+          tab={tab}
+          serverName={title}
+          host={host}
+          onRunCommand={this.handleRunSolutionCommand}
+        />
 
         <div className='cn-session-aside-section'>
           <div className='cn-session-aside-title'>会话信息</div>

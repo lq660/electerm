@@ -306,21 +306,38 @@ export default Store => {
     window.store.history = []
   }
 
-  Store.prototype.addCmdHistory = action(function (cmd) {
+  Store.prototype.addCmdHistory = action(function (cmd, source = 'terminal', sessionId = '') {
     if (!cmd || !cmd.trim()) {
       return
     }
     const { terminalCommandHistory } = window.store
     const existing = terminalCommandHistory.find(item => item.cmd === cmd)
     if (existing) {
+      const previousLastUseTime = existing.lastUseTime
+      const lastUseTime = new Date().toISOString()
       existing.count = existing.count + 1
-      existing.lastUseTime = new Date().toISOString()
+      existing.lastUseTime = lastUseTime
+      existing.lastSource = source || existing.lastSource
+      if (sessionId) {
+        // 2026-07-20 coder(lq): Keep per-session recency because one global command can be used on several SSH servers.
+        existing.sessionUsages = {
+          ...(existing.sessionUsages || (existing.lastSessionId
+            ? { [existing.lastSessionId]: previousLastUseTime }
+            : {})),
+          [sessionId]: lastUseTime
+        }
+        existing.lastSessionId = sessionId
+      }
     } else {
+      const lastUseTime = new Date().toISOString()
       terminalCommandHistory.push({
         id: uid(),
         cmd,
         count: 1,
-        lastUseTime: new Date().toISOString()
+        lastUseTime,
+        lastSource: source,
+        lastSessionId: sessionId,
+        sessionUsages: sessionId ? { [sessionId]: lastUseTime } : {}
       })
     }
     if (terminalCommandHistory.length > 200) {

@@ -1009,6 +1009,10 @@ class Term extends Component {
     this.currentInput = value
   }
 
+  getCommandHistorySessionId = () => {
+    return this.props.tab.sessionRootId || this.props.tab.id
+  }
+
   /**
    * Handle special input events for command history tracking
    * The actual input reading is done via getCurrentInput from buffer
@@ -1018,7 +1022,7 @@ class Term extends Component {
     if (d === '\r' || d === '\n') {
       const currentCmd = this.getCurrentInput()
       if (currentCmd && currentCmd.trim() && this.shouldUseManualHistory()) {
-        window.store.addCmdHistory(currentCmd.trim())
+        window.store.addCmdHistory(currentCmd.trim(), 'terminal', this.getCommandHistorySessionId())
       }
       if (currentCmd && currentCmd.trim() === 'exit') {
         this.userTypeExit = true
@@ -1162,7 +1166,7 @@ class Term extends Component {
     this.cmdAddon = new CommandTrackerAddon()
     this.cmdAddon.onCommandExecuted((cmd) => {
       if (cmd && cmd.trim()) {
-        window.store.addCmdHistory(cmd.trim())
+        window.store.addCmdHistory(cmd.trim(), 'terminal', this.getCommandHistorySessionId())
       }
     })
     this.cmdAddon.onCwdChanged((cwd) => {

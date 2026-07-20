@@ -47,7 +47,8 @@ import {
   terminalTelnetType,
   terminalFtpType,
   terminalSpiceType,
-  isMac
+  isMac,
+  sessionAsideWidthKey
 } from '../../common/constants'
 import createName from '../../common/create-title'
 import uid from '../../common/uid'
@@ -59,10 +60,26 @@ import {
   clearActiveTerminalId,
   setActiveTerminalId
 } from '../../common/active-terminal'
+import { getItem, setItem } from '../../common/safe-local-storage'
 import './session.styl'
 
 const e = window.translate
 const SplitterPane = Splitter.Panel
+const sessionAsideMinWidth = 320
+const sessionAsideMaxWidth = 560
+const sessionAsideDefaultWidth = 360
+
+function normalizeSessionAsideWidth (value) {
+  const width = parseInt(value, 10)
+  if (!Number.isFinite(width)) {
+    return sessionAsideDefaultWidth
+  }
+  return Math.min(sessionAsideMaxWidth, Math.max(sessionAsideMinWidth, width))
+}
+
+function getInitialSessionAsideWidth () {
+  return normalizeSessionAsideWidth(getItem(sessionAsideWidthKey))
+}
 
 function shouldEnablePathFollowByDefault (props) {
   const { tab = {}, config = {} } = props
@@ -104,6 +121,8 @@ export default class SessionWrapper extends Component {
   constructor (props) {
     super(props)
     this.domRef = createRef()
+    this.sessionAsideRef = createRef()
+    this.sessionAsideDragWidth = null
     this.state = {
       cwd: '',
       sftpPathFollowSsh: shouldEnablePathFollowByDefault(props),
@@ -118,6 +137,7 @@ export default class SessionWrapper extends Component {
       showBatchInput: false,
       showCommandAssistant: false,
       showAiAssistant: false,
+      sessionAsideWidth: getInitialSessionAsideWidth(),
       draggingTerminalSessionId: '',
       dragOverTerminalSessionId: '',
       dragOverTerminalSessionPosition: '',
@@ -136,8 +156,6 @@ export default class SessionWrapper extends Component {
 
   minWithForSplit = 640
   minHeightForSplit = 400
-  sessionAsideWidth = 286
-  sessionAsideAiWidth = 420
   transferPanelHeight = 230
 
   componentDidMount () {
@@ -148,6 +166,7 @@ export default class SessionWrapper extends Component {
 
   componentWillUnmount () {
     clearTimeout(this.backspaceKeyPressedTimer)
+    this.removeSessionAsideResizeListeners()
     clearActiveTerminalId(this.props.tab.id)
   }
 
@@ -420,7 +439,7 @@ export default class SessionWrapper extends Component {
   }
 
   getSessionAsideWidth = () => {
-    return this.state.showAiAssistant ? this.sessionAsideAiWidth : this.sessionAsideWidth
+    return this.sessionAsideDragWidth || this.state.sessionAsideWidth
   }
 
   shouldShowSessionAside = () => {
@@ -1330,6 +1349,65 @@ export default class SessionWrapper extends Component {
     window.store.rightPanelVisible = false
   }
 
+  handleSessionAsideResize = (width) => {
+    const nextWidth = normalizeSessionAsideWidth(width)
+    // 2026-07-20 coder(lq): Keep the in-progress width outside React state so monitor updates cannot reset the drag position.
+    this.sessionAsideDragWidth = nextWidth
+    const aside = this.sessionAsideRef.current
+    if (!aside) {
+      return
+    }
+    aside.style.width = `${nextWidth}px`
+    aside.style.flexBasis = `${nextWidth}px`
+  }
+
+  handleSessionAsideResizeEnd = (width) => {
+    const nextWidth = normalizeSessionAsideWidth(width)
+    // 2026-07-20 coder(lq): Resize visually while dragging, then persist once on release so terminal layout recalculates without writing on every pointer move.
+    this.sessionAsideDragWidth = null
+    setItem(sessionAsideWidthKey, String(nextWidth))
+    this.setState({
+      sessionAsideWidth: nextWidth
+    }, () => window.store.triggerResize())
+  }
+
+  removeSessionAsideResizeListeners = () => {
+    document.removeEventListener('pointermove', this.handleSessionAsideResizeMove)
+    document.removeEventListener('pointerup', this.handleSessionAsideResizePointerUp)
+    this.sessionAsideRef.current?.classList.remove('is-resizing')
+  }
+
+  handleSessionAsideResizeStart = (event) => {
+    if (event.button !== 0) {
+      return
+    }
+    event.preventDefault()
+    // 2026-07-20 coder(lq): Use a dedicated pointer handle because the generic splitter is clipped inside the scrollable session aside.
+    this.sessionAsideResizeStartX = event.clientX
+    this.sessionAsideResizeStartWidth = this.getSessionAsideWidth()
+    this.sessionAsideResizeActive = true
+    this.sessionAsideRef.current?.classList.add('is-resizing')
+    document.addEventListener('pointermove', this.handleSessionAsideResizeMove)
+    document.addEventListener('pointerup', this.handleSessionAsideResizePointerUp)
+  }
+
+  handleSessionAsideResizeMove = (event) => {
+    if (!this.sessionAsideResizeActive) {
+      return
+    }
+    const delta = this.sessionAsideResizeStartX - event.clientX
+    this.handleSessionAsideResize(this.sessionAsideResizeStartWidth + delta)
+  }
+
+  handleSessionAsideResizePointerUp = () => {
+    if (!this.sessionAsideResizeActive) {
+      return
+    }
+    this.sessionAsideResizeActive = false
+    this.removeSessionAsideResizeListeners()
+    this.handleSessionAsideResizeEnd(this.getSessionAsideWidth())
+  }
+
   handleOpenSearch = () => {
     refs.get('term-' + this.getActiveTerminalSessionId())?.toggleSearch()
   }
@@ -1809,15 +1887,27 @@ export default class SessionWrapper extends Component {
       rightPanelTab: 'ai',
       agentRunning: window.store.agentRunning
     }
+    const sessionAsideWidth = this.getSessionAsideWidth()
     if (sessionAsideCollapsed) {
       return null
     }
     return (
       <aside
-        className={classnames('cn-session-aside', {
-          'cn-session-aside-ai-open': this.state.showAiAssistant
-        })}
+        className='cn-session-aside'
+        ref={this.sessionAsideRef}
+        style={{
+          width: `${sessionAsideWidth}px`,
+          flexBasis: `${sessionAsideWidth}px`
+        }}
       >
+        <div
+          className='cn-session-aside-resize-handle'
+          role='separator'
+          aria-label='调整会话侧栏宽度'
+          aria-orientation='vertical'
+          title='拖动调整侧栏宽度'
+          onPointerDown={this.handleSessionAsideResizeStart}
+        />
         <button
           className='cn-session-aside-toggle'
           title='隐藏会话信息'
@@ -1835,33 +1925,33 @@ export default class SessionWrapper extends Component {
 
         {isSsh ? this.renderServerMonitor(activeTerminalId, activeTerminalTitle) : null}
 
-        <div className='cn-session-aside-section'>
-          <div className='cn-session-aside-title'>智能助手</div>
-          <div className='cn-session-ai-card'>
-            <div className='cn-session-ai-card-head'>
-              <RobotOutlined />
-              <div>
-                <strong>AI 助手</strong>
-                <span>{aiReady ? `当前模型：${aiModel}` : '需要先配置模型和密钥'}</span>
-              </div>
-              <b className={aiReady ? 'ready' : 'missing'}>{aiReady ? '已配置' : '未配置'}</b>
+        <section className={classnames('cn-session-ai-section', {
+          'is-open': this.state.showAiAssistant
+        })}
+        >
+          <div className='cn-session-ai-head'>
+            <RobotOutlined />
+            <div>
+              <strong>AI 助手</strong>
+              <span>{aiReady ? `当前模型：${aiModel}` : '需要先配置模型和密钥'}</span>
             </div>
-            <p>面向当前会话，用来解释报错、生成命令和整理脚本；代理模式作为后续扩展能力保留。</p>
-            <div className='cn-session-ai-actions'>
-              <button onClick={this.handleToggleAiAssistant}>{this.state.showAiAssistant ? '收起助手' : '展开助手'}</button>
-              <button onClick={handleOpenAIConfig}>{aiReady ? '模型配置' : '去配置'}</button>
-            </div>
-            {
-              this.state.showAiAssistant
-                ? (
-                  <div className='cn-session-ai-chat-wrap'>
-                    <AIChat {...aiChatProps} />
-                  </div>
-                  )
-                : null
-            }
+            <b className={aiReady ? 'ready' : 'missing'}>{aiReady ? '已配置' : '未配置'}</b>
           </div>
-        </div>
+          <p className='cn-session-ai-description'>面向当前会话，用来解释报错、生成命令和整理脚本。</p>
+          <div className='cn-session-ai-actions'>
+            <button onClick={this.handleToggleAiAssistant}>{this.state.showAiAssistant ? '收起助手' : '展开助手'}</button>
+            <button onClick={handleOpenAIConfig}>{aiReady ? '模型配置' : '去配置'}</button>
+          </div>
+          {
+            this.state.showAiAssistant
+              ? (
+                <div className='cn-session-ai-chat'>
+                  <AIChat {...aiChatProps} />
+                </div>
+                )
+              : null
+          }
+        </section>
 
         <div className='cn-session-aside-section'>
           <div className='cn-session-aside-title'>会话信息</div>

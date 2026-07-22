@@ -167,6 +167,25 @@ class TerminalSshBase extends TerminalBase {
     })
   }
 
+  isSaveablePasswordPrompt (options = {}) {
+    const { prompts = [] } = options
+    if (
+      options.mode === 'confirm' ||
+      prompts.length !== 1 ||
+      this.initOptions.password ||
+      this.initOptions.from !== 'bookmarks' ||
+      !this.initOptions.srcId
+    ) {
+      return false
+    }
+    const prompt = prompts[0] || {}
+    const promptText = String(prompt.prompt || '').toLowerCase()
+    // 2026-07-20 coder(lq): Only login password prompts should offer saving; OTP/MFA prompts must stay one-time inputs.
+    return !prompt.echo &&
+      (promptText.includes('password') || promptText === '') &&
+      !this.isLikely2FAPrompts(prompts)
+  }
+
   onKeyboardEvent (options) {
     if (options?.mode !== 'confirm' && this.initOptions.interactiveValues) {
       return Promise.resolve(this.initOptions.interactiveValues.split('\n'))
@@ -188,8 +207,15 @@ class TerminalSshBase extends TerminalBase {
       action: 'session-interactive',
       ..._.pick(this.initOptions, [
         'interactiveValues',
-        'tabId'
+        'tabId',
+        'srcId',
+        'from',
+        'host',
+        'port',
+        'username',
+        'title'
       ]),
+      savePasswordCandidate: this.isSaveablePasswordPrompt(options),
       options
     })
     return new Promise((resolve, reject) => {

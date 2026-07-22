@@ -17,6 +17,7 @@ import TerminalInfoRunner from '../terminal-info/run-cmd'
 import SolutionRecords from './solution-records'
 import {
   SearchOutlined,
+  CopyOutlined,
   FullscreenOutlined,
   PaperClipOutlined,
   CloseOutlined,
@@ -67,7 +68,6 @@ import './session.styl'
 const e = window.translate
 const SplitterPane = Splitter.Panel
 const sessionAsideMinWidth = 320
-const sessionAsideMaxWidth = 560
 const sessionAsideDefaultWidth = 360
 
 function normalizeSessionAsideWidth (value) {
@@ -75,7 +75,8 @@ function normalizeSessionAsideWidth (value) {
   if (!Number.isFinite(width)) {
     return sessionAsideDefaultWidth
   }
-  return Math.min(sessionAsideMaxWidth, Math.max(sessionAsideMinWidth, width))
+  // 2026-07-20 coder(lq): The right session panel is user-resizable; keep only a usability floor and do not cap the expanded width.
+  return Math.max(sessionAsideMinWidth, width)
 }
 
 function getInitialSessionAsideWidth () {
@@ -1423,6 +1424,10 @@ export default class SessionWrapper extends Component {
     refs.get('term-' + this.getActiveTerminalSessionId())?.toggleSearch()
   }
 
+  handleCopyActiveTerminalAll = () => {
+    refs.get('term-' + this.getActiveTerminalSessionId())?.onCopyAll()
+  }
+
   renderSearchIcon = () => {
     const title = e('search')
     return (
@@ -1430,6 +1435,18 @@ export default class SessionWrapper extends Component {
         <SearchOutlined
           className='mg1r icon-info iblock pointer spliter'
           onClick={this.handleOpenSearch}
+        />
+      </Tooltip>
+    )
+  }
+
+  renderCopyTerminalAllIcon = () => {
+    const title = e('copyTerminalAll')
+    return (
+      <Tooltip title={title} placement='bottomLeft'>
+        <CopyOutlined
+          className='mg1r icon-info iblock pointer spliter copy-terminal-all-icon'
+          onClick={this.handleCopyActiveTerminalAll}
         />
       </Tooltip>
     )
@@ -1556,6 +1573,7 @@ export default class SessionWrapper extends Component {
       <div className='fright term-controls'>
         {this.fullscreenIcon()}
         {this.renderSearchIcon()}
+        {this.renderCopyTerminalAllIcon()}
       </div>
     )
   }
@@ -1894,6 +1912,8 @@ export default class SessionWrapper extends Component {
       selectedTabIds: window.store.batchInputSelectedTabIds,
       tabs: window.store.getTabs(),
       activeTabId: window.store.activeTabId,
+      sessionRootId: tab.id,
+      terminalSessionId: activeTerminalId,
       showAIConfig: window.store.showAIConfig,
       rightPanelTab: 'ai',
       agentRunning: window.store.agentRunning

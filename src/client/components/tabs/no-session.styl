@@ -412,6 +412,39 @@
     height 32px
     background transparent !important
 
+.cn-saved-connection-tools
+  display flex
+  align-items center
+  justify-content flex-end
+  gap 8px
+  min-width 320px
+  max-width 56%
+
+.cn-saved-connection-sort
+  width 116px
+  flex 0 0 116px
+
+  .ant-select-selector
+    height 34px !important
+    border-color #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    box-shadow none !important
+
+  .ant-select-selection-item
+    color #344054 !important
+    font-size 12px
+    font-weight 600
+
+  .ant-select-arrow
+    color #667085 !important
+
+.cn-saved-connection-tools
+  .cn-saved-connection-search
+    width 280px
+    max-width none
+    flex 1 1 240px
+
 .cn-saved-connection-grid
   display grid
   grid-template-columns repeat(2, minmax(0, 1fr))
@@ -816,6 +849,13 @@
     grid-template-rows auto
   .cn-saved-connection-grid
     grid-template-columns 1fr
+  .cn-saved-connections-head
+    align-items flex-start
+    flex-direction column
+  .cn-saved-connection-tools
+    width 100%
+    max-width none
+    min-width 0
   .cn-workbench-status-grid
     grid-template-columns 1fr
   .cn-file-panel

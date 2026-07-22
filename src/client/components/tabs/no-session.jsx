@@ -1,4 +1,4 @@
-import { Button, ConfigProvider, Input, Progress, Tag, theme } from 'antd'
+import { Button, ConfigProvider, Input, Progress, Select, Tag, theme } from 'antd'
 import { useState } from 'react'
 import {
   ClockCircleOutlined,
@@ -49,6 +49,88 @@ function getConnectionLabel (bookmark) {
     return 'SFTP'
   }
   return String(type).toUpperCase()
+}
+
+const serverSortOptions = [
+  { value: 'recent', label: '最近使用' },
+  { value: 'created', label: '添加时间' },
+  { value: 'name', label: '名称' },
+  { value: 'group', label: '分组' },
+  { value: 'type', label: '类型' }
+]
+
+function parseTime (value) {
+  const time = new Date(value || 0).getTime()
+  return Number.isNaN(time) ? 0 : time
+}
+
+function compareText (a, b) {
+  return String(a || '').localeCompare(String(b || ''), 'zh-Hans-CN', {
+    numeric: true,
+    sensitivity: 'base'
+  })
+}
+
+function isSameHistoryTab (bookmark, tab) {
+  if (!bookmark || !tab) {
+    return false
+  }
+  if (bookmark.host || tab.host) {
+    return bookmark.host === tab.host &&
+      String(bookmark.port || '') === String(tab.port || '') &&
+      String(bookmark.username || '') === String(tab.username || '') &&
+      String(bookmark.type || connectionMap.ssh) === String(tab.type || connectionMap.ssh)
+  }
+  return Boolean(bookmark.path && bookmark.path === tab.path) ||
+    Boolean(bookmark.url && bookmark.url === tab.url)
+}
+
+function getRecentUseTime (bookmark, history) {
+  const savedTime = parseTime(bookmark?.lastUseTime)
+  if (savedTime) {
+    return savedTime
+  }
+  const matchedHistory = (history || []).find(item => isSameHistoryTab(bookmark, item.tab))
+  return parseTime(matchedHistory?.time)
+}
+
+function getCreatedTime (bookmark) {
+  const createdAt = parseTime(bookmark?.createdAt || bookmark?.createTime || bookmark?.createdTime)
+  if (createdAt) {
+    return createdAt
+  }
+  const idTime = String(bookmark?.id || '').match(/_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})$/)
+  if (!idTime) {
+    return 0
+  }
+  const [, year, month, day, hour, minute, second] = idTime
+  return parseTime(`${year}-${month}-${day}T${hour}:${minute}:${second}`)
+}
+
+function sortSavedServers (servers, sortType, history) {
+  return servers
+    .map((server, index) => ({ ...server, originalIndex: index }))
+    .sort((a, b) => {
+      if (sortType === 'name') {
+        return compareText(a.name, b.name) || a.originalIndex - b.originalIndex
+      }
+      if (sortType === 'group') {
+        return compareText(a.groupTitle, b.groupTitle) ||
+          compareText(a.name, b.name) ||
+          a.originalIndex - b.originalIndex
+      }
+      if (sortType === 'type') {
+        return compareText(a.load, b.load) ||
+          compareText(a.name, b.name) ||
+          a.originalIndex - b.originalIndex
+      }
+      if (sortType === 'created') {
+        const createdDiff = getCreatedTime(b.bookmark) - getCreatedTime(a.bookmark)
+        return createdDiff || a.originalIndex - b.originalIndex
+      }
+      const recentDiff = getRecentUseTime(b.bookmark, history) - getRecentUseTime(a.bookmark, history)
+      return recentDiff || a.originalIndex - b.originalIndex
+    })
 }
 
 function buildServerGroups (store) {
@@ -109,6 +191,7 @@ function buildServerGroups (store) {
 export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch }) {
   const { store } = window
   const [serverKeyword, setServerKeyword] = useState('')
+  const [serverSort, setServerSort] = useState('recent')
   const props = {
     style: {
       height: height + 'px'
@@ -147,7 +230,7 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
       groupTitle: group.title
     })))
   const normalizedServerKeyword = serverKeyword.trim().toLowerCase()
-  const savedServers = normalizedServerKeyword
+  const filteredSavedServers = normalizedServerKeyword
     ? allSavedServers.filter(server => [
       server.name,
       server.host,
@@ -155,6 +238,7 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
       server.load
     ].some(value => String(value || '').toLowerCase().includes(normalizedServerKeyword)))
     : allSavedServers
+  const savedServers = sortSavedServers(filteredSavedServers, serverSort, store.history)
   const savedConnectionTotal = (store.bookmarks || []).length
   const transferTotal = store.fileTransfers?.length || 0
   const transferHistoryTotal = store.transferHistory?.length || 0
@@ -295,14 +379,24 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
                     }
                   </p>
                 </div>
-                <Input
-                  className='cn-saved-connection-search'
-                  prefix={<SearchOutlined />}
-                  placeholder='搜索名称、IP、分组或类型'
-                  value={serverKeyword}
-                  allowClear
-                  onChange={event => setServerKeyword(event.target.value)}
-                />
+                <div className='cn-saved-connection-tools'>
+                  <Select
+                    className='cn-saved-connection-sort'
+                    size='small'
+                    value={serverSort}
+                    options={serverSortOptions}
+                    onChange={setServerSort}
+                    aria-label='服务器资源排序方式'
+                  />
+                  <Input
+                    className='cn-saved-connection-search'
+                    prefix={<SearchOutlined />}
+                    placeholder='搜索名称、IP、分组或类型'
+                    value={serverKeyword}
+                    allowClear
+                    onChange={event => setServerKeyword(event.target.value)}
+                  />
+                </div>
               </div>
               {
                 savedServers.length

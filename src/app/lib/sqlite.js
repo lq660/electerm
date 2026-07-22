@@ -123,15 +123,15 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
     }
   }
 
-  function assertRowWritable (dbName, id) {
-    if (lockedRows.has(`${dbName}:${id}`)) {
+  function assertRowWritable (dbName, id, options = {}) {
+    if (!options.force && lockedRows.has(`${dbName}:${id}`)) {
       throw new Error('该记录仍是锁定的旧版加密数据，请先恢复后再修改')
     }
   }
 
-  function toRow (doc, dbName) {
+  function toRow (doc, dbName, options = {}) {
     const _id = doc._id || doc.id || uid()
-    assertRowWritable(dbName, _id)
+    assertRowWritable(dbName, _id, options)
     const copy = { ...doc }
     delete copy._id
     delete copy.id
@@ -193,7 +193,7 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
       const { _id, data } = toRow({
         _id: qid,
         ...newData
-      }, dbName)
+      }, dbName, options)
       let stmt
       let res
       if (upsert) {
@@ -203,6 +203,7 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
         stmt = db.prepare(`UPDATE \`${dbName}\` SET data = ? WHERE _id = ?`)
         res = stmt.run(data, qid)
       }
+      lockedRows.delete(`${dbName}:${_id}`)
       return res.changes
     }
   }

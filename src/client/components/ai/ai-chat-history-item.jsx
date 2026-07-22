@@ -23,6 +23,7 @@ export default function AIChatHistoryItem ({ item }) {
   const abortRef = useRef(false)
   const {
     prompt,
+    requestPrompt,
     sessionId,
     nameAI,
     modelAI,
@@ -74,9 +75,10 @@ export default function AIChatHistoryItem ({ item }) {
 
   const startRequest = useCallback(async () => {
     try {
+      const aiPrompt = requestPrompt || prompt
       const aiResponse = await window.pre.runGlobalAsync(
         'AIchat',
-        prompt,
+        aiPrompt,
         modelAI,
         buildRole(),
         baseURLAI,
@@ -109,7 +111,7 @@ export default function AIChatHistoryItem ({ item }) {
       window.store.removeAiHistory(item.id)
       window.store.onError(error)
     }
-  }, [prompt, modelAI, baseURLAI, apiPathAI, apiKeyAI, proxyAI, item.id, pollStreamContent])
+  }, [prompt, requestPrompt, modelAI, baseURLAI, apiPathAI, apiKeyAI, proxyAI, item.id, pollStreamContent])
 
   const startAgentRequest = useCallback(async () => {
     abortRef.current = false

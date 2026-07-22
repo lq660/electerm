@@ -595,6 +595,17 @@ class Term extends Component {
     this.term.focus()
   }
 
+  onCopyAll = () => {
+    const content = this.getTerminalBufferText()
+    if (!content.trim()) {
+      message.warning(e('noData'))
+      return
+    }
+    // 2026-07-20 coder(lq): Copy the full terminal scrollback so operators can send complete logs to AI or teammates without selecting manually.
+    copy(content)
+    this.term.focus()
+  }
+
   onSelectAll = () => {
     this.term.selectAll()
   }
@@ -801,6 +812,11 @@ class Term extends Component {
         label: e('copy'),
         disabled: !hasSelection,
         extra: copyShortcut
+      },
+      {
+        key: 'onCopyAll',
+        icon: <iconsMap.CopyOutlined />,
+        label: e('copyTerminalAll')
       },
       {
         key: 'onPaste',

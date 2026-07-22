@@ -37,7 +37,7 @@ const {
   getLang,
   loadLocales
 } = require('./locales')
-const { saveUserConfig } = require('./user-config-controller')
+const { saveUserConfig, rebuildUserConfig } = require('./user-config-controller')
 const { changeHotkeyReg, initShortCut } = require('./shortcut')
 const lastStateManager = require('./last-state')
 const {
@@ -136,6 +136,7 @@ function initIpc () {
       config,
       langs,
       langMap,
+      storageStatus: getStorageStatus(),
       installSrc,
       appPath,
       exePath,
@@ -205,6 +206,7 @@ function initIpc () {
       lastStateManager.set('windowSize', update)
     },
     saveUserConfig,
+    rebuildUserConfig,
     AIchat,
     AIchatWithTools,
     getStreamContent,

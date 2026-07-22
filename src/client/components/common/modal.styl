@@ -194,6 +194,12 @@
     border-color #1677ff !important
     box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
 
+  .ant-input-affix-wrapper .ant-input,
+  .ant-input-affix-wrapper .ant-input:focus
+    border 0 !important
+    box-shadow none !important
+    background transparent !important
+
   .ant-form-item-label > label,
   .ant-form-item,
   .ant-select-selection-item,
@@ -201,6 +207,31 @@
   .ant-input-suffix,
   .ant-input-prefix
     color #344054 !important
+
+  // 2026-07-20 coder(lq): Password prompt options should follow the light blue ops palette instead of inheriting dark checkbox colors.
+  .ant-checkbox-wrapper
+    color #344054 !important
+
+    &:hover
+      color #1677ff !important
+
+      .ant-checkbox-inner
+        border-color #1677ff !important
+
+  .ant-checkbox-inner
+    background #fff !important
+    border-color #cfd8e6 !important
+
+  .ant-checkbox-checked .ant-checkbox-inner
+    background #1677ff !important
+    border-color #1677ff !important
+
+  .ant-checkbox-disabled .ant-checkbox-inner
+    background #f3f7fc !important
+    border-color #d8e0ea !important
+
+  .ant-checkbox-disabled + span
+    color #667085 !important
 
   .ant-alert
     border-color #b8d8ff !important

@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect } from 'react'
-import { Flex, Input, Popconfirm, Segmented } from 'antd'
+import { Flex, Input, Popconfirm, Segmented, Tooltip } from 'antd'
 import TabSelect from '../footer/tab-select'
 import AiChatHistory from './ai-chat-history'
 import uid from '../../common/uid'
 import { pick } from 'lodash-es'
 import {
   BulbOutlined,
+  PlayCircleOutlined,
   SettingOutlined,
   SendOutlined,
   UnorderedListOutlined
@@ -15,18 +16,31 @@ import {
   aiChatModeLsKey
 } from '../../common/constants'
 import { getItem, setItem } from '../../common/safe-local-storage.js'
+import {
+  filterAiChatHistoryByTerminal,
+  getAiChatScope,
+  getAiHistoryTerminalId
+} from '../../common/ai-chat-scope'
 import HelpIcon from '../common/help-icon'
-import { refsStatic } from '../common/ref'
+import { refs, refsStatic } from '../common/ref'
+import message from '../common/message'
 import './ai.styl'
 
 const { TextArea } = Input
 const MAX_HISTORY = 100
+const TERMINAL_CONTEXT_LINES = 160
+const MAX_TERMINAL_CONTEXT_CHARS = 16000
 
 export default function AIChat (props) {
   const [prompt, setPrompt] = useState('')
   const [mode, setMode] = useState(() => getItem(aiChatModeLsKey) || 'ask')
   const isAgent = mode === 'agent'
   const submitDisabled = isAgent && props.agentRunning
+  const aiScope = getAiChatScope(props)
+  const currentHistory = filterAiChatHistoryByTerminal(
+    props.aiChatHistory,
+    aiScope.terminalSessionId
+  )
 
   function handlePromptChange (e) {
     setPrompt(e.target.value)
@@ -37,23 +51,79 @@ export default function AIChat (props) {
     setMode(val)
   }
 
-  const handleSubmit = useCallback(function () {
+  function getCurrentTerminalOutput (lineCount = TERMINAL_CONTEXT_LINES) {
+    const termRef = refs.get('term-' + aiScope.terminalSessionId)
+    if (typeof termRef?.getTerminalBufferText === 'function') {
+      return trimTerminalContext(termRef.getTerminalBufferText(), lineCount)
+    }
+    const buffer = termRef?.term?.buffer?.active
+    if (!buffer) {
+      return ''
+    }
+    const cursorY = buffer.cursorY || 0
+    const baseY = buffer.baseY || 0
+    const totalLines = buffer.length || 0
+    const endLine = Math.min(totalLines, baseY + cursorY + 1)
+    const startLine = Math.max(0, endLine - lineCount)
+    const lines = []
+    for (let i = startLine; i < endLine; i++) {
+      const line = buffer.getLine(i)
+      lines.push(line ? line.translateToString(true) : '')
+    }
+    return trimTerminalContext(lines.join('\n'), lineCount)
+  }
+
+  function trimTerminalContext (text = '', lineCount = TERMINAL_CONTEXT_LINES) {
+    const lines = String(text).split('\n')
+    const recentLines = lines.slice(Math.max(0, lines.length - lineCount)).join('\n').trim()
+    if (recentLines.length <= MAX_TERMINAL_CONTEXT_CHARS) {
+      return recentLines
+    }
+    return recentLines.slice(recentLines.length - MAX_TERMINAL_CONTEXT_CHARS).trim()
+  }
+
+  function buildPromptWithTerminalContext (userPrompt) {
+    const terminalOutput = getCurrentTerminalOutput()
+    if (!terminalOutput) {
+      return userPrompt
+    }
+    // 2026-07-20 coder(lq): Normal AI questions should carry the active terminal context so users do not need to copy logs manually.
+    return `用户问题：
+${userPrompt}
+
+当前终端最近输出（最近 ${TERMINAL_CONTEXT_LINES} 行，仅作为本次分析上下文）：
+\`\`\`terminal
+${terminalOutput}
+\`\`\`
+
+请结合当前终端输出回答。不要要求用户再次粘贴这些终端内容；如果现有输出不足，再明确说明还需要哪类信息。`
+  }
+
+  const handleSubmit = useCallback(function (promptOverride, options = {}) {
     if (window.store.aiConfigMissing()) {
       window.store.toggleAIConfig()
       return
     }
-    if (!prompt.trim()) return
+    const nextPrompt = typeof promptOverride === 'string' ? promptOverride : prompt
+    if (!nextPrompt.trim()) return
+    const includeTerminalContext = options.includeTerminalContext !== false
+    const requestPrompt = includeTerminalContext
+      ? buildPromptWithTerminalContext(nextPrompt)
+      : nextPrompt
 
     const chatId = uid()
     const chatEntry = {
-      prompt,
+      prompt: nextPrompt,
+      requestPrompt,
       response: '',
       isStreaming: false,
       pending: true,
       sessionId: null,
       mode,
       toolCalls: [],
-      sessionRootId: props.activeTabId,
+      // 2026-07-20 coder(lq): AI answers are isolated by terminal tab while still keeping the owning SSH/local session for summaries.
+      sessionRootId: aiScope.sessionRootId,
+      terminalSessionId: aiScope.terminalSessionId,
       ...pick(props.config, [
         'nameAI',
         'modelAI',
@@ -74,50 +144,20 @@ export default function AIChat (props) {
     if (window.store.aiChatHistory.length > MAX_HISTORY) {
       window.store.aiChatHistory.splice(MAX_HISTORY)
     }
-  }, [prompt, mode, props.activeTabId, props.config])
+  }, [prompt, mode, aiScope.sessionRootId, aiScope.terminalSessionId, props.config])
 
   function renderHistory () {
-    if (!props.aiChatHistory.length) {
-      const suggestions = [
-        {
-          title: '解释报错',
-          desc: '粘贴终端输出，说明原因和处理步骤',
-          prompt: '请解释这段终端报错，并给出排查步骤：\n'
-        },
-        {
-          title: '生成命令',
-          desc: '描述目标，生成可直接执行的命令',
-          prompt: '请根据这个目标生成命令，并说明每个参数的作用：\n'
-        },
-        {
-          title: '整理脚本',
-          desc: '把多条命令整理成脚本或运维流程',
-          prompt: '请把下面的操作整理成一个可维护的脚本：\n'
-        }
-      ]
+    if (!currentHistory.length) {
+      const hasTerminalOutput = !!getCurrentTerminalOutput()
       return (
         <div className='cn-ai-empty-state'>
-          <strong>可以这样开始</strong>
-          <span>选择一个常用场景，或者直接在底部输入问题。</span>
-          <div className='cn-ai-suggestion-grid'>
-            {
-              suggestions.map(item => (
-                <button
-                  key={item.title}
-                  onClick={() => setPrompt(item.prompt)}
-                >
-                  <b>{item.title}</b>
-                  <em>{item.desc}</em>
-                </button>
-              ))
-            }
-          </div>
+          <span>{hasTerminalOutput ? '当前终端上下文已就绪' : '当前终端暂无可读取输出'}</span>
         </div>
       )
     }
     return (
       <AiChatHistory
-        history={props.aiChatHistory}
+        history={currentHistory}
       />
     )
   }
@@ -146,7 +186,9 @@ export default function AIChat (props) {
   }
 
   function clearHistory () {
-    window.store.aiChatHistory = []
+    window.store.aiChatHistory = window.store.aiChatHistory.filter(item => {
+      return getAiHistoryTerminalId(item) !== aiScope.terminalSessionId
+    })
   }
 
   function renderTabSelect () {
@@ -175,9 +217,66 @@ export default function AIChat (props) {
       <SendOutlined
         onClick={handleSubmit}
         className='mg1l pointer icon-hover send-to-ai-icon'
-        title='Enter 发送，Shift+Enter 换行'
+        title='发送给 AI，Enter 发送，Shift+Enter 换行'
       />
     )
+  }
+
+  function getModeInfo () {
+    if (isAgent) {
+      return {
+        label: '可自动执行',
+        title: '代理实验',
+        desc: 'AI 会读取当前终端上下文，尝试拆解任务，并把明确的命令自动发送到当前终端执行。适合需要连续处理的问题，执行前请确认当前连接和权限。',
+        placeholder: '描述要处理的任务，AI 会尝试自动执行明确命令'
+      }
+    }
+    return {
+      label: '只分析',
+      title: '问答',
+      desc: 'AI 会读取当前终端上下文，解释报错、分析日志或生成命令建议，但不会自动执行命令。需要执行时，你可以手动发送到终端。',
+      placeholder: '直接提问，AI 会结合当前终端输出分析'
+    }
+  }
+
+  function renderModeLabel (targetMode, label) {
+    const isTargetAgent = targetMode === 'agent'
+    const modeInfo = isTargetAgent
+      ? {
+          title: '代理实验',
+          desc: 'AI 会读取当前终端上下文，尝试拆解任务，并把明确的命令自动发送到当前终端执行。适合需要连续处理的问题，执行前请确认当前连接和权限。'
+        }
+      : {
+          title: '问答',
+          desc: 'AI 会读取当前终端上下文，解释报错、分析日志或生成命令建议，但不会自动执行命令。需要执行时，你可以手动发送到终端。'
+        }
+    return (
+      <Tooltip
+        placement='top'
+        title={(
+          <div className='cn-ai-mode-tip-pop'>
+            <b>{modeInfo.title}</b>
+            <span>{modeInfo.desc}</span>
+          </div>
+        )}
+      >
+        <span className='cn-ai-mode-label'>{label}</span>
+      </Tooltip>
+    )
+  }
+
+  function handleSendPromptToTerminal () {
+    const command = prompt.trim()
+    if (!command) {
+      message.warning('请输入要发送到终端的命令')
+      return
+    }
+    if (!props.selectedTabIds?.length) {
+      message.warning('请先选择接收命令的终端')
+      return
+    }
+    window.store.runCommandInTerminal(command)
+    setPrompt('')
   }
 
   useEffect(() => {
@@ -204,6 +303,7 @@ export default function AIChat (props) {
   }
 
   const configMissing = window.store.aiConfigMissing()
+  const modeInfo = getModeInfo()
 
   return (
     <Flex vertical className={props.embedded ? 'ai-chat-container ai-chat-embedded' : 'ai-chat-container'}>
@@ -231,7 +331,7 @@ export default function AIChat (props) {
           value={prompt}
           onChange={handlePromptChange}
           onPressEnter={handleKeyPress}
-          placeholder='请输入你的问题或操作要求'
+          placeholder={modeInfo.placeholder}
           autoSize={{ minRows: 3, maxRows: 10 }}
           className='ai-chat-textarea'
         />
@@ -239,14 +339,25 @@ export default function AIChat (props) {
           <Flex align='center'>
             <Segmented
               options={[
-                { label: '问答', value: 'ask' },
-                { label: '代理实验', value: 'agent' }
+                { label: renderModeLabel('ask', '问答'), value: 'ask' },
+                { label: renderModeLabel('agent', '代理实验'), value: 'agent' }
               ]}
               value={mode}
               onChange={handleModeChange}
               size='small'
             />
             {renderTabSelect()}
+            {
+              isAgent
+                ? null
+                : (
+                  <PlayCircleOutlined
+                    onClick={handleSendPromptToTerminal}
+                    className='mg1l pointer icon-hover send-to-terminal-icon'
+                    title='把输入框内容发送到所选终端'
+                  />
+                  )
+            }
             <SettingOutlined
               onClick={toggleConfig}
               className='mg1l pointer icon-hover toggle-ai-setting-icon'

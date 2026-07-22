@@ -62,7 +62,7 @@ export default function TabSelect (props) {
       <div className='batch-tab-select-popover'>
         <div className='batch-tab-select-head'>
           <div className='batch-tab-select-title'>选择接收命令的终端</div>
-          <div className='batch-tab-select-desc'>勾选后，点击“发送”会把当前命令同时写入这些终端。</div>
+          <div className='batch-tab-select-desc'>勾选后，点击运行按钮会把输入框或命令块内容写入这些终端。</div>
         </div>
         {renderBtns()}
         <div className='batch-tab-select-list'>
@@ -76,12 +76,12 @@ export default function TabSelect (props) {
     const count = selectedTabIds.length
     const onlyCurrent = count === 1 && selectedTabIds.includes(activeTabId)
     if (!count) {
-      return '发送到：未选择'
+      return '命令目标：未选择'
     }
     if (onlyCurrent) {
-      return '发送到：当前终端'
+      return '命令目标：当前终端'
     }
-    return `发送到：${count} 个终端`
+    return `命令目标：${count} 个终端`
   }
 
   return (

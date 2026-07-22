@@ -22,10 +22,47 @@ export default auto(function AIConfigModal ({ store }) {
     return res
   }
 
+  function isLockedConfigError (error) {
+    return String(error?.message || error).includes('锁定的旧版加密数据')
+  }
+
+  async function persistAiConfig (values, rebuild = false) {
+    const nextConfig = {
+      ...window.store.config,
+      ...values
+    }
+    try {
+      if (window.store.userConfigSaveLocked && !rebuild) {
+        message.error('当前本地配置无法持久保存，请先重建本地配置')
+        return false
+      }
+      await window.pre.runGlobalAsync(
+        rebuild ? 'rebuildUserConfig' : 'saveUserConfig',
+        nextConfig
+      )
+      window.store.userConfigSaveLocked = false
+      window.store.userConfigLockedNoticeShown = false
+      window.store.updateConfig(values)
+      message.success(e('saved') || 'Saved')
+      window.store.showAIConfigModal = false
+      return true
+    } catch (error) {
+      if (isLockedConfigError(error)) {
+        window.store.userConfigSaveLocked = true
+        message.error('当前本地配置无法持久保存，请先重建本地配置')
+        return false
+      }
+      window.store.onError(error)
+      return false
+    }
+  }
+
   function handleSubmit (values) {
-    window.store.updateConfig(values)
-    message.success(e('saved') || 'Saved')
-    window.store.showAIConfigModal = false
+    return persistAiConfig(values)
+  }
+
+  function handleRebuildConfig (values) {
+    return persistAiConfig(values, true)
   }
 
   function handleClose () {
@@ -46,6 +83,8 @@ export default auto(function AIConfigModal ({ store }) {
       <AIConfigForm
         initialValues={getInitialValues()}
         onSubmit={handleSubmit}
+        onRebuildConfig={handleRebuildConfig}
+        configSaveLocked={store.userConfigSaveLocked}
         showAIConfig
       />
     </Modal>

@@ -82,6 +82,13 @@ body,
   .ant-picker-focused
     border-color $cn-primary !important
 
+  // 2026-07-20 coder(lq): Compound inputs such as password fields draw their border on the wrapper; keep the inner input borderless to avoid a double-frame focus state.
+  .ant-input-affix-wrapper .ant-input,
+  .ant-input-affix-wrapper .ant-input:focus
+    border 0 !important
+    box-shadow none !important
+    background transparent !important
+
   .ant-tabs-tab
     padding 8px 0
 

@@ -3,6 +3,7 @@
  */
 
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { message } from 'antd'
 import wait from '../../common/wait'
 import TermInteractiveUI from './terminal-interactive-ui'
 
@@ -13,6 +14,31 @@ export default function TermInteractive () {
 
   function updateTab (data) {
     window.store.updateTab(data.tabId, data.update)
+  }
+
+  function saveBookmarkPassword (savePassword) {
+    const { bookmarkId, tabId, password } = savePassword || {}
+    if (!bookmarkId || !password) {
+      return
+    }
+    const store = window.store
+    const bookmark = store.bookmarksMap?.get(bookmarkId) ||
+      store.bookmarks?.find(item => item.id === bookmarkId)
+    if (!bookmark || bookmark.password) {
+      return
+    }
+    // 2026-07-20 coder(lq): Passwords entered during SSH login are useful only after the user explicitly opts in to saving.
+    store.editItem(bookmarkId, {
+      authType: 'password',
+      password
+    }, 'bookmarks')
+    if (tabId) {
+      store.updateTab(tabId, {
+        authType: 'password',
+        password
+      })
+    }
+    message.success(window.translate('passwordSavedToBookmark'))
   }
 
   function processNext () {
@@ -51,7 +77,9 @@ export default function TermInteractive () {
   }
 
   function onSend (data) {
-    window.et.commonWs.s(data)
+    const { savePassword, ...payload } = data
+    saveBookmarkPassword(savePassword)
+    window.et.commonWs.s(payload)
   }
 
   const onClose = useCallback(() => {

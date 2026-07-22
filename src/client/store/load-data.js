@@ -175,6 +175,8 @@ export default (Store) => {
     store.appPath = globs.appPath
     store.exePath = globs.exePath
     store.isPortable = globs.isPortable
+    // 2026-07-20 coder(lq): Surface locked encrypted user config at startup so settings pages do not imply changes can persist.
+    store.userConfigSaveLocked = Boolean(globs.storageStatus?.tables?.data)
     store._config = globs.config
     window.et.langs = globs.langs
     store.zoom(store.config.zoom, false, true)

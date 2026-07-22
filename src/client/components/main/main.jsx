@@ -38,6 +38,7 @@ import BatchOpRunner from '../batch-op/batch-op-runner'
 import UnixTimestampTooltip from '../terminal/unix-timestamp-tooltip'
 import { pick } from 'lodash-es'
 import deepCopy from 'json-deep-copy'
+import { resolveTerminalTarget } from '../../common/active-terminal'
 import './wrapper.styl'
 import TerminalInfo from '../terminal-info/terminal-info-entry'
 import '../../common/fs.js'
@@ -226,12 +227,15 @@ export default auto(function Index (props) {
     hasOldConnectionHoppingBookmark: store.hasOldConnectionHoppingBookmark,
     configLoaded
   }
+  const aiTerminalTarget = resolveTerminalTarget(store.activeTabId)
   const aiChatProps = {
     aiChatHistory: store.aiChatHistory,
     config,
     selectedTabIds: store.batchInputSelectedTabIds,
     tabs: store.getTabs(),
     activeTabId: store.activeTabId,
+    sessionRootId: aiTerminalTarget.ownerTabId,
+    terminalSessionId: aiTerminalTarget.terminalId,
     showAIConfig: store.showAIConfig,
     rightPanelTab,
     agentRunning: store.agentRunning

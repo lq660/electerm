@@ -74,8 +74,14 @@ export default Store => {
     if (!item) {
       return
     }
+    // 2026-07-20 coder(lq): Track saved resource usage at the common open entry so the home page can sort by recent use consistently.
+    const lastUseTime = new Date().toISOString()
+    store.editItem(id, {
+      lastUseTime
+    }, settingMap.bookmarks)
     store.addTab({
       ...item,
+      lastUseTime,
       from: 'bookmarks',
       srcId: item.id,
       ...newTerm(true, true),

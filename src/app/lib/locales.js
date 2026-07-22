@@ -18,6 +18,7 @@ const localeOverrides = {
     showInDefaultFileMananger: 'show in file manager',
     downloadFromBrowser: 'download from browser',
     copyFilePath: 'copy file path',
+    copyTerminalAll: 'copy all terminal content',
     newFile: 'new file',
     newFolder: 'new folder',
     selectAll: 'select all',
@@ -179,7 +180,11 @@ const localeOverrides = {
     conflictHandlingTip: 'Applied when the same protocol, host, port, and username already exist.',
     skipExisting: 'skip existing',
     renameImported: 'keep both and rename',
-    overwriteExisting: 'overwrite existing'
+    overwriteExisting: 'overwrite existing',
+    requiredField: 'Please fill in this field',
+    savePasswordToBookmark: 'Save to server resources and sign in automatically next time',
+    passwordSavedToBookmark: 'Password saved to server resources',
+    enterPasswordFor: 'Enter password for {target}'
   },
   zh_cn: {
     sftpPathFollowSsh: '文件路径跟随当前终端',
@@ -199,6 +204,7 @@ const localeOverrides = {
     paste: '粘贴',
     rename: '重命名',
     copyFilePath: '复制文件路径',
+    copyTerminalAll: '复制全部终端内容',
     newFile: '新建文件',
     newFolder: '新建文件夹',
     selectAll: '全选',
@@ -367,7 +373,11 @@ const localeOverrides = {
     conflictHandlingTip: '协议、主机、端口和用户名相同时视为重复连接。',
     skipExisting: '跳过已有连接',
     renameImported: '保留两份并重命名',
-    overwriteExisting: '覆盖已有连接'
+    overwriteExisting: '覆盖已有连接',
+    requiredField: '请填写该项',
+    savePasswordToBookmark: '保存到服务器资源，下次自动登录',
+    passwordSavedToBookmark: '密码已保存到服务器资源',
+    enterPasswordFor: '请输入 {target} 的密码'
   },
   zh_tw: {
     sftpPathFollowSsh: '檔案路徑跟隨目前終端',
@@ -387,6 +397,7 @@ const localeOverrides = {
     paste: '貼上',
     rename: '重新命名',
     copyFilePath: '複製檔案路徑',
+    copyTerminalAll: '複製全部終端內容',
     newFile: '新增檔案',
     newFolder: '新增資料夾',
     selectAll: '全選',

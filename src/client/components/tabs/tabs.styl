@@ -320,33 +320,39 @@
 // 2026-07-03 coder(lq): Light outer tab/title frame for the China workbench. Terminal canvases keep their dark theme; the app chrome should not.
 #container
   .tabs
-    background #fff !important
-    border-bottom 1px solid #d8e0ea !important
-    box-shadow 0 4px 14px rgba(15, 23, 42, .04) !important
+    height 40px !important
+    background #f8fbff !important
+    border-bottom 1px solid #cbd8ea !important
+    box-shadow 0 6px 16px rgba(15, 23, 42, .06) !important
 
   .tabs-inner,
   .tabs-wrapper
-    background #fff !important
+    height 40px !important
+    background #f8fbff !important
 
   .tab
-    height 32px
-    line-height 32px
-    margin 3px 2px 0 0
+    // 2026-07-22 coder(lq): Outer connection tabs are the primary navigation; keep them visually stronger than the inner terminal/file tabs.
+    height 37px !important
+    line-height 36px !important
+    margin 3px 3px 0 0 !important
     border 1px solid transparent !important
+    border-bottom 0 !important
     border-radius 6px 6px 0 0 !important
     background transparent !important
-    color #667085 !important
+    color #52647a !important
+    font-size 14px !important
 
     &:hover
-      background #f5f8ff !important
-      border-color #d8e0ea !important
+      background #edf5ff !important
+      border-color #c8dcf8 !important
       color #1677ff !important
 
     &.active
-      background #f5f8ff !important
-      border-color #b8d8ff !important
-      color #1677ff !important
-      font-weight 700
+      background #fff !important
+      border-color #9ec5ff !important
+      color #1769e0 !important
+      font-weight 700 !important
+      box-shadow 0 -1px 0 #fff inset, 0 4px 12px rgba(23, 105, 224, .10) !important
 
     &.home-tab
       min-width 76px
@@ -361,9 +367,9 @@
         font-size 13px
 
       &.active
-        background #eef5ff !important
-        border-color #b8d8ff !important
-        color #1677ff !important
+        background #fff !important
+        border-color #9ec5ff !important
+        color #1769e0 !important
 
   .tab-close
     background #eef2f7 !important

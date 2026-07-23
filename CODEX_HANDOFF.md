@@ -234,13 +234,12 @@
 - 无法解密的旧记录不删除、不覆盖
 - 无法保存 `userConfig` 时停止重复写入，设置和终端主题页仍可使用
 - 用户在锁定状态下修改设置时，仅提示一次“本次修改仅当前运行有效”
-- 用户恢复钥匙串访问后可以重新加载
+- 旧版系统钥匙串加密记录不再自动读取；用户需要重建本地配置后改用本地文件密钥保存
 - 主题预设仅在展示层本地化，`default`、`defaultLight` 等保存 ID 和导出数据保持不变
 
 主要文件：
 
 - `src/app/lib/db-crypto.js`
-- `src/app/lib/safe-storage.js`
 - `src/app/lib/storage-key.js`
 - `src/app/lib/sqlite.js`
 - `src/client/store/db-upgrade.js`
@@ -296,7 +295,7 @@
 | 设置中心 | `src/client/components/setting-panel/*` |
 | 数据同步 | `src/client/components/setting-sync/*` |
 | AI | `src/client/components/ai/*` |
-| 数据安全 | `src/app/lib/db-crypto.js`, `safe-storage.js`, `storage-key.js` |
+| 数据安全 | `src/app/lib/db-crypto.js`, `storage-key.js` |
 | 全局中国版皮肤 | `src/client/css/china-workbench.styl` |
 
 ## 6. 已完成验证
@@ -415,15 +414,15 @@ npm run t
 
 ### 8.1 旧加密记录
 
-本机仍可能存在无法通过 macOS safeStorage 解密的旧记录。应用不会在启动时打断用户；
+本机仍可能存在旧版系统钥匙串加密记录。应用不会在启动时读取钥匙串，也不会打断用户；
 若锁定的是 `userConfig`，用户首次修改设置时会收到一次说明，日志和锁定保护仍保留：
 
 ```text
 部分旧数据暂未解锁
-检测到 4 条旧版加密记录。数据仍保留在本机，恢复钥匙串访问后可以重新加载。
+检测到 4 条旧版加密记录。数据仍保留在本机，请重建本地配置后继续使用。
 ```
 
-这是旧钥匙串访问问题，不要删除这些记录，也不要为了消除提示而覆盖数据。
+这是旧钥匙串加密数据被停用后的保护状态，不要删除这些记录，也不要为了消除提示而覆盖数据。
 
 ### 8.2 运行时警告
 

@@ -49,9 +49,7 @@ async function migrate () {
   log.info('Starting migration from NeDB (v1) to SQLite (v2)...')
   // nedb-instance: raw nedb without enc/dec (legacy data was never encrypted)
   const { dbAction: nedbDbAction } = require('./nedb-instance')
-  // Use plain sqlite (no enc/dec) for migration writes: safeStorage encryption
-  // is not reliable across restarts in the IPC/migration context. The app's
-  // normal read/write path will encrypt data on the next user-triggered write.
+  // 2026-07-23 coder(lq): Use plain sqlite for migration writes; normal app writes use the local key file encryption path, not OS keychain storage.
   const { appPath, defaultUserName } = require('../common/app-props')
   const { createDb: createSqlite } = require('../lib/sqlite')
   const { dbAction: sqliteDbAction } = createSqlite(appPath, defaultUserName)

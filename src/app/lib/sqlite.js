@@ -210,15 +210,15 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
 
   function getStorageStatus () {
     const tables = {}
-    let needsKeychain = false
+    let legacySafeStorageDisabled = false
     for (const row of lockedRows.values()) {
       tables[row.dbName] = (tables[row.dbName] || 0) + 1
-      needsKeychain = needsKeychain || row.code === 'SAFE_STORAGE_UNAVAILABLE'
+      legacySafeStorageDisabled = legacySafeStorageDisabled || row.code === 'SAFE_STORAGE_DISABLED'
     }
     return {
       lockedCount: lockedRows.size,
       tables,
-      needsKeychain
+      legacySafeStorageDisabled
     }
   }
 

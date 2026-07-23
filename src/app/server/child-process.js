@@ -18,13 +18,15 @@ function supportsSystemCa () {
 }
 
 module.exports = (config, env, sysLocale) => {
-  const nodeOpts = [env.NODE_OPTIONS, supportsSystemCa() ? '--use-system-ca' : '']
+  const canUseSystemCa = supportsSystemCa()
+  const nodeOpts = [env.NODE_OPTIONS, canUseSystemCa ? '--use-system-ca' : '']
     .filter(Boolean).join(' ').trim()
 
   // Load system-trusted CA certificates and pass to child process
   // via NODE_EXTRA_CA_CERTS so Node.js extends its trust store natively.
   let extraCaFile
-  const systemCAs = getSystemCAs()
+  // 2026-07-23 coder(lq): Prefer Node's native system CA support; only use file export fallback where Node cannot do it natively.
+  const systemCAs = canUseSystemCa ? '' : getSystemCAs()
   if (systemCAs) {
     extraCaFile = join(tmpdir(), `electerm-system-ca-${Date.now()}.pem`)
     writeFileSync(extraCaFile, systemCAs)
@@ -33,6 +35,8 @@ module.exports = (config, env, sysLocale) => {
   // start server
   const child = fork(resolve(__dirname, './server.js'), {
     env: Object.assign(
+      {},
+      env,
       {
         LANG: `${sysLocale.replace(/-/, '_')}.UTF-8`,
         electermPort: config.port,
@@ -42,8 +46,7 @@ module.exports = (config, env, sysLocale) => {
         sshKeysPath: env.sshKeysPath,
         NODE_OPTIONS: nodeOpts || undefined,
         NODE_EXTRA_CA_CERTS: extraCaFile || undefined
-      },
-      env
+      }
     ),
     cwd: process.cwd()
   }, (error, stdout, stderr) => {

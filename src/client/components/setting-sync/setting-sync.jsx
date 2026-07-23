@@ -100,8 +100,8 @@ export default auto(function SyncSettingEntry (props) {
       </div>
       <section className='cn-settings-section cn-sync-import-section'>
         <div className='cn-settings-section-title'>
-          <strong>本地导入导出</strong>
-          <span>用于迁移、备份或从旧环境恢复配置</span>
+          <strong>一键迁移</strong>
+          <span>导出迁移包，在另一台机器导入后即可恢复同一套配置</span>
         </div>
         <DataTransport {...dataImportProps} />
       </section>

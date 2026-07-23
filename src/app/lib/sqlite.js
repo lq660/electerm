@@ -177,7 +177,13 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
       return Array.isArray(args[0]) ? inserted : inserted[0]
     } else if (op === 'remove') {
       const query = args[0] || {}
-      assertRowWritable(dbName, query._id)
+      const options = args[1] || {}
+      if (!query._id && options.multi) {
+        const stmt = db.prepare(`DELETE FROM \`${dbName}\``)
+        const res = stmt.run()
+        return res.changes
+      }
+      assertRowWritable(dbName, query._id, options)
       const sql = `DELETE FROM \`${dbName}\` WHERE _id = ?`
       const params = [query._id]
       const stmt = db.prepare(sql)

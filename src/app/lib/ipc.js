@@ -38,6 +38,10 @@ const {
   loadLocales
 } = require('./locales')
 const { saveUserConfig, rebuildUserConfig } = require('./user-config-controller')
+const {
+  exportConfigMigration,
+  importConfigMigration
+} = require('./config-migration')
 const { changeHotkeyReg, initShortCut } = require('./shortcut')
 const lastStateManager = require('./last-state')
 const {
@@ -204,6 +208,8 @@ function initIpc () {
     },
     saveUserConfig,
     rebuildUserConfig,
+    exportConfigMigration: () => exportConfigMigration(globalState.get('win')),
+    importConfigMigration,
     AIchat,
     AIchatWithTools,
     getStreamContent,

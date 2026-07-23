@@ -13,6 +13,7 @@ import download from '../common/download'
 import { fixBookmarks } from '../common/db-fix'
 import dayjs from 'dayjs'
 import parseJsonSafe from '../common/parse-json-safe'
+import message from '../components/common/message'
 
 const {
   version: packVer
@@ -641,6 +642,13 @@ export default (Store) => {
   }, 1000)
 
   Store.prototype.handleExportAllData = async function () {
+    if (!window.et.isWebApp) {
+      const res = await window.pre.runGlobalAsync('exportConfigMigration')
+      if (res && !res.canceled) {
+        message.success('配置迁移包已导出')
+      }
+      return res
+    }
     const { store } = window
     const objs = {}
     const { names } = store.getDataSyncNames(true)
@@ -662,6 +670,12 @@ export default (Store) => {
   }
 
   Store.prototype.importAll = async function (file) {
+    if (!window.et.isWebApp) {
+      const filePath = file.filePath || file.path
+      const res = await window.pre.runGlobalAsync('importConfigMigration', filePath)
+      message.success('配置迁移包已导入')
+      return res
+    }
     const txt = file.fileContent !== undefined
       ? file.fileContent
       : await window.fs.readFile(file.filePath)

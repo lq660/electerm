@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons'
 import Upload from '../common/upload'
 import HelpIcon from '../common/help-icon'
+import Modal from '../common/modal'
 
 const e = window.translate
 
@@ -64,6 +65,35 @@ export default function DataTransport (props) {
     })
   }
 
+  function handleImport (file) {
+    return Modal.confirm({
+      title: '导入配置迁移包',
+      content: (
+        <div>
+          导入会覆盖当前机器上的连接、分组、主题、快捷命令、工作区和个人设置。建议先导出当前配置作为备份。
+        </div>
+      ),
+      okText: '导入并覆盖',
+      cancelText: e('cancel'),
+      onOk: async () => {
+        try {
+          const res = await store.importAll(file)
+          if (!res) {
+            return
+          }
+          Modal.info({
+            title: '导入完成',
+            content: '配置已写入本机，重启应用后会完整加载新的迁移配置。',
+            okText: e('restartNow'),
+            onOk: () => store.restart()
+          })
+        } catch (err) {
+          store.onError(err)
+        }
+      }
+    })
+  }
+
   return (
     <div className='pd2 fix'>
       <div className='fleft'>
@@ -72,17 +102,17 @@ export default function DataTransport (props) {
           className='mg1r'
           onClick={store.handleExportAllData}
         >
-          {e('export')}
+          导出迁移包
         </Button>
         <Upload
-          beforeUpload={store.importAll}
+          beforeUpload={handleImport}
           fileList={[]}
           className='inline'
         >
           <Button
             icon={<ImportOutlined />}
           >
-            {e('importFromFile')}
+            导入迁移包
           </Button>
         </Upload>
       </div>

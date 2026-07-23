@@ -42,7 +42,7 @@ export default function DataTransport (props) {
     store
   } = window
 
-  const syncSetting = props.config.syncSetting || {}
+  const syncSetting = (props.config || {}).syncSetting || {}
   const autoSyncEnabled = syncSetting.autoSync || false
   const autoSyncInterval = syncSetting.autoSyncInterval || 0
   const autoSyncDirection = syncSetting.autoSyncDirection || 'upload'

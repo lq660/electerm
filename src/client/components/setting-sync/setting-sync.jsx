@@ -20,8 +20,8 @@ export default auto(function SyncSettingEntry (props) {
     config
   } = props
   const {
-    syncSetting
-  } = config
+    syncSetting = {}
+  } = config || {}
   const {
     store
   } = window
@@ -40,7 +40,7 @@ export default auto(function SyncSettingEntry (props) {
         'syncType',
         'serverStatus'
       ]),
-      serverStatus: deepCopy(store.syncServerStatus[props.syncType])
+      serverStatus: deepCopy((store.syncServerStatus || {})[props.syncType])
     }
     const type = props.syncType
     const formData = {
@@ -82,7 +82,7 @@ export default auto(function SyncSettingEntry (props) {
   })
   const {
     dataSyncSelected
-  } = props.config
+  } = config || {}
   const arr = dataSyncSelected && dataSyncSelected !== 'all'
     ? dataSyncSelected.split(',')
     : Object.keys(syncDataMaps)
@@ -90,7 +90,7 @@ export default auto(function SyncSettingEntry (props) {
     dataSyncSelected: arr
   }
   const dataImportProps = {
-    config
+    config: config || {}
   }
   return (
     <div className='form-wrap pd1y pd2x cn-setting-detail-form cn-sync-setting-form'>

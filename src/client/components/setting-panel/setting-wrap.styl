@@ -1,4 +1,23 @@
 
+$cn-panel = var(--workbench-panel, #ffffff)
+$cn-panel-soft = var(--workbench-panel-soft, #fbfdff)
+$cn-border-strong = var(--workbench-border-strong, #d8e0ea)
+$cn-border-soft = var(--workbench-border-soft, #edf1f7)
+$cn-input-border = var(--workbench-input-border, #cfd8e6)
+$cn-text = var(--workbench-text, #1f2937)
+$cn-control-text = var(--workbench-control-text, #344054)
+$cn-muted = var(--workbench-muted, #667085)
+$cn-placeholder = var(--workbench-placeholder, #98a2b3)
+$cn-primary-base = var(--workbench-primary, #1677ff)
+$cn-primary-soft = var(--workbench-primary-soft, #eef5ff)
+$cn-focus-shadow = var(--workbench-focus-shadow, rgba(22, 119, 255, .08))
+$cn-panel-muted = var(--workbench-panel-muted, #f8fafc)
+$cn-info-bg = var(--workbench-info-bg, #f7faff)
+$cn-info-border = var(--workbench-info-border, #cfe0f6)
+$cn-shadow-card = var(--workbench-shadow-card, rgba(15, 23, 42, .06))
+$cn-shadow-lg = var(--workbench-shadow-lg, rgba(15, 23, 42, .14))
+$cn-on-primary = var(--workbench-on-primary, #ffffff)
+
 
 .close-setting-wrap
   position absolute
@@ -89,9 +108,9 @@
   .ant-input,
   .ant-input-affix-wrapper,
   .ant-input-number
-    background #fff !important
-    border-color #cfd8e6 !important
-    color #1f2937 !important
+    background $cn-panel !important
+    border-color $cn-input-border !important
+    color $cn-text !important
     box-shadow none !important
     border-radius 6px !important
 
@@ -106,53 +125,53 @@
   .ant-input-number-input,
   .ant-input-affix-wrapper .ant-input
     background transparent !important
-    color #1f2937 !important
+    color $cn-text !important
 
   .ant-select-selection-placeholder,
   .ant-input::placeholder,
   textarea.ant-input::placeholder
-    color #98a2b3 !important
+    color $cn-placeholder !important
 
   .ant-select-arrow,
   .ant-input-prefix,
   .ant-input-suffix
-    color #667085 !important
+    color $cn-muted !important
 
   .ant-select-focused .ant-select-selector,
   .ant-input:focus,
   .ant-input-affix-wrapper-focused,
   .ant-input-number-focused
-    border-color #1677ff !important
-    box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+    border-color $cn-primary-base !important
+    box-shadow 0 0 0 2px $cn-focus-shadow !important
 
   .ant-space-compact
     .ant-select-selector,
     .ant-input,
     .ant-input-affix-wrapper
-      background #fff !important
-      color #1f2937 !important
-      border-color #cfd8e6 !important
+      background $cn-panel !important
+      color $cn-text !important
+      border-color $cn-input-border !important
 
   .ant-select-disabled .ant-select-selector,
   .ant-input-disabled,
   .ant-input[disabled]
-    background #f8fafc !important
-    color #98a2b3 !important
+    background $cn-panel-soft !important
+    color $cn-placeholder !important
 
 .ant-select-dropdown
-  background #fff !important
-  border 1px solid #d8e0ea !important
+  background $cn-panel !important
+  border 1px solid $cn-border-strong !important
   border-radius 8px !important
-  box-shadow 0 12px 30px rgba(15, 23, 42, .14) !important
+  box-shadow 0 12px 30px $cn-shadow-lg !important
 
   .ant-select-item
-    color #344054 !important
+    color $cn-control-text !important
     border-radius 6px !important
 
   .ant-select-item-option-active,
   .ant-select-item-option-selected
-    background #eef5ff !important
-    color #1677ff !important
+    background $cn-primary-soft !important
+    color $cn-primary-base !important
 
 // 2026-07-03 coder(lq): Shared section layout for all deep settings pages so drilled-in tabs keep the same China ops workbench structure.
 .setting-wrap
@@ -165,8 +184,8 @@
 
   .form-wrap,
   .cn-setting-detail-form
-    background #fff !important
-    color #1f2937 !important
+    background $cn-panel !important
+    color $cn-text !important
 
   .cn-setting-card-title
     display flex
@@ -176,28 +195,28 @@
     min-height 48px
     margin -18px -22px 18px !important
     padding 14px 22px !important
-    border-bottom 1px solid #d8e0ea
-    background #fbfdff
+    border-bottom 1px solid $cn-border-strong
+    background $cn-panel-soft
 
     strong
       display flex
       align-items center
-      color #1f2937
+      color $cn-text
       font-size 15px
       line-height 22px
       font-weight 700
 
     span
-      color #667085
+      color $cn-muted
       font-size 12px
       line-height 18px
       font-weight 400
 
   .cn-settings-section
     margin 0 0 16px
-    border 1px solid #d8e0ea
+    border 1px solid $cn-border-strong
     border-radius 8px
-    background #fff
+    background $cn-panel
     overflow hidden
 
   .cn-settings-section-title
@@ -207,17 +226,17 @@
     gap 12px
     min-height 42px
     padding 11px 16px
-    border-bottom 1px solid #edf1f7
-    background #fbfdff
+    border-bottom 1px solid $cn-border-soft
+    background $cn-panel-soft
 
     strong
-      color #1f2937
+      color $cn-text
       font-size 14px
       line-height 20px
       font-weight 700
 
     span
-      color #667085
+      color $cn-muted
       font-size 12px
       line-height 18px
 
@@ -236,7 +255,7 @@
 
     strong
       display block
-      color #344054
+      color $cn-control-text
       font-size 13px
       line-height 18px
       font-weight 600
@@ -244,7 +263,7 @@
     span
       display block
       margin-top 2px
-      color #667085
+      color $cn-muted
       font-size 12px
       line-height 18px
 
@@ -270,13 +289,13 @@
     .ant-switch
       min-width 176px
       height 28px
-      background #cfd8e6 !important
+      background $cn-input-border !important
 
       &.ant-switch-checked
-        background #1677ff !important
+        background $cn-primary-base !important
 
     .ant-switch-inner
-      color #fff !important
+      color $cn-on-primary !important
       font-size 12px
       font-weight 500
 
@@ -286,10 +305,10 @@
     gap 8px
     min-height 34px
     margin 0 0 12px
-    color #344054
+    color $cn-control-text
 
     strong
-      color #344054
+      color $cn-control-text
       font-size 13px
       font-weight 700
 
@@ -299,7 +318,7 @@
   .cn-settings-action-row
     margin 0 !important
     padding 14px 0 0
-    border-top 1px solid #edf1f7
+    border-top 1px solid $cn-border-soft
 
     .ant-form-item-control-input-content > div,
     > div,
@@ -315,7 +334,7 @@
 
   .cn-settings-help-line,
   .cn-sync-status-line
-    color #667085
+    color $cn-muted
     font-size 12px
     line-height 18px
 
@@ -391,17 +410,17 @@
     z-index 20
     margin 0 0 16px !important
     padding 10px 12px !important
-    border 1px solid #cfe0f6
+    border 1px solid $cn-info-border
     border-radius 8px
-    background #f7faff !important
-    box-shadow 0 6px 16px rgba(15, 23, 42, .06)
+    background $cn-info-bg !important
+    box-shadow 0 6px 16px $cn-shadow-card
 
     .ant-form-item-control-input-content > div
       justify-content flex-end
 
   .cn-theme-save-hint
     flex 1 1 260px
-    color #667085
+    color $cn-muted
     font-size 12px
     line-height 18px
 
@@ -414,12 +433,12 @@
     gap 8px
     align-items center
     padding 10px
-    border 1px solid #edf1f7
+    border 1px solid $cn-border-soft
     border-radius 8px
-    background #fbfdff
+    background $cn-panel-soft
 
     .drag
-      color #98a2b3
+      color $cn-placeholder
 
     .ant-space-compact-item
       border-radius 6px !important
@@ -433,7 +452,7 @@
 
   .cn-shortcuts-form
     .ant-table-wrapper
-      border 1px solid #d8e0ea
+      border 1px solid $cn-border-strong
       border-radius 8px
       overflow hidden
 

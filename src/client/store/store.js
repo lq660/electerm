@@ -27,8 +27,8 @@ import addressBookmarkExtend from './address-bookmark'
 import widgetsExtend from './widgets'
 import mcpHandlerExtend from './mcp-handler'
 import workspaceExtend from './workspace'
-import isColorDark from '../common/is-color-dark'
 import { getReverseColor } from '../common/reverse-color'
+import { getWorkbenchAntdTheme } from '../common/workbench-theme'
 import { uniq } from 'lodash-es'
 import deepCopy from 'json-deep-copy'
 import getBrand from '../components/ai/get-brand'
@@ -41,9 +41,6 @@ import {
 } from '../common/constants'
 import getInitItem from '../common/init-setting-item'
 import createTitle from '../common/create-title'
-import {
-  theme
-} from 'antd'
 import { refsTabs } from '../components/common/ref'
 
 class Store {
@@ -230,22 +227,7 @@ class Store {
 
   get uiThemeConfig () {
     const { store } = window
-    const themeConf = store.getUiThemeConfig()
-    return {
-      token: {
-        borderRadius: 3,
-        colorPrimary: themeConf.primary,
-        colorBgBase: themeConf.main,
-        colorError: themeConf.error,
-        colorInfo: themeConf.info,
-        colorSuccess: themeConf.success,
-        colorWarning: themeConf.warn,
-        colorTextBase: themeConf.text,
-        colorLink: themeConf['text-light'],
-        motion: false
-      },
-      algorithm: isColorDark(themeConf.main) ? theme.darkAlgorithm : theme.defaultAlgorithm
-    }
+    return getWorkbenchAntdTheme(store.getUiThemeConfig())
   }
 
   get bookmarkTree () {

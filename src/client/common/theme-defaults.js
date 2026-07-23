@@ -2,6 +2,8 @@
  * database default should init
  */
 
+import { workbenchThemeDefaults } from './workbench-theme'
+
 function parsor (themeTxt) {
   return themeTxt.split('\n').reduce((prev, line) => {
     let [key = '', value = ''] = line.split('=')
@@ -106,7 +108,10 @@ export function defaultTheme () {
     id: 'default',
     name: 'default',
     themeConfig: defaultThemeDarkTerminal(),
-    uiThemeConfig: defaultThemeDark()
+    uiThemeConfig: {
+      ...defaultThemeDark(),
+      ...workbenchThemeDefaults
+    }
   }
 }
 
@@ -115,6 +120,9 @@ export function defaultThemeLight () {
     id: 'defaultLight',
     name: 'default light',
     themeConfig: defaultThemeLightTerminal(),
-    uiThemeConfig: defaultThemeLightFunc()
+    uiThemeConfig: {
+      ...defaultThemeLightFunc(),
+      ...workbenchThemeDefaults
+    }
   }
 }

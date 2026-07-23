@@ -6,9 +6,10 @@ import { Component } from 'react'
 import classnames from 'classnames'
 import Drawer from '../common/drawer'
 import { CloseCircleOutlined, CloudServerOutlined } from '@ant-design/icons'
-import { ConfigProvider, theme } from 'antd'
+import { ConfigProvider } from 'antd'
 import { sidebarWidth } from '../../common/constants'
 import AppDrag from '../tabs/app-drag'
+import { getWorkbenchAntdTheme } from '../../common/workbench-theme'
 import './setting-wrap.styl'
 
 export default class SettingWrap extends Component {
@@ -34,24 +35,7 @@ export default class SettingWrap extends Component {
       zIndex: 888,
       placement: 'left'
     }
-    const settingTheme = {
-      token: {
-        borderRadius: 6,
-        colorPrimary: '#1677ff',
-        colorBgBase: '#ffffff',
-        colorBgContainer: '#ffffff',
-        colorBorder: '#d8e0ea',
-        colorError: '#f04438',
-        colorInfo: '#1677ff',
-        colorSuccess: '#12b76a',
-        colorTextBase: '#1f2937',
-        colorText: '#1f2937',
-        colorTextSecondary: '#667085',
-        colorWarning: '#f79009',
-        motion: false
-      },
-      algorithm: theme.defaultAlgorithm
-    }
+    const settingTheme = getWorkbenchAntdTheme(window.store.getUiThemeConfig())
     return (
       <ConfigProvider theme={settingTheme}>
         <Drawer

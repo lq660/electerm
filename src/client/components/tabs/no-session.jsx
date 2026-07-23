@@ -1,4 +1,4 @@
-import { Button, ConfigProvider, Input, Progress, Select, Tag, theme } from 'antd'
+import { Button, ConfigProvider, Input, Progress, Select, Tag } from 'antd'
 import { useState } from 'react'
 import {
   ClockCircleOutlined,
@@ -18,6 +18,7 @@ import {
   connectionMap,
   paneMap
 } from '../../common/constants'
+import { getWorkbenchAntdTheme, getWorkbenchTokens } from '../../common/workbench-theme'
 import './no-session.styl'
 
 function safeGroup (group) {
@@ -250,20 +251,9 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
     ? []
     : (store.history || [])
 
-  const workbenchTheme = {
-    token: {
-      borderRadius: 6,
-      colorPrimary: '#1677ff',
-      colorBgBase: '#ffffff',
-      colorBgContainer: '#ffffff',
-      colorBorder: '#d8e0ea',
-      colorTextBase: '#1f2937',
-      colorText: '#1f2937',
-      colorTextSecondary: '#667085',
-      motion: false
-    },
-    algorithm: theme.defaultAlgorithm
-  }
+  const uiTheme = store.getUiThemeConfig()
+  const workbenchTheme = getWorkbenchAntdTheme(uiTheme)
+  const workbenchTokens = getWorkbenchTokens(uiTheme)
 
   return (
     <ConfigProvider theme={workbenchTheme}>
@@ -471,7 +461,7 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
                   <strong>传输任务</strong>
                   <span>进行中 {transferTotal} · 已完成 {transferHistoryTotal} · 失败 {failedTransfers}</span>
                 </div>
-                <Progress percent={transferPercent} size='small' strokeColor='#1677ff' />
+                <Progress percent={transferPercent} size='small' strokeColor={workbenchTokens['workbench-primary']} />
               </section>
             </div>
           </main>

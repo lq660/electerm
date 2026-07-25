@@ -2,7 +2,7 @@
  * tabs related functions
  */
 
-import { debounce, isEqual } from 'lodash-es'
+import { debounce } from 'lodash-es'
 import {
   splitConfig,
   statusMap,
@@ -17,6 +17,7 @@ import generate from '../common/id-with-stamp'
 import uid from '../common/uid'
 import newTerm, { updateCount } from '../common/new-terminal.js'
 import { action } from 'manate'
+import { findRecentHistoryIndex } from '../common/recent-history'
 
 export default Store => {
   Store.prototype.nextTabCount = function () {
@@ -532,28 +533,23 @@ export default Store => {
       'autoReConnect'
     ]
     const { history } = store
-    const index = history.filter(d => d.id && d.tab).findIndex(d => {
-      for (const key in tab) {
-        if (tabPropertiesExcludes.includes(key)) {
-          continue
-        }
-        if (!isEqual(d.tab[key], tab[key])) {
-          return false
-        }
-      }
-      return true
-    })
+    const index = findRecentHistoryIndex(history, tab)
     if (index === -1) {
       const copiedTab = deepCopy(tab)
       tabPropertiesExcludes.forEach(d => {
         delete copiedTab[d]
       })
-      return history.unshift({
-        tab: copiedTab,
-        time: Date.now(),
-        count: 1,
-        id: uid()
-      })
+      return action(function () {
+        history.unshift({
+          tab: copiedTab,
+          time: Date.now(),
+          count: 1,
+          id: uid()
+        })
+        if (history.length > maxHistory) {
+          history.pop()
+        }
+      })()
     }
     const match = history[index]
     match.count = (match.count || 0) + 1

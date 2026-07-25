@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import createTitle, { createTitleWithTag } from '../../common/create-title'
 import { DeleteOutlined, BookFilled } from '@ant-design/icons'
 import { refsStatic } from '../common/ref'
+import { getHistoryItemKey } from '../../common/recent-history'
 
 export default function HistoryItem (props) {
   const { store } = window
@@ -30,9 +31,12 @@ export default function HistoryItem (props) {
   function handleDelete (e) {
     e.stopPropagation()
     const { id } = item
-    const i = store.history.findIndex((i) => i.id === id)
-    if (i !== -1) {
-      store.history.splice(i, 1)
+    const key = getHistoryItemKey(item)
+    for (let i = store.history.length - 1; i >= 0; i--) {
+      const historyItem = store.history[i]
+      if (historyItem.id === id || (key && getHistoryItemKey(historyItem) === key)) {
+        store.history.splice(i, 1)
+      }
     }
   }
 

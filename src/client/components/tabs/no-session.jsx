@@ -18,6 +18,7 @@ import {
   connectionMap,
   paneMap
 } from '../../common/constants'
+import { dedupeRecentHistory } from '../../common/recent-history'
 import { getWorkbenchAntdTheme, getWorkbenchTokens } from '../../common/workbench-theme'
 import './no-session.styl'
 
@@ -249,7 +250,7 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
     : 0
   const historyItems = store.config.disableConnectionHistory
     ? []
-    : (store.history || [])
+    : dedupeRecentHistory(store.history || [])
 
   const uiTheme = store.getUiThemeConfig()
   const workbenchTheme = getWorkbenchAntdTheme(uiTheme)

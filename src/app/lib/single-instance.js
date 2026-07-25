@@ -6,12 +6,21 @@
 const net = require('net')
 const fs = require('fs')
 const path = require('path')
+const crypto = require('crypto')
 const { app } = require('electron')
 const globalState = require('./glob-state')
 
 // Get socket path based on platform
 function getSocketPath () {
-  const appName = app.getName()
+  let appName = app.getName()
+  if (process.env.NODE_TEST && process.env.DATA_PATH) {
+    const dataPathHash = crypto
+      .createHash('sha1')
+      .update(process.env.DATA_PATH)
+      .digest('hex')
+      .slice(0, 10)
+    appName = `${appName}-${dataPathHash}`
+  }
   if (process.platform === 'win32') {
     return `\\\\.\\pipe\\${appName}-instance-lock`
   }

@@ -138,9 +138,12 @@ function createModalInstance (type, options) {
     }
   }
 
-  const handleOk = () => {
+  const handleOk = async () => {
     if (onOk) {
-      onOk()
+      const result = await onOk()
+      if (result === false) {
+        return
+      }
     }
     destroy()
   }
@@ -198,9 +201,12 @@ function createModalInstance (type, options) {
       ...newRest
     } = updatedOptions
 
-    const newHandleOk = () => {
+    const newHandleOk = async () => {
       if (newOnOk) {
-        newOnOk()
+        const result = await newOnOk()
+        if (result === false) {
+          return
+        }
       }
       destroy()
     }

@@ -641,9 +641,9 @@ export default (Store) => {
     update('lastDataUpdateTime', store.lastDataUpdateTime)
   }, 1000)
 
-  Store.prototype.handleExportAllData = async function () {
+  Store.prototype.handleExportAllData = async function (password) {
     if (!window.et.isWebApp) {
-      const res = await window.pre.runGlobalAsync('exportConfigMigration')
+      const res = await window.pre.runGlobalAsync('exportConfigMigration', password)
       if (res && !res.canceled) {
         message.success('配置迁移包已导出')
       }
@@ -669,10 +669,10 @@ export default (Store) => {
     download(name, text)
   }
 
-  Store.prototype.importAll = async function (file) {
+  Store.prototype.importAll = async function (file, password) {
     if (!window.et.isWebApp) {
       const filePath = file.filePath || file.path
-      const res = await window.pre.runGlobalAsync('importConfigMigration', filePath)
+      const res = await window.pre.runGlobalAsync('importConfigMigration', filePath, password)
       message.success('配置迁移包已导入')
       return res
     }

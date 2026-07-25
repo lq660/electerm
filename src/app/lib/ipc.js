@@ -208,7 +208,7 @@ function initIpc () {
     },
     saveUserConfig,
     rebuildUserConfig,
-    exportConfigMigration: () => exportConfigMigration(globalState.get('win')),
+    exportConfigMigration: (password) => exportConfigMigration(globalState.get('win'), password),
     importConfigMigration,
     AIchat,
     AIchatWithTools,

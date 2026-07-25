@@ -51,6 +51,10 @@ describe('feature plans', () => {
 
   test('publishes a three-tier comparison matrix', async () => {
     const {
+      featureIds,
+      featureImplementationStatus,
+      featureStatusIds,
+      getFeatureStatus,
       planComparisonGroups,
       planFeatureGroups,
       planIds,
@@ -63,5 +67,9 @@ describe('feature plans', () => {
     assert.ok(planComparisonGroups.some(group => {
       return group.items.some(item => item.plans.length === 1 && item.plans[0] === planIds.team)
     }))
+    assert.equal(featureImplementationStatus[featureIds.advancedCommandAssistant], featureStatusIds.planned)
+    assert.equal(featureImplementationStatus[featureIds.teamSharedServers], featureStatusIds.planned)
+    assert.equal(getFeatureStatus({ featureId: featureIds.batchCommand }), featureStatusIds.done)
+    assert.equal(getFeatureStatus({ featureId: featureIds.aiAgent }), featureStatusIds.partial)
   })
 })

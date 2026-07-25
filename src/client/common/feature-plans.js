@@ -39,6 +39,24 @@ export const planTags = {
   [planIds.team]: '协作管控'
 }
 
+export const featureStatusIds = {
+  done: 'done',
+  partial: 'partial',
+  planned: 'planned'
+}
+
+export const featureStatusLabels = {
+  [featureStatusIds.done]: '已实现',
+  [featureStatusIds.partial]: '部分实现',
+  [featureStatusIds.planned]: '规划中'
+}
+
+export const featureStatusDescriptions = {
+  [featureStatusIds.done]: '当前版本已有页面、数据或功能拦截支撑。',
+  [featureStatusIds.partial]: '已有核心入口或部分拦截，仍需要继续补齐边界。',
+  [featureStatusIds.planned]: '产品边界已规划，后续接入账号、授权或服务端能力。'
+}
+
 export const planTargets = {
   [planIds.personal]: '个人开发者、轻量运维、临时服务器管理',
   [planIds.pro]: '高频连接多台服务器、需要 AI 排障和批量处理的用户',
@@ -87,19 +105,35 @@ export const featureLabels = {
   [featureIds.teamAudit]: '操作审计'
 }
 
+export const featureImplementationStatus = {
+  [featureIds.aiChat]: featureStatusIds.done,
+  [featureIds.aiAgent]: featureStatusIds.partial,
+  [featureIds.solutionRecordsUnlimited]: featureStatusIds.done,
+  [featureIds.batchCommand]: featureStatusIds.done,
+  [featureIds.advancedCommandAssistant]: featureStatusIds.planned,
+  [featureIds.encryptedMigration]: featureStatusIds.done,
+  [featureIds.customTheme]: featureStatusIds.done,
+  [featureIds.teamWorkspace]: featureStatusIds.planned,
+  [featureIds.teamSharedServers]: featureStatusIds.planned,
+  [featureIds.teamCommandTemplates]: featureStatusIds.planned,
+  [featureIds.teamKnowledgeBase]: featureStatusIds.planned,
+  [featureIds.teamPolicy]: featureStatusIds.planned,
+  [featureIds.teamAudit]: featureStatusIds.planned
+}
+
 export const planFeatureGroups = [
   {
     plan: planIds.personal,
     price: '个人永久免费',
     highlight: '把云舵作为个人终端工作台使用',
     features: [
-      'SSH、本地终端、SFTP 文件管理',
-      '服务器资源保存、分组和快速搜索',
-      '多标签、多终端和本地文件页签',
-      '基础命令助手',
-      '主题、快捷命令和基础工作区',
-      '加密迁移包导入导出',
-      '处理记录最多 20 条'
+      { label: 'SSH、本地终端、SFTP 文件管理', status: featureStatusIds.done },
+      { label: '服务器资源保存、分组和快速搜索', status: featureStatusIds.done },
+      { label: '多标签、多终端和本地文件页签', status: featureStatusIds.done },
+      { label: '基础命令助手', status: featureStatusIds.done },
+      { label: '主题、快捷命令和基础工作区', status: featureStatusIds.done },
+      { label: '加密迁移包导入导出', featureId: featureIds.encryptedMigration },
+      { label: '处理记录最多 20 条', status: featureStatusIds.done }
     ],
     limits: [
       '处理记录最多 20 条',
@@ -111,16 +145,17 @@ export const planFeatureGroups = [
     price: '建议 19-39 元/月',
     highlight: '面向高频排障和效率增强',
     features: [
-      '包含个人版全部能力',
-      'AI 助手和代理实验',
-      'AI 辅助创建连接与解释终端输出',
-      'AI 整理并保存处理记录',
-      '处理记录不限数量',
-      '命令助手高级识别和常用操作',
-      '批量命令、终端日志和高级效率工具'
+      { label: '包含个人版全部能力', status: featureStatusIds.done },
+      { label: 'AI 助手、终端上下文问答和连接生成', featureId: featureIds.aiChat },
+      { label: 'AI Agent 代理实验', featureId: featureIds.aiAgent },
+      { label: 'AI 整理并保存处理记录', featureId: featureIds.aiChat },
+      { label: '处理记录不限数量', featureId: featureIds.solutionRecordsUnlimited },
+      { label: '批量命令输入', featureId: featureIds.batchCommand },
+      { label: '高级命令助手和效率工具', featureId: featureIds.advancedCommandAssistant }
     ],
     limits: [
       '授权绑定个人使用',
+      '高级命令助手仍在规划中',
       '不包含团队资源共享、成员权限和审计'
     ]
   },
@@ -129,15 +164,17 @@ export const planFeatureGroups = [
     price: '建议 29-59 元/人/月',
     highlight: '面向团队共享、规范和安全管控',
     features: [
-      '包含专业版全部能力',
-      '团队服务器资源共享',
-      '团队处理记录知识库',
-      '团队命令模板和成员管理',
-      '危险命令策略与操作审计',
-      '统一导入导出、成员离职交接和安全策略'
+      { label: '包含专业版全部能力', status: featureStatusIds.partial },
+      { label: '团队工作区', featureId: featureIds.teamWorkspace },
+      { label: '团队服务器资源共享', featureId: featureIds.teamSharedServers },
+      { label: '团队命令模板和成员管理', featureId: featureIds.teamCommandTemplates },
+      { label: '团队处理记录知识库', featureId: featureIds.teamKnowledgeBase },
+      { label: '危险命令策略与操作审计', featureId: featureIds.teamPolicy },
+      { label: '操作审计和成员离职交接', featureId: featureIds.teamAudit }
     ],
     limits: [
       '按成员授权',
+      '团队能力均为规划中',
       '需要后续接入账号、组织和服务端授权'
     ]
   }
@@ -149,15 +186,18 @@ export const planComparisonGroups = [
     items: [
       {
         name: 'SSH / SFTP / 本地终端 / 远程桌面',
-        plans: [planIds.personal, planIds.pro, planIds.team]
+        plans: [planIds.personal, planIds.pro, planIds.team],
+        status: featureStatusIds.done
       },
       {
         name: '连接分组、快捷命令、主题和工作区',
-        plans: [planIds.personal, planIds.pro, planIds.team]
+        plans: [planIds.personal, planIds.pro, planIds.team],
+        status: featureStatusIds.done
       },
       {
         name: '加密迁移包、选择性导出和可选本地密钥打包',
-        plans: [planIds.personal, planIds.pro, planIds.team]
+        plans: [planIds.personal, planIds.pro, planIds.team],
+        featureId: featureIds.encryptedMigration
       }
     ]
   },
@@ -166,19 +206,28 @@ export const planComparisonGroups = [
     items: [
       {
         name: 'AI 助手、终端上下文问答和连接生成',
-        plans: [planIds.pro, planIds.team]
+        plans: [planIds.pro, planIds.team],
+        featureId: featureIds.aiChat
       },
       {
         name: 'AI Agent 代理实验',
-        plans: [planIds.pro, planIds.team]
+        plans: [planIds.pro, planIds.team],
+        featureId: featureIds.aiAgent
       },
       {
-        name: '批量命令与高级命令助手',
-        plans: [planIds.pro, planIds.team]
+        name: '批量命令输入',
+        plans: [planIds.pro, planIds.team],
+        featureId: featureIds.batchCommand
+      },
+      {
+        name: '高级命令助手',
+        plans: [planIds.pro, planIds.team],
+        featureId: featureIds.advancedCommandAssistant
       },
       {
         name: '处理记录不限数量',
-        plans: [planIds.pro, planIds.team]
+        plans: [planIds.pro, planIds.team],
+        featureId: featureIds.solutionRecordsUnlimited
       }
     ]
   },
@@ -187,19 +236,36 @@ export const planComparisonGroups = [
     items: [
       {
         name: '团队服务器共享与团队工作区',
-        plans: [planIds.team]
+        plans: [planIds.team],
+        featureId: featureIds.teamWorkspace
       },
       {
         name: '团队命令模板和处理记录知识库',
-        plans: [planIds.team]
+        plans: [planIds.team],
+        featureId: featureIds.teamKnowledgeBase
       },
       {
         name: '成员权限、危险命令策略和操作审计',
-        plans: [planIds.team]
+        plans: [planIds.team],
+        featureId: featureIds.teamAudit
       }
     ]
   }
 ]
+
+export function getFeatureStatus (item) {
+  if (!item) {
+    return featureStatusIds.done
+  }
+  if (typeof item === 'string') {
+    return featureStatusIds.done
+  }
+  return item.status || featureImplementationStatus[item.featureId] || featureStatusIds.done
+}
+
+export function getFeatureLabel (item) {
+  return typeof item === 'string' ? item : item.label
+}
 
 export function getCurrentPlan (config = window.store?.config || {}) {
   return normalizePlanId(config.licensePlan)

@@ -4,8 +4,11 @@ import message from '../common/message'
 import {
   getCurrentPlan,
   getCurrentPlanName,
+  getFeatureLabel,
+  getFeatureStatus,
   planComparisonGroups,
   planDescriptions,
+  featureStatusLabels,
   planFeatureGroups,
   planIds,
   planNames,
@@ -46,6 +49,15 @@ export default function SubscriptionSettings ({ config, store }) {
       <span className={`subscription-compare-cell ${included ? 'included' : 'excluded'}`}>
         {included ? <CheckCircleOutlined /> : '—'}
       </span>
+    )
+  }
+
+  function renderFeatureStatus (item) {
+    const status = getFeatureStatus(item)
+    return (
+      <Tag className={`subscription-status-tag ${status}`}>
+        {featureStatusLabels[status]}
+      </Tag>
     )
   }
 
@@ -94,9 +106,10 @@ export default function SubscriptionSettings ({ config, store }) {
                 <p className='subscription-plan-target'>{planTargets[group.plan]}</p>
                 <ul>
                   {visibleFeatures.map(feature => (
-                    <li key={feature}>
+                    <li key={getFeatureLabel(feature)}>
                       <CheckCircleOutlined />
-                      <span>{feature}</span>
+                      <span>{getFeatureLabel(feature)}</span>
+                      {renderFeatureStatus(feature)}
                     </li>
                   ))}
                   {
@@ -153,7 +166,10 @@ export default function SubscriptionSettings ({ config, store }) {
               <div className='subscription-compare-title'>{group.title}</div>
               {group.items.map(item => (
                 <div className='subscription-compare-row' key={item.name}>
-                  <span>{item.name}</span>
+                  <span>
+                    <em>{item.name}</em>
+                    {renderFeatureStatus(item)}
+                  </span>
                   {planFeatureGroups.map(group => (
                     <span key={group.plan}>
                       {renderPlanCheck(item.plans, group.plan)}

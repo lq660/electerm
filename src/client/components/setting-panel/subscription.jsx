@@ -15,6 +15,21 @@ import {
 
 export default function SubscriptionSettings ({ config, store }) {
   const currentPlan = getCurrentPlan(config)
+  const currentPlanName = getCurrentPlanName(config)
+  const currentPlanMeta = [
+    {
+      label: '授权状态',
+      value: config.licenseExpiresAt || '永久免费'
+    },
+    {
+      label: '版本定位',
+      value: planTags[currentPlan]
+    },
+    {
+      label: '落地阶段',
+      value: currentPlan === planIds.personal ? '本机基础' : '本地测试授权'
+    }
+  ]
 
   function handlePlanChange (plan) {
     // 2026-07-24 coder(lq): Local plan switching is a temporary product validation path; replace with signed server licenses before public release.
@@ -36,75 +51,95 @@ export default function SubscriptionSettings ({ config, store }) {
 
   return (
     <div className='subscription-settings'>
-      <section className='cn-settings-section subscription-overview'>
-        <div className='cn-settings-section-title'>
-          <strong>当前版本</strong>
-          <span>第一期先用本地授权验证功能分层，后续再接激活码、账号和支付。</span>
+      <section className='subscription-hero'>
+        <div className='subscription-hero-main'>
+          <span>当前版本</span>
+          <strong>{currentPlanName}</strong>
+          <em>{planDescriptions[currentPlan]}</em>
         </div>
-        <div className='subscription-current-card'>
-          <div>
-            <span>正在使用</span>
-            <strong>{getCurrentPlanName(config)}</strong>
-            <em>{config.licenseExpiresAt || '永久免费'}</em>
-          </div>
-          <Tag color={currentPlan === planIds.personal ? 'default' : 'blue'}>
-            {planTags[currentPlan]}
-          </Tag>
-        </div>
-      </section>
-
-      <section className='cn-settings-section'>
-        <div className='cn-settings-section-title'>
-          <strong>版本能力</strong>
-          <span>个人版负责基础连接，专业版负责效率，团队版负责协作和管控。</span>
-        </div>
-        <div className='subscription-plan-grid'>
-          {planFeatureGroups.map(group => (
-            <div
-              className={`subscription-plan-card ${currentPlan === group.plan ? 'active' : ''}`}
-              key={group.plan}
-            >
-              <div className='subscription-plan-head'>
-                <div>
-                  <strong>{planNames[group.plan]}</strong>
-                  <span>{group.price}</span>
-                </div>
-                <Tag color={currentPlan === group.plan ? 'blue' : 'default'}>
-                  {currentPlan === group.plan ? '当前版本' : planTags[group.plan]}
-                </Tag>
-              </div>
-              <p className='subscription-plan-highlight'>{group.highlight}</p>
-              <p className='subscription-plan-target'>{planTargets[group.plan]}</p>
-              <ul>
-                {group.features.map(feature => (
-                  <li key={feature}>
-                    <CheckCircleOutlined />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className='subscription-plan-limits'>
-                {group.limits.map(limit => (
-                  <span key={limit}>{limit}</span>
-                ))}
-              </div>
-              <Button
-                type={currentPlan === group.plan ? 'default' : 'primary'}
-                block
-                disabled={currentPlan === group.plan}
-                onClick={() => handlePlanChange(group.plan)}
-              >
-                {currentPlan === group.plan ? '已启用' : '切换测试'}
-              </Button>
+        <div className='subscription-hero-meta'>
+          {currentPlanMeta.map(item => (
+            <div key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
             </div>
           ))}
         </div>
       </section>
 
-      <section className='cn-settings-section'>
+      <section className='cn-settings-section subscription-plans-section'>
+        <div className='cn-settings-section-title'>
+          <strong>版本能力</strong>
+          <span>个人版管基础连接，专业版管效率增强，团队版管协作和安全。</span>
+        </div>
+        <div className='subscription-plan-grid'>
+          {planFeatureGroups.map(group => {
+            const visibleFeatures = group.features.slice(0, 5)
+            const hiddenCount = group.features.length - visibleFeatures.length
+            return (
+              <div
+                className={`subscription-plan-card ${currentPlan === group.plan ? 'active' : ''}`}
+                key={group.plan}
+              >
+                <div className='subscription-plan-head'>
+                  <div>
+                    <strong>{planNames[group.plan]}</strong>
+                    <span>{group.price}</span>
+                  </div>
+                  <Tag color={currentPlan === group.plan ? 'blue' : 'default'}>
+                    {currentPlan === group.plan ? '当前版本' : planTags[group.plan]}
+                  </Tag>
+                </div>
+                <p className='subscription-plan-highlight'>{group.highlight}</p>
+                <p className='subscription-plan-target'>{planTargets[group.plan]}</p>
+                <ul>
+                  {visibleFeatures.map(feature => (
+                    <li key={feature}>
+                      <CheckCircleOutlined />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                  {
+                    hiddenCount > 0
+                      ? (
+                        <li className='subscription-feature-more'>
+                          <CheckCircleOutlined />
+                          <span>另含 {hiddenCount} 项扩展能力，见下方对比</span>
+                        </li>
+                        )
+                      : null
+                  }
+                </ul>
+                <div className='subscription-plan-limits'>
+                  {group.limits.map(limit => (
+                    <span key={limit}>{limit}</span>
+                  ))}
+                </div>
+                <Button
+                  type={currentPlan === group.plan ? 'default' : 'primary'}
+                  block
+                  disabled={currentPlan === group.plan}
+                  onClick={() => handlePlanChange(group.plan)}
+                >
+                  {currentPlan === group.plan ? '当前已启用' : `切换到${planNames[group.plan]}`}
+                </Button>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className='cn-settings-section subscription-note'>
+        <div>
+          <strong>当前规则</strong>
+          <span>第一期先用本地授权验证能力分层；后续接入激活码、账号体系、支付和服务端授权时，沿用同一套能力控制。</span>
+        </div>
+      </section>
+
+      <section className='cn-settings-section subscription-compare-section'>
         <div className='cn-settings-section-title'>
           <strong>能力对比</strong>
-          <span>按用户规模拆分基础连接、效率增强和团队管控，后续授权接入后沿用同一份能力控制。</span>
+          <span>用于确认不同版本的边界，便于后续接入真实授权。</span>
         </div>
         <div className='subscription-compare'>
           <div className='subscription-compare-head'>
@@ -128,13 +163,6 @@ export default function SubscriptionSettings ({ config, store }) {
               ))}
             </div>
           ))}
-        </div>
-      </section>
-
-      <section className='cn-settings-section subscription-release-note'>
-        <div className='cn-settings-section-title'>
-          <strong>产品落地顺序</strong>
-          <span>{planDescriptions[planIds.personal]}专业版和团队版先用本地开关验证，后续再接账号、支付和服务端授权。</span>
         </div>
       </section>
     </div>

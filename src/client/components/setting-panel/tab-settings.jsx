@@ -94,17 +94,18 @@ export default auto(function TabSettings (props) {
       />
     )
   }
+  const isSubscription = sid === settingSubscriptionId
 
   return (
     <div
       className='setting-tabs-setting'
     >
       <SettingCol
-        className='cn-settings-template'
-        leftTitle='设置分类'
-        leftDesc='按功能域切换配置'
-        rightTitle='参数配置'
-        rightDesc='保存后立即应用到工作台'
+        className={`cn-settings-template ${isSubscription ? 'cn-subscription-template' : ''}`}
+        leftTitle={isSubscription ? '版本入口' : '设置分类'}
+        leftDesc={isSubscription ? '订阅与基础配置' : '按功能域切换配置'}
+        rightTitle={isSubscription ? '版本方案' : '参数配置'}
+        rightDesc={isSubscription ? '本地验证能力分层，后续接入授权' : '保存后立即应用到工作台'}
       >
         <List
           {...listProps}

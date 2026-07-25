@@ -89,6 +89,95 @@ describe('recent history', () => {
     assert.equal(result[1].id, 'other')
   })
 
+  test('deduplicates then orders by latest visit time', async () => {
+    const { dedupeRecentHistory } = await loadRecentHistory()
+    const result = dedupeRecentHistory([
+      {
+        id: 'old-server',
+        count: 1,
+        time: 10,
+        tab: {
+          type: 'ssh',
+          pane: 'terminal',
+          title: 'old',
+          username: 'root',
+          host: '112.126.58.25',
+          port: 22
+        }
+      },
+      {
+        id: 'other-server',
+        count: 1,
+        time: 20,
+        tab: {
+          type: 'ssh',
+          pane: 'terminal',
+          username: 'root',
+          host: '60.205.152.238',
+          port: 22
+        }
+      },
+      {
+        id: 'new-server',
+        count: 2,
+        time: 30,
+        tab: {
+          type: 'ssh',
+          pane: 'terminal',
+          title: 'new',
+          username: 'root',
+          host: '112.126.58.25',
+          port: '22'
+        }
+      }
+    ])
+
+    assert.deepEqual(result.map(item => item.id), ['old-server', 'other-server'])
+    assert.equal(result[0].count, 3)
+    assert.equal(result[0].time, 30)
+    assert.equal(result[0].tab.title, 'new')
+  })
+
+  test('normalizes recent history length after dedupe', async () => {
+    const { normalizeRecentHistory } = await loadRecentHistory()
+    const result = normalizeRecentHistory([
+      {
+        id: 'server-a-old',
+        time: 10,
+        tab: {
+          type: 'ssh',
+          username: 'root',
+          host: 'a.example.com',
+          port: 22
+        }
+      },
+      {
+        id: 'server-b',
+        time: 30,
+        tab: {
+          type: 'ssh',
+          username: 'root',
+          host: 'b.example.com',
+          port: 22
+        }
+      },
+      {
+        id: 'server-a-new',
+        time: 40,
+        tab: {
+          type: 'ssh',
+          username: 'root',
+          host: 'a.example.com',
+          port: 22
+        }
+      }
+    ], 1)
+
+    assert.equal(result.length, 1)
+    assert.equal(result[0].id, 'server-a-old')
+    assert.equal(result[0].time, 40)
+  })
+
   test('keeps different accounts or ports as separate entries', async () => {
     const { dedupeRecentHistory } = await loadRecentHistory()
     const result = dedupeRecentHistory([

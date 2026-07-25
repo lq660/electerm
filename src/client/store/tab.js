@@ -17,7 +17,10 @@ import generate from '../common/id-with-stamp'
 import uid from '../common/uid'
 import newTerm, { updateCount } from '../common/new-terminal.js'
 import { action } from 'manate'
-import { findRecentHistoryIndex } from '../common/recent-history'
+import {
+  findRecentHistoryIndex,
+  normalizeRecentHistory
+} from '../common/recent-history'
 
 export default Store => {
   Store.prototype.nextTabCount = function () {
@@ -533,6 +536,9 @@ export default Store => {
       'autoReConnect'
     ]
     const { history } = store
+    const cleanHistory = () => {
+      history.splice(0, history.length, ...normalizeRecentHistory(history, maxHistory))
+    }
     const index = findRecentHistoryIndex(history, tab)
     if (index === -1) {
       const copiedTab = deepCopy(tab)
@@ -546,9 +552,7 @@ export default Store => {
           count: 1,
           id: uid()
         })
-        if (history.length > maxHistory) {
-          history.pop()
-        }
+        cleanHistory()
       })()
     }
     const match = history[index]
@@ -557,9 +561,7 @@ export default Store => {
     action(function () {
       const [m] = history.splice(index, 1)
       history.unshift(m)
-      if (history.length > maxHistory) {
-        history.pop()
-      }
+      cleanHistory()
     })()
   }
 

@@ -40,7 +40,8 @@ const {
 const { saveUserConfig, rebuildUserConfig } = require('./user-config-controller')
 const {
   exportConfigMigration,
-  importConfigMigration
+  importConfigMigration,
+  previewConfigMigration
 } = require('./config-migration')
 const { changeHotkeyReg, initShortCut } = require('./shortcut')
 const lastStateManager = require('./last-state')
@@ -209,6 +210,7 @@ function initIpc () {
     saveUserConfig,
     rebuildUserConfig,
     exportConfigMigration: (password, options) => exportConfigMigration(globalState.get('win'), password, options),
+    previewConfigMigration,
     importConfigMigration,
     AIchat,
     AIchatWithTools,

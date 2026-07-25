@@ -669,10 +669,30 @@ export default (Store) => {
     download(name, text)
   }
 
-  Store.prototype.importAll = async function (file, password) {
+  Store.prototype.previewImportAll = async function (file, password) {
     if (!window.et.isWebApp) {
       const filePath = file.filePath || file.path
-      const res = await window.pre.runGlobalAsync('importConfigMigration', filePath, password)
+      return window.pre.runGlobalAsync('previewConfigMigration', filePath, password)
+    }
+    const txt = file.fileContent !== undefined
+      ? file.fileContent
+      : await window.fs.readFile(file.filePath)
+    const objs = JSON.parse(txt)
+    const summary = Object.keys(objs).reduce((prev, key) => {
+      prev[key] = Array.isArray(objs[key]) ? objs[key].length : 1
+      return prev
+    }, {})
+    return {
+      summary,
+      warnings: ['Web 版导入预览仅显示基础 JSON 内容。'],
+      conflicts: {}
+    }
+  }
+
+  Store.prototype.importAll = async function (file, password, options = {}) {
+    if (!window.et.isWebApp) {
+      const filePath = file.filePath || file.path
+      const res = await window.pre.runGlobalAsync('importConfigMigration', filePath, password, options)
       message.success('配置迁移包已导入')
       return res
     }

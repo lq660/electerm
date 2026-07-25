@@ -46,10 +46,10 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-workbench-shell
   display grid
   grid-template-columns minmax(640px, 1fr) 300px
-  gap 12px
-  height calc(100vh - 76px)
+  gap 10px
+  height calc(100vh - 60px)
   min-height 0
-  padding 12px
+  padding 10px
   box-sizing border-box
 
 .cn-workbench-sidebar,
@@ -294,7 +294,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-workbench-main
   display flex
   flex-direction column
-  gap 12px
+  gap 10px
   min-width 0
   min-height 0
   height 100%
@@ -304,9 +304,9 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   display flex
   align-items center
   justify-content space-between
-  gap 14px
-  min-height 76px
-  padding 13px 14px
+  gap 12px
+  min-height 62px
+  padding 10px 12px
   border 1px solid $cn-border
   border-radius 8px
   background $cn-panel
@@ -314,15 +314,15 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
 .cn-workbench-toolbar h2
   margin 0
-  font-size 20px
-  line-height 26px
+  font-size 18px
+  line-height 24px
   font-weight 700
 
 .cn-header-meta
   display flex
   flex-wrap wrap
   gap 6px
-  margin-top 6px
+  margin-top 4px
 
   span
     height 22px
@@ -336,7 +336,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     font-weight 700
 
 .cn-workbench-toolbar p
-  margin 4px 0 0
+  margin 2px 0 0
   color $cn-muted
   font-size 12px
 
@@ -381,9 +381,9 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-quick-connect
   display flex
   align-items center
-  gap 12px
-  padding 10px 12px
-  min-height 50px
+  gap 10px
+  padding 8px 10px
+  min-height 46px
   background $cn-panel
 
 .cn-quick-connect .quick-connect
@@ -431,7 +431,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     line-height 1.5
 
 .cn-saved-connections
-  padding 14px 14px 12px
+  padding 12px
   display flex
   flex-direction column
   gap 12px
@@ -527,12 +527,12 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     background-clip padding-box
 
 .cn-connection-card
-  min-height 58px
+  min-height 52px
   display grid
   grid-template-columns 10px minmax(0, 1fr) auto auto
   align-items center
   gap 8px
-  padding 9px 10px
+  padding 8px
   border 1px solid $cn-border
   border-radius 8px
   background $cn-panel
@@ -611,12 +611,12 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
 .cn-empty-connections
   flex 1
-  min-height 180px
+  min-height 150px
   display grid
   grid-template-columns 38px minmax(0, 1fr)
   align-items center
   gap 12px
-  padding 22px
+  padding 18px
   border 1px dashed $cn-border-strong
   border-radius 8px
   background $cn-panel

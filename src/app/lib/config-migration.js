@@ -27,6 +27,12 @@ const MIGRATION_KDF = 'scrypt'
 const MIGRATION_KEY_LENGTH = 32
 const MIGRATION_KEY_FILE_MAX_SIZE = 256 * 1024
 const MIGRATION_KEY_DIR = 'migration-keys'
+const MIGRATION_BACKUP_DIR = 'migration-backups'
+const IMPORT_MODES = new Set([
+  'replace',
+  'merge',
+  'skipExisting'
+])
 
 const EXCLUDED_TABLES = new Set([
   'log',
@@ -100,6 +106,10 @@ function getUserDataPath () {
 
 function getMigrationKeysPath () {
   return resolve(getUserDataPath(), MIGRATION_KEY_DIR)
+}
+
+function getMigrationBackupsPath () {
+  return resolve(getUserDataPath(), MIGRATION_BACKUP_DIR)
 }
 
 function resolveExternalKeyPath (filePath) {
@@ -221,6 +231,60 @@ async function writeJsonAtomic (filePath, data) {
   await fs.mkdir(dirname(filePath), { recursive: true })
   await fs.writeFile(tempPath, JSON.stringify(data, null, 2))
   await fs.rename(tempPath, filePath)
+}
+
+async function writeAutomaticImportBackup (tableData, password) {
+  if (!password) {
+    return {
+      filePath: '',
+      warnings: ['旧版明文迁移包未输入密码，已跳过落地备份；导入失败时仍会自动回滚本次写入。']
+    }
+  }
+  const keyRefs = collectExternalKeyRefs(tableData)
+  const {
+    externalKeyFiles,
+    skipped
+  } = await readExternalKeyFiles(keyRefs)
+  const payload = {
+    tables: tableData
+  }
+  if (externalKeyFiles.length) {
+    payload.externalKeyFiles = externalKeyFiles
+  }
+  const fileName = getDefaultFileName().replace(
+    '-yunduo-config-migration.ydmig',
+    '-before-import-backup.ydmig'
+  )
+  const filePath = resolve(getMigrationBackupsPath(), fileName)
+  const backupWarnings = createMigrationWarnings(
+    keyRefs,
+    { includeExternalKeys: true },
+    externalKeyFiles,
+    skipped
+  )
+  const encrypted = encryptMigrationPayload(payload, password)
+  const data = {
+    type: PACKAGE_TYPE,
+    version: PACKAGE_VERSION,
+    encrypted: true,
+    backup: true,
+    app: {
+      name: packInfo.productName || packInfo.name,
+      version: packInfo.version
+    },
+    exportedAt: new Date().toISOString(),
+    summary: createSummary(tableData),
+    warnings: [
+      '这是导入前自动生成的本机配置备份。',
+      ...backupWarnings
+    ],
+    ...encrypted
+  }
+  await writeJsonAtomic(filePath, data)
+  return {
+    filePath,
+    warnings: [`已在导入前自动备份当前配置：${filePath}`]
+  }
 }
 
 function assertPassword (password) {
@@ -512,7 +576,62 @@ async function restoreTables (backup) {
   }
 }
 
-async function importConfigMigration (filePath, password) {
+async function createImportConflicts (tableData) {
+  const result = {}
+  for (const [name, records] of Object.entries(tableData)) {
+    const currentRows = await dbAction(name, 'find', {})
+    const currentIds = new Set(currentRows.map(row => row._id))
+    const conflictCount = records.filter(record => currentIds.has(record._id)).length
+    result[name] = {
+      incoming: records.length,
+      current: currentRows.length,
+      conflicts: conflictCount,
+      additions: records.length - conflictCount
+    }
+  }
+  return result
+}
+
+function normalizeImportMode (mode) {
+  return IMPORT_MODES.has(mode) ? mode : 'replace'
+}
+
+async function writeImportedTableRows (name, records, mode, backupRows) {
+  if (mode === 'replace') {
+    await removeTableRows(name)
+    await upsertTableRows(name, records)
+    return records.length
+  }
+  if (mode === 'skipExisting') {
+    const existingIds = new Set((backupRows || []).map(row => row._id))
+    const rows = records.filter(record => !existingIds.has(record._id))
+    await upsertTableRows(name, rows)
+    return rows.length
+  }
+  await upsertTableRows(name, records)
+  return records.length
+}
+
+async function previewConfigMigration (filePath, password) {
+  if (!filePath) {
+    throw new Error('请选择要导入的迁移包')
+  }
+  const text = await fs.readFile(filePath, 'utf8')
+  const data = parseMigrationPackage(text, password)
+  return {
+    filePath,
+    app: data.app,
+    exportedAt: data.exportedAt,
+    summary: data.summary,
+    warnings: data.warnings,
+    externalKeyFileCount: Array.isArray(data.externalKeyFiles)
+      ? data.externalKeyFiles.length
+      : 0,
+    conflicts: await createImportConflicts(data.tables)
+  }
+}
+
+async function importConfigMigration (filePath, password, options = {}) {
   if (!filePath) {
     throw new Error('请选择要导入的迁移包')
   }
@@ -522,10 +641,22 @@ async function importConfigMigration (filePath, password) {
   rewriteExternalKeyPaths(data.tables, restoredKeys.pathMap)
   const names = Object.keys(data.tables)
   const backup = await readTables(names)
+  const backupResult = options.createBackup === false
+    ? {
+        filePath: '',
+        warnings: []
+      }
+    : await writeAutomaticImportBackup(backup, password)
+  const mode = normalizeImportMode(options.mode)
+  const imported = {}
   try {
     for (const name of names) {
-      await removeTableRows(name)
-      await upsertTableRows(name, data.tables[name])
+      imported[name] = await writeImportedTableRows(
+        name,
+        data.tables[name],
+        mode,
+        backup[name]
+      )
     }
   } catch (e) {
     await restoreTables(backup).catch(err => {
@@ -538,9 +669,13 @@ async function importConfigMigration (filePath, password) {
     app: data.app,
     exportedAt: data.exportedAt,
     summary: data.summary,
+    imported,
+    mode,
+    backupFilePath: backupResult.filePath,
     warnings: [
       ...data.warnings,
-      ...restoredKeys.warnings
+      ...restoredKeys.warnings,
+      ...backupResult.warnings
     ]
   }
 }
@@ -548,6 +683,7 @@ async function importConfigMigration (filePath, password) {
 module.exports = {
   exportConfigMigration,
   importConfigMigration,
+  previewConfigMigration,
   buildMigrationPackage,
   parseMigrationPackage,
   encryptMigrationPayload,

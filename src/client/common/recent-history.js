@@ -71,4 +71,17 @@ export function dedupeRecentHistory (history) {
     }
   })
   return result
+    .map((item, index) => ({ ...item, originalIndex: index }))
+    .sort((a, b) => {
+      const timeDiff = (b.time || 0) - (a.time || 0)
+      return timeDiff || a.originalIndex - b.originalIndex
+    })
+    .map(({ originalIndex, ...item }) => item)
+}
+
+export function normalizeRecentHistory (history, maxLength) {
+  const result = dedupeRecentHistory(history)
+  return typeof maxLength === 'number' && maxLength > 0
+    ? result.slice(0, maxLength)
+    : result
 }

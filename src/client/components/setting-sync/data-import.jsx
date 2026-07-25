@@ -10,7 +10,8 @@ import {
   Space,
   Input,
   Alert,
-  Checkbox
+  Checkbox,
+  Radio
 } from 'antd'
 import {
   ImportOutlined,
@@ -47,6 +48,21 @@ const migrationExportLabels = {
   autoRunWidgets: '自动运行组件'
 }
 
+const migrationTableLabels = {
+  bookmarks: '连接',
+  bookmarkGroups: '连接分组',
+  addressBookmarks: 'SFTP 地址书',
+  terminalThemes: '终端主题',
+  data: '系统设置',
+  quickCommands: '快捷命令',
+  profiles: '终端配置',
+  workspaces: '工作区',
+  history: '最近连接',
+  terminalCommandHistory: '终端命令历史',
+  aiChatHistory: 'AI 对话历史',
+  autoRunWidgets: '自动运行组件'
+}
+
 const migrationExportKeys = Object.keys(migrationExportDataMaps)
 
 const intervalOptions = [
@@ -77,6 +93,42 @@ function renderWarnings (warnings = []) {
         <li key={index}>{warning}</li>
       ))}
     </ul>
+  )
+}
+
+function renderMigrationSummary (summary = {}) {
+  const entries = Object.entries(summary).filter(([, count]) => count)
+  if (!entries.length) {
+    return null
+  }
+  return (
+    <div className='cn-sync-migration-preview-list'>
+      {entries.map(([name, count]) => (
+        <span key={name}>
+          <b>{migrationTableLabels[name] || name}</b>
+          <em>{count}</em>
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function renderMigrationConflicts (conflicts = {}) {
+  const entries = Object.entries(conflicts).filter(([, info]) => {
+    return info && (info.conflicts || info.additions)
+  })
+  if (!entries.length) {
+    return <div className='cn-sync-migration-preview-empty'>未检测到同 ID 冲突。</div>
+  }
+  return (
+    <div className='cn-sync-migration-conflicts'>
+      {entries.map(([name, info]) => (
+        <div key={name}>
+          <strong>{migrationTableLabels[name] || name}</strong>
+          <span>新增 {info.additions || 0} · 冲突 {info.conflicts || 0} · 当前 {info.current || 0}</span>
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -133,6 +185,57 @@ function MigrationExportScope (props) {
         }
       </Checkbox.Group>
     </div>
+  )
+}
+
+function MigrationImportPreview (props) {
+  const {
+    preview,
+    mode,
+    onModeChange
+  } = props
+  const [selectedMode, setSelectedMode] = useState(mode)
+  function handleModeChange (event) {
+    const value = event.target.value
+    setSelectedMode(value)
+    onModeChange(value)
+  }
+  const externalKeyText = preview.externalKeyFileCount
+    ? `迁移包包含 ${preview.externalKeyFileCount} 个本地密钥文件，导入时会恢复到本机迁移密钥目录。`
+    : '迁移包未包含本地密钥文件。'
+  return (
+    <Space direction='vertical' size='middle' className='width-100'>
+      <Alert
+        type='info'
+        showIcon
+        message='已读取迁移包内容'
+        description={`导出时间：${preview.exportedAt || '未知'}。${externalKeyText}`}
+      />
+      <div className='cn-sync-migration-preview'>
+        <div className='cn-sync-migration-preview-title'>包含内容</div>
+        {renderMigrationSummary(preview.summary)}
+      </div>
+      <div className='cn-sync-migration-preview'>
+        <div className='cn-sync-migration-preview-title'>冲突检查</div>
+        {renderMigrationConflicts(preview.conflicts)}
+      </div>
+      <Radio.Group
+        className='cn-sync-migration-mode'
+        value={selectedMode}
+        onChange={handleModeChange}
+      >
+        <Radio value='replace'>覆盖当前同类配置</Radio>
+        <Radio value='merge'>合并导入，冲突时使用迁移包内容</Radio>
+        <Radio value='skipExisting'>只导入新增内容，跳过已有配置</Radio>
+      </Radio.Group>
+      <Alert
+        type='warning'
+        showIcon
+        message='导入前会自动备份当前配置'
+        description='自动备份使用本次输入的迁移密码加密保存，导入失败会回滚本次写入。'
+      />
+      {renderWarnings(preview.warnings)}
+    </Space>
   )
 }
 
@@ -237,32 +340,27 @@ export default function DataTransport (props) {
     })
   }
 
-  function handleImport (file) {
-    let password = ''
+  function showImportPreviewModal (file, password, preview) {
+    let mode = 'replace'
     return Modal.confirm({
-      title: '导入配置迁移包',
+      title: '确认导入配置迁移包',
       content: (
-        <Space direction='vertical' size='middle' className='width-100'>
-          <Alert
-            type='warning'
-            showIcon
-            message='导入会覆盖当前机器配置'
-            description='连接、分组、主题、快捷命令、工作区和个人设置都会被迁移包内容替换。建议先导出当前配置作为备份。'
-          />
-          <Input.Password
-            autoFocus
-            placeholder='输入迁移包密码，旧版明文包可留空'
-            onChange={event => {
-              password = event.target.value
-            }}
-          />
-        </Space>
+        <MigrationImportPreview
+          preview={preview}
+          mode={mode}
+          onModeChange={value => {
+            mode = value
+          }}
+        />
       ),
-      okText: '导入并覆盖',
+      okText: '导入配置',
       cancelText: e('cancel'),
       onOk: async () => {
         try {
-          const res = await store.importAll(file, password)
+          const res = await store.importAll(file, password, {
+            mode,
+            createBackup: true
+          })
           if (!res) {
             return
           }
@@ -277,6 +375,41 @@ export default function DataTransport (props) {
             okText: e('restartNow'),
             onOk: () => store.restart()
           })
+        } catch (err) {
+          store.onError(err)
+          return false
+        }
+      }
+    })
+  }
+
+  function handleImport (file) {
+    let password = ''
+    return Modal.confirm({
+      title: '导入配置迁移包',
+      content: (
+        <Space direction='vertical' size='middle' className='width-100'>
+          <Alert
+            type='warning'
+            showIcon
+            message='先读取迁移包预览，再确认导入方式'
+            description='云舵会先检查包含内容、同 ID 冲突和本地密钥文件，再由你选择覆盖、合并或跳过已有配置。'
+          />
+          <Input.Password
+            autoFocus
+            placeholder='输入迁移包密码，旧版明文包可留空'
+            onChange={event => {
+              password = event.target.value
+            }}
+          />
+        </Space>
+      ),
+      okText: '读取预览',
+      cancelText: e('cancel'),
+      onOk: async () => {
+        try {
+          const preview = await store.previewImportAll(file, password)
+          showImportPreviewModal(file, password, preview)
         } catch (err) {
           store.onError(err)
           return false

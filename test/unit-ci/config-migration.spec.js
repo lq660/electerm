@@ -39,10 +39,33 @@ async function withMockedConfigMigration (dbRows, callback) {
           'aiChatHistory',
           'autoRunWidgets'
         ],
-        dbAction: async (name, action) => {
-          calls.push({ name, action })
-          assert.equal(action, 'find')
-          return dbRows[name] || []
+        dbAction: async (name, action, query, data, options) => {
+          calls.push({
+            name,
+            action,
+            query,
+            data,
+            options
+          })
+          if (action === 'find') {
+            return dbRows[name] || []
+          }
+          if (action === 'remove') {
+            dbRows[name] = (dbRows[name] || []).filter(row => row._id !== query._id)
+            return 1
+          }
+          if (action === 'update') {
+            const rows = dbRows[name] || []
+            const index = rows.findIndex(row => row._id === query._id)
+            if (index === -1) {
+              rows.push(data)
+            } else {
+              rows[index] = data
+            }
+            dbRows[name] = rows
+            return 1
+          }
+          throw new Error(`Unexpected db action: ${action}`)
         }
       }
     }
@@ -87,6 +110,127 @@ test('migration export keeps only selected allowed tables', async () => {
       data: 1
     })
   })
+})
+
+test('migration import preview reports additions and conflicts', async () => {
+  const dbRows = {
+    bookmarks: [
+      { _id: 'shared', title: 'package value' },
+      { _id: 'new', title: 'new value' }
+    ]
+  }
+  const packagePath = path.join(
+    await fs.mkdtemp(path.join(os.tmpdir(), 'electerm-config-migration-preview-')),
+    'preview.ydmig'
+  )
+  try {
+    await withMockedConfigMigration(dbRows, async ({ buildMigrationPackage, previewConfigMigration }) => {
+      const data = await buildMigrationPackage('secret', {
+        tables: ['bookmarks']
+      })
+      await fs.writeFile(packagePath, JSON.stringify(data, null, 2))
+      dbRows.bookmarks = [
+        { _id: 'shared', title: 'current value' },
+        { _id: 'local', title: 'local only' }
+      ]
+
+      const preview = await previewConfigMigration(packagePath, 'secret')
+
+      assert.deepEqual(preview.summary, { bookmarks: 2 })
+      assert.deepEqual(preview.conflicts.bookmarks, {
+        incoming: 2,
+        current: 2,
+        conflicts: 1,
+        additions: 1
+      })
+      assert.equal(preview.externalKeyFileCount, 0)
+    })
+  } finally {
+    await fs.rm(path.dirname(packagePath), { recursive: true, force: true })
+  }
+})
+
+test('migration import can skip existing records and keep local data', async () => {
+  const dbRows = {
+    bookmarks: [
+      { _id: 'shared', title: 'package value' },
+      { _id: 'new', title: 'new value' }
+    ]
+  }
+  const packagePath = path.join(
+    await fs.mkdtemp(path.join(os.tmpdir(), 'electerm-config-migration-skip-')),
+    'skip.ydmig'
+  )
+  try {
+    await withMockedConfigMigration(dbRows, async ({ buildMigrationPackage, importConfigMigration }) => {
+      const data = await buildMigrationPackage('secret', {
+        tables: ['bookmarks']
+      })
+      await fs.writeFile(packagePath, JSON.stringify(data, null, 2))
+      dbRows.bookmarks = [
+        { _id: 'shared', title: 'current value' },
+        { _id: 'local', title: 'local only' }
+      ]
+
+      const res = await importConfigMigration(packagePath, 'secret', {
+        mode: 'skipExisting',
+        createBackup: false
+      })
+
+      assert.equal(res.mode, 'skipExisting')
+      assert.deepEqual(res.imported, { bookmarks: 1 })
+      assert.deepEqual(dbRows.bookmarks, [
+        { _id: 'shared', title: 'current value' },
+        { _id: 'local', title: 'local only' },
+        { _id: 'new', title: 'new value' }
+      ])
+    })
+  } finally {
+    await fs.rm(path.dirname(packagePath), { recursive: true, force: true })
+  }
+})
+
+test('migration import automatic backup includes current external key files', async () => {
+  const keyDir = await fs.mkdtemp(path.join(os.tmpdir(), 'electerm-config-migration-backup-key-'))
+  const keyPath = path.join(keyDir, 'id_ed25519')
+  const packagePath = path.join(
+    await fs.mkdtemp(path.join(os.tmpdir(), 'electerm-config-migration-backup-')),
+    'backup-source.ydmig'
+  )
+  await fs.writeFile(keyPath, 'current-private-key')
+  try {
+    const dbRows = {
+      bookmarks: [
+        { _id: 'incoming', title: 'package value' }
+      ]
+    }
+    await withMockedConfigMigration(dbRows, async ({
+      buildMigrationPackage,
+      importConfigMigration,
+      parseMigrationPackage
+    }) => {
+      const data = await buildMigrationPackage('secret', {
+        tables: ['bookmarks']
+      })
+      await fs.writeFile(packagePath, JSON.stringify(data, null, 2))
+      dbRows.bookmarks = [
+        { _id: 'current', title: 'current value', privateKeyPath: keyPath }
+      ]
+
+      const res = await importConfigMigration(packagePath, 'secret', {
+        mode: 'replace'
+      })
+      const backupText = await fs.readFile(res.backupFilePath, 'utf8')
+      const backup = parseMigrationPackage(backupText, 'secret')
+
+      assert.equal(backup.tables.bookmarks[0].privateKeyPath, keyPath)
+      assert.equal(backup.externalKeyFiles.length, 1)
+      assert.deepEqual(backup.externalKeyFiles[0].sourcePaths, [keyPath])
+    })
+  } finally {
+    await fs.rm(keyDir, { recursive: true, force: true })
+    await fs.rm(path.dirname(packagePath), { recursive: true, force: true })
+  }
 })
 
 test('migration export includes external key files only from selected tables', async () => {

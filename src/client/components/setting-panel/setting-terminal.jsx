@@ -161,10 +161,9 @@ export default class SettingTerminal extends Component {
       <div className={`${cls} cn-settings-toggle`} key={'rt' + name}>
         <Switch
           checked={checked}
-          checkedChildren={txt}
-          unCheckedChildren={txt}
           onChange={v => this.onChangeValue(v, name)}
         />
+        <span className='cn-settings-toggle-label'>{txt}</span>
       </div>
     )
   }

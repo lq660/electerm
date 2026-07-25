@@ -11,6 +11,7 @@ const globalState = require('./glob-state')
 
 function buildMenu () {
   const e = globalState.get('translate')
+  const appName = packInfo.productName || app.name || packInfo.name
 
   const template = [
     {
@@ -186,7 +187,7 @@ function buildMenu () {
 
   if (process.platform === 'darwin') {
     template.unshift({
-      label: app.name,
+      label: appName,
       submenu: [
         {
           role: 'services',

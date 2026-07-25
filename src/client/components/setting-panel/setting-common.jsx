@@ -227,14 +227,14 @@ export default class SettingCommon extends Component {
 
   renderToggle = (name, extra = null) => {
     const checked = !!this.props.config[name]
+    const txt = e(name)
     return (
       <div className='pd2b cn-settings-toggle' key={'rt' + name}>
         <Switch
           checked={checked}
-          checkedChildren={e(name)}
-          unCheckedChildren={e(name)}
           onChange={v => this.onChangeValue(v, name)}
         />
+        <span className='cn-settings-toggle-label'>{txt}</span>
         {isNumber(extra) ? null : extra}
       </div>
     )

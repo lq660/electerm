@@ -283,11 +283,13 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   .cn-settings-toggle
     display flex
     align-items center
+    gap 8px
     min-height 34px
     padding 0 !important
 
     .ant-switch
-      min-width 176px
+      flex 0 0 auto
+      min-width 44px
       height 28px
       background $cn-input-border !important
 
@@ -298,6 +300,13 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
       color $cn-on-primary !important
       font-size 12px
       font-weight 500
+
+  .cn-settings-toggle-label
+    min-width 0
+    color $cn-control-text
+    font-size 13px
+    font-weight 500
+    line-height 18px
 
   .cn-settings-inline-head
     display flex

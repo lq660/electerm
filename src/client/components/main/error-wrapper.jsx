@@ -56,7 +56,7 @@ export default class ErrorBoundary extends React.PureComponent {
     return (
       <div className='pd1y wordbreak cn-error-help'>
         <h2>安全处理建议</h2>
-        <p>重新加载仍无法恢复时，请先备份本机数据目录，再将错误信息交给产品维护人员。</p>
+        <p>重新加载仍无法恢复时，请先备份本机兼容数据目录（历史 electerm 路径），再将错误信息交给产品维护人员。</p>
         <div className='cn-error-command'>
           <code>{command}</code>
           <CopyOutlined title='复制备份命令' onClick={() => copy(command)} />

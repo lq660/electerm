@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { auto } from 'manate/react'
 import { Input, Popconfirm } from 'antd'
 import {
@@ -24,11 +24,15 @@ import {
   getSolutionConnectionKey,
   normalizeSolutionRecord,
   parseSolutionSummary,
+  solutionRecordsChangedEvent,
+  solutionRecordStorageKey,
   sortSolutionRecords,
   toSolutionCommands
 } from '../../common/solution-record-utils.mjs'
-
-const solutionRecordStorageKey = 'solution-records'
+import {
+  canCreateSolutionRecord,
+  getSolutionRecordLimit
+} from '../../common/feature-plans'
 
 function getStoredRecords () {
   return sortSolutionRecords(safeGetItemJSON(solutionRecordStorageKey, []))
@@ -92,6 +96,12 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
     .filter(record => matchesRecord(record, keyword))
   const selectedRecord = visibleRecords.find(record => record.id === selectedId) || visibleRecords[0] || null
 
+  useEffect(() => {
+    const handleRecordsChanged = () => setRecords(getStoredRecords())
+    window.addEventListener(solutionRecordsChangedEvent, handleRecordsChanged)
+    return () => window.removeEventListener(solutionRecordsChangedEvent, handleRecordsChanged)
+  }, [])
+
   function updateDraft (field, value) {
     setDraft(previous => ({
       ...previous,
@@ -103,6 +113,7 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
     const normalized = sortSolutionRecords(nextRecords)
     safeSetItemJSON(solutionRecordStorageKey, normalized)
     setRecords(normalized)
+    window.dispatchEvent(new window.CustomEvent(solutionRecordsChangedEvent))
   }
 
   function openComposer (record) {
@@ -186,6 +197,11 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
       return
     }
     const current = records.find(record => record.id === draft.id)
+    if (!current && !canCreateSolutionRecord(window.store.config, records)) {
+      message.warning(`免费版最多保存 ${getSolutionRecordLimit(window.store.config)} 条处理记录，请升级后继续保存。`)
+      window.store.openSubscriptionSetting()
+      return
+    }
     const record = normalizeSolutionRecord({
       ...draft,
       id: draft.id || uid(),

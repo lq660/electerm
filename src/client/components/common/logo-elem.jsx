@@ -1,7 +1,4 @@
 import {
-  logoPath1,
-  logoPath2,
-  logoPath3,
   packInfo
 } from '../../common/constants'
 import { Tag } from 'antd'
@@ -9,14 +6,11 @@ import './logo.styl'
 
 export default function LogoElem () {
   return (
-    <h1 className='mg3y font50'>
-      <span className='iblock pd3 morph-shape mg1l mg1r'>
-        <img src={logoPath2} className='iblock mwm-100 mg1l mg1r logo-filter logo-img' />
+    <h1 className='mg3y cn-logo-title'>
+      <span className='iblock morph-shape cn-logo-mark mg1l mg1r'>
+        云
       </span>
-      <img src={logoPath3} className='hide logo-img' />
-      <sup>
-        <img src={logoPath1} className='iblock mwm-100 mg1r logo-img-small' />
-      </sup>
+      <span className='cn-logo-name'>云舵工作台</span>
       <Tag color='#08c' variant='solid'>{packInfo.version}</Tag>
     </h1>
   )

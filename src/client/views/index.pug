@@ -21,15 +21,30 @@ html
         justify-content: center;
         align-items: center;
       }
-      .electerm-logo-bg {
-        background: transparent 50% 50% no-repeat url("./images/electerm-watermark.png");
-      }
       .morph-shape {
         background: linear-gradient(45deg, #08c 0%, #09c 100%);
         animation: morph 8s ease-in-out infinite;
         border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
         transition: all 1s ease-in-out;
         z-index: 5;
+      }
+      .loading-logo {
+        width: 92px;
+        height: 92px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 44px;
+        font-weight: 700;
+        box-shadow: 0 18px 42px rgba(24, 119, 242, .24);
+      }
+      .loading-title {
+        margin-top: 18px;
+        color: #16324f;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0;
       }
 
     - if (!isDev)
@@ -42,8 +57,8 @@ html
       style(id='custom-css').
     #container
     #content-loading
-      .morph-shape.iblock.pd3
-        img.iblock.logo-filter(src='images/electerm.png', alt='', height=80)
+      .morph-shape.loading-logo 云
+      .loading-title 云舵工作台
     script.
       window.et = !{JSON.stringify(_global)}
     - var url = '/src/client/entry/basic.js'
@@ -65,4 +80,3 @@ html
       - var url = src='/js/basic-' + version + '.js'
       script(src=url1, type='module')
       script(src=url, type='module')
-

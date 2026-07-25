@@ -53,3 +53,94 @@
   .ant-select-open .ant-select-selector
     border-color #1677ff !important
     box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+
+.subscription-settings
+  display flex
+  flex-direction column
+  gap 12px
+
+.subscription-current-card
+  display flex
+  align-items center
+  justify-content space-between
+  gap 12px
+  padding 14px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #f8fbff
+
+  div
+    display flex
+    flex-direction column
+    gap 4px
+
+  span
+    color #667085
+    font-size 12px
+
+  strong
+    color #1f2937
+    font-size 22px
+
+  em
+    color #667085
+    font-style normal
+    font-size 12px
+
+.subscription-plan-grid
+  display grid
+  grid-template-columns repeat(3, minmax(0, 1fr))
+  gap 12px
+
+.subscription-plan-card
+  display flex
+  flex-direction column
+  min-height 300px
+  padding 14px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+
+  &.active
+    border-color #1677ff
+    box-shadow 0 8px 24px rgba(22, 119, 255, .1)
+
+  ul
+    flex 1
+    margin 14px 0
+    padding 0
+    list-style none
+
+  li
+    display flex
+    align-items flex-start
+    gap 8px
+    margin-bottom 10px
+    color #344054
+    line-height 1.5
+
+    .anticon
+      color #1677ff
+      margin-top 3px
+
+.subscription-plan-head
+  display flex
+  justify-content space-between
+  gap 8px
+
+  div
+    display flex
+    flex-direction column
+    gap 5px
+
+  strong
+    color #1f2937
+    font-size 18px
+
+  span
+    color #667085
+    font-size 12px
+
+@media (max-width 1180px)
+  .subscription-plan-grid
+    grid-template-columns 1fr

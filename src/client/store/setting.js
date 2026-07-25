@@ -8,6 +8,7 @@ import {
   settingMap,
   settingCommonId,
   settingSyncId,
+  settingSubscriptionId,
   modals
 } from '../common/constants'
 import { buildNewTheme } from '../common/terminal-theme'
@@ -118,6 +119,15 @@ export default Store => {
       settingTab: settingMap.setting
     })
     store.setSettingItem(settingList().find(d => d.id === settingSyncId))
+    store.openSettingModal()
+  }
+
+  Store.prototype.openSubscriptionSetting = function () {
+    const { store } = window
+    store.storeAssign({
+      settingTab: settingMap.setting
+    })
+    store.setSettingItem(settingList().find(d => d.id === settingSubscriptionId))
     store.openSettingModal()
   }
 

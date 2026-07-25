@@ -665,7 +665,7 @@ export default (Store) => {
     }
     objs.config = store.config
     const text = JSON.stringify(objs)
-    const name = dayjs().format('YYYY-MM-DD-HH-mm-ss') + '-electerm-all-data.json'
+    const name = dayjs().format('YYYY-MM-DD-HH-mm-ss') + '-yunduo-all-data.json'
     download(name, text)
   }
 

@@ -34,7 +34,7 @@ const downloadMirrorList = [
 
 const productName = '云舵工作台'
 // 2026-07-04 coder(lq): The current updater still consumes electerm release assets, so the UI names it as an upstream kernel update.
-const upstreamKernelName = 'electerm 开源内核'
+const upstreamKernelName = '开源内核'
 const mirrorLabels = {
   github: 'GitHub 原始源',
   'gh-proxy': '国内加速',

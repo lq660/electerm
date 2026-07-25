@@ -21,6 +21,12 @@ import { LoadingOutlined, BookOutlined, RobotOutlined } from '@ant-design/icons'
 import sessionConfig from './config/session-config'
 import renderForm from './render-form'
 import AIBookmarkForm from './ai-bookmark-form'
+import message from '../common/message'
+import {
+  featureIds,
+  getFeatureLockedMessage,
+  hasFeature
+} from '../../common/feature-plans'
 import './bookmark-form.styl'
 
 const e = window.translate
@@ -93,6 +99,11 @@ export default class BookmarkIndex2 extends PureComponent {
   }
 
   handleToggleAIMode = () => {
+    if (!hasFeature(window.store.config, featureIds.aiChat)) {
+      message.warning(getFeatureLockedMessage(featureIds.aiChat))
+      window.store.openSubscriptionSetting()
+      return
+    }
     if (window.store.aiConfigMissing()) {
       window.store.toggleAIConfig()
       return

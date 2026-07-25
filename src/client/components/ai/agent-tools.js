@@ -1,6 +1,162 @@
 import { z } from '../../common/zod'
 import { bookmarkSchemas } from '../../common/bookmark-schemas'
 
+const TERMINAL_TAB_TOOLS = new Set([
+  'send_terminal_command',
+  'get_terminal_output',
+  'get_terminal_status',
+  'cancel_terminal_command',
+  'run_background_command'
+])
+
+const SFTP_TAB_TOOLS = new Set([
+  'sftp_list',
+  'sftp_stat',
+  'sftp_read_file',
+  'sftp_del',
+  'sftp_upload',
+  'sftp_download'
+])
+
+function withDefaultTabId (toolName, args = {}, context = {}) {
+  if (
+    args.tabId ||
+    !context.defaultTabId ||
+    (!TERMINAL_TAB_TOOLS.has(toolName) && !SFTP_TAB_TOOLS.has(toolName))
+  ) {
+    return args
+  }
+  return {
+    ...args,
+    tabId: context.defaultTabId
+  }
+}
+
+function makeAgentRunId () {
+  return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+}
+
+function buildMarkedCommand (command, runId) {
+  const startMarker = `__ELECTERM_AGENT_START_${runId}__`
+  const endMarker = `__ELECTERM_AGENT_END_${runId}__`
+  return {
+    startMarker,
+    endMarker,
+    // 2026-07-24 coder(lq): Mark command boundaries so agent mode can reliably return the real command output and exit code.
+    command: [
+      `printf '\\n${startMarker}\\n'`,
+      '{',
+      command,
+      '}',
+      '__electerm_agent_exit=$?',
+      `printf '\\n${endMarker}:%s\\n' "$__electerm_agent_exit"`
+    ].join('\n')
+  }
+}
+
+function parseMarkedOutput (output = '', startMarker, endMarker) {
+  const endPattern = new RegExp(`${endMarker}:(\\d+)`)
+  const endMatch = output.match(endPattern)
+  if (!endMatch) {
+    return null
+  }
+  const endIndex = output.indexOf(endMatch[0])
+  const beforeEnd = output.slice(0, endIndex)
+  const startIndex = beforeEnd.lastIndexOf(startMarker)
+  const body = startIndex >= 0
+    ? beforeEnd.slice(startIndex + startMarker.length)
+    : beforeEnd
+  return {
+    exitCode: Number(endMatch[1]),
+    output: body.replace(/^\s*\n?/, '').replace(/\n?\s*$/, '')
+  }
+}
+
+function stripAgentCommandMarkers (output = '') {
+  return String(output || '')
+    .replace(/\n?__ELECTERM_AGENT_START_[A-Za-z0-9_]+__[\s\S]*?__ELECTERM_AGENT_END_[A-Za-z0-9_]+__:\d+\n?/g, '\n')
+    .replace(/\n?__ELECTERM_AGENT_START_[A-Za-z0-9_]+__[\s\S]*$/g, '')
+    .split('\n')
+    .filter(line => (
+      !/__ELECTERM_AGENT_(START|END)_[A-Za-z0-9_]+__/.test(line) &&
+      !/__electerm_agent_exit/.test(line)
+    ))
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
+function sanitizeTerminalReadResult (result) {
+  if (!result || typeof result !== 'object' || typeof result.output !== 'string') {
+    return result
+  }
+  return {
+    ...result,
+    // 2026-07-24 coder(lq): Internal agent command markers are implementation details; keep AI context and tool cards focused on user-visible terminal output.
+    output: stripAgentCommandMarkers(result.output)
+  }
+}
+
+async function runTerminalCommandAndCapture (args) {
+  const store = window.store
+  const runId = makeAgentRunId()
+  const marked = buildMarkedCommand(args.command, runId)
+  const start = Date.now()
+  const timeout = Math.min(args.timeout || 45000, 120000)
+  const pollInterval = 500
+  const tabId = args.tabId || store.activeTabId
+
+  store.mcpSendTerminalCommand({
+    ...args,
+    tabId,
+    command: marked.command,
+    inputOnly: false
+  })
+
+  while (Date.now() - start < timeout) {
+    const status = store.mcpGetTerminalStatus({ tabId })
+    const recent = store.mcpGetTerminalOutput({ tabId, lines: args.lines || 220 })
+    const parsed = parseMarkedOutput(recent.output, marked.startMarker, marked.endMarker)
+    if (parsed) {
+      return {
+        success: parsed.exitCode === 0,
+        command: args.command,
+        exitCode: parsed.exitCode,
+        output: parsed.output,
+        timedOut: false,
+        elapsed: Date.now() - start,
+        tabId: recent.tabId || status.tabId
+      }
+    }
+    if (status.hasPasswordPrompt) {
+      return {
+        success: false,
+        command: args.command,
+        exitCode: null,
+        output: status.output,
+        timedOut: false,
+        waitingForInput: true,
+        message: 'Terminal is waiting for password or interactive input.',
+        elapsed: Date.now() - start,
+        tabId: status.tabId
+      }
+    }
+    await new Promise(resolve => setTimeout(resolve, pollInterval))
+  }
+
+  const recent = store.mcpGetTerminalOutput({ tabId, lines: args.lines || 220 })
+  return {
+    success: false,
+    command: args.command,
+    exitCode: null,
+    output: recent.output,
+    timedOut: true,
+    message: `Command did not finish within ${timeout}ms.`,
+    elapsed: Date.now() - start,
+    tabId: recent.tabId
+  }
+}
+
 function buildAddBookmarkParameters () {
   const typeProperties = {}
   for (const [type, schema] of Object.entries(bookmarkSchemas)) {
@@ -445,20 +601,15 @@ export const agentTools = [
   }
 ]
 
-export async function executeToolCall (toolName, args) {
+export async function executeToolCall (toolName, args, context = {}) {
   const store = window.store
+  const finalArgs = withDefaultTabId(toolName, args, context)
   switch (toolName) {
     case 'send_terminal_command': {
-      store.mcpSendTerminalCommand(args)
-      const idleResult = await store.mcpWaitForTerminalIdle({
-        tabId: args.tabId || store.activeTabId,
-        timeout: 30000,
-        lines: 100
-      })
-      return JSON.stringify(idleResult)
+      return JSON.stringify(await runTerminalCommandAndCapture(finalArgs))
     }
     case 'get_terminal_output':
-      return JSON.stringify(store.mcpGetTerminalOutput(args))
+      return JSON.stringify(sanitizeTerminalReadResult(store.mcpGetTerminalOutput(finalArgs)))
     case 'open_local_terminal':
       return JSON.stringify(store.mcpOpenLocalTerminal())
     case 'list_tabs':
@@ -466,51 +617,51 @@ export async function executeToolCall (toolName, args) {
     case 'get_active_tab':
       return JSON.stringify(store.mcpGetActiveTab())
     case 'switch_tab':
-      return JSON.stringify(store.mcpSwitchTab(args))
+      return JSON.stringify(store.mcpSwitchTab(finalArgs))
     case 'close_tab':
-      return JSON.stringify(store.mcpCloseTab(args))
+      return JSON.stringify(store.mcpCloseTab(finalArgs))
     case 'list_bookmarks':
       return JSON.stringify(store.mcpListBookmarks())
     case 'open_bookmark':
-      return JSON.stringify(store.mcpOpenBookmark(args))
+      return JSON.stringify(store.mcpOpenBookmark(finalArgs))
     case 'add_bookmark': {
-      const { type } = args
-      const typeFields = args[type] || {}
+      const { type } = finalArgs
+      const typeFields = finalArgs[type] || {}
       return JSON.stringify(await store.mcpAddBookmark({ type, ...typeFields }))
     }
     case 'open_tab': {
-      const { type } = args
-      const typeFields = args[type] || {}
+      const { type } = finalArgs
+      const typeFields = finalArgs[type] || {}
       return JSON.stringify(store.mcpOpenTab({ type, ...typeFields }))
     }
     case 'sftp_list':
-      return JSON.stringify(await store.mcpSftpList(args))
+      return JSON.stringify(await store.mcpSftpList(finalArgs))
     case 'sftp_stat':
-      return JSON.stringify(await store.mcpSftpStat(args))
+      return JSON.stringify(await store.mcpSftpStat(finalArgs))
     case 'sftp_read_file':
-      return JSON.stringify(await store.mcpSftpReadFile(args))
+      return JSON.stringify(await store.mcpSftpReadFile(finalArgs))
     case 'sftp_del':
-      return JSON.stringify(await store.mcpSftpDel(args))
+      return JSON.stringify(await store.mcpSftpDel(finalArgs))
     case 'sftp_upload':
-      return JSON.stringify(await store.mcpSftpUpload(args))
+      return JSON.stringify(await store.mcpSftpUpload(finalArgs))
     case 'sftp_download':
-      return JSON.stringify(await store.mcpSftpDownload(args))
+      return JSON.stringify(await store.mcpSftpDownload(finalArgs))
     case 'sftp_transfer_list':
       return JSON.stringify(store.mcpSftpTransferList())
     case 'sftp_transfer_history':
       return JSON.stringify(store.mcpSftpTransferHistory())
     case 'get_terminal_status':
-      return JSON.stringify(store.mcpGetTerminalStatus(args))
+      return JSON.stringify(sanitizeTerminalReadResult(store.mcpGetTerminalStatus(finalArgs)))
     case 'cancel_terminal_command':
-      return JSON.stringify(store.mcpCancelTerminalCommand(args))
+      return JSON.stringify(store.mcpCancelTerminalCommand(finalArgs))
     case 'run_background_command':
-      return JSON.stringify(store.mcpRunBackgroundCommand(args))
+      return JSON.stringify(store.mcpRunBackgroundCommand(finalArgs))
     case 'get_background_task_status':
-      return JSON.stringify(await store.mcpGetBackgroundTaskStatus(args))
+      return JSON.stringify(await store.mcpGetBackgroundTaskStatus(finalArgs))
     case 'get_background_task_log':
-      return JSON.stringify(await store.mcpGetBackgroundTaskLog(args))
+      return JSON.stringify(await store.mcpGetBackgroundTaskLog(finalArgs))
     case 'cancel_background_task':
-      return JSON.stringify(await store.mcpCancelBackgroundTask(args))
+      return JSON.stringify(await store.mcpCancelBackgroundTask(finalArgs))
     default:
       throw new Error(`Unknown agent tool: ${toolName}`)
   }

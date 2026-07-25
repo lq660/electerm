@@ -171,6 +171,7 @@
 .ai-chat-input
   position relative
   margin-top 10px
+  flex 0 0 auto
 
   .ant-input
     padding-bottom 40px
@@ -207,6 +208,32 @@
 
   span
     line-height 18px
+
+.cn-ai-continuous-toggle
+  height 24px
+  display inline-flex
+  align-items center
+  justify-content center
+  margin-left 6px
+  padding 0 8px
+  border 1px solid #dbe3ef
+  border-radius 6px
+  background #fff
+  color #667085
+  cursor pointer
+  font-size 12px
+  line-height 1
+
+  &:hover
+    border-color #b8d8ff
+    background #f5f9ff
+    color #1677ff
+
+  &.active
+    border-color #1677ff
+    background #eef5ff
+    color #1677ff
+    font-weight 600
 
 .code-block
   width 100%
@@ -251,6 +278,33 @@
 .agent-tool-calls
   margin 8px 0
 
+.ai-solution-record-actions
+  display flex
+  justify-content flex-end
+  margin 6px 0 2px
+
+  button
+    height 28px
+    display inline-flex
+    align-items center
+    gap 5px
+    padding 0 10px
+    border 1px solid #cfd8e6
+    border-radius 6px
+    background #fff
+    color #344054
+    font-size 12px
+    cursor pointer
+
+    &:hover
+      border-color #1677ff
+      color #1677ff
+      background #f5f8ff
+
+    &:disabled
+      opacity .55
+      cursor not-allowed
+
 .agent-tool-call-card
   border 1px solid var(--main-darker)
   border-radius 4px
@@ -265,6 +319,20 @@
 
 .agent-tool-name
   font-weight 500
+  flex 0 0 auto
+
+.agent-tool-command-preview
+  min-width 0
+  max-width 42%
+  padding 1px 6px
+  border 1px solid #d8e0ea
+  border-radius 4px
+  background #f8fafc
+  color #344054
+  font-size 12px
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
 
 .agent-tool-tag
   margin-left auto
@@ -276,8 +344,30 @@
 .agent-tool-status-completed
   color #52c41a
 
+.agent-tool-status-pending
+  color #d48806
+
 .agent-tool-status-error
   color #ff4d4f
+
+.agent-tool-confirm-button
+  height 24px
+  padding 0 8px
+  border 1px solid #f0b95a
+  border-radius 6px
+  background #fff8e6
+  color #ad6800
+  display inline-flex
+  align-items center
+  gap 4px
+  cursor pointer
+  font-size 12px
+  flex 0 0 auto
+
+  &:hover
+    border-color #d48806
+    background #fff1c2
+    color #874d00
 
 .agent-tool-detail
   padding 0 8px 8px
@@ -311,6 +401,9 @@
 
 .agent-tool-completed
   border-color #52c41a
+
+.agent-tool-pending_confirm
+  border-color #d48806
 
 .agent-tool-error
   border-color #ff4d4f

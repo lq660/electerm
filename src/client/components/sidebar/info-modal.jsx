@@ -153,7 +153,7 @@ export default auto(function InfoModal (props) {
             <div>
               <strong>{productName}</strong>
               <span>统一管理本地终端、SSH 会话、SFTP 文件和传输任务</span>
-              <em>基于 electerm 开源项目定制，当前内核版本 {name} {packInfo.version}</em>
+              <em>基于 electerm 开源内核定制，当前内核版本 {name} {packInfo.version}</em>
             </div>
           </div>
           <RunningTime />
@@ -174,7 +174,7 @@ export default auto(function InfoModal (props) {
           </div>
           <div className='cn-about-open-source'>
             <h3>开源致谢</h3>
-            <p>本产品基于 electerm 开源项目定制，保留其终端、连接和文件传输等基础能力。</p>
+            <p>本产品基于 electerm 开源内核定制，保留其终端、连接和文件传输等基础能力。</p>
             <p>
               <GithubOutlined /> <b className='mg1r'>上游项目</b>
               <Link to={upstreamProjectLink} className='mg1l'>

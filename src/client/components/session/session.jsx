@@ -28,6 +28,7 @@ import {
   DoubleLeftOutlined,
   DoubleRightOutlined,
   RobotOutlined,
+  BookOutlined,
   FontColorsOutlined,
   DownOutlined,
   UpOutlined,
@@ -62,7 +63,13 @@ import {
   clearActiveTerminalId,
   setActiveTerminalId
 } from '../../common/active-terminal'
+import {
+  featureIds,
+  getFeatureLockedMessage,
+  hasFeature
+} from '../../common/feature-plans'
 import { getItem, setItem } from '../../common/safe-local-storage'
+import message from '../common/message'
 import './session.styl'
 
 const e = window.translate
@@ -139,6 +146,7 @@ export default class SessionWrapper extends Component {
       showBatchInput: false,
       showCommandAssistant: false,
       showAiAssistant: false,
+      sessionAsideTab: 'session',
       sessionAsideWidth: getInitialSessionAsideWidth(),
       draggingTerminalSessionId: '',
       dragOverTerminalSessionId: '',
@@ -1270,6 +1278,10 @@ export default class SessionWrapper extends Component {
     }, () => window.store.triggerResize())
   }
 
+  handleSessionAsideTabChange = (sessionAsideTab) => {
+    this.setState({ sessionAsideTab })
+  }
+
   onServerMetricsUpdate = (update) => {
     this.setState(prev => ({
       serverMetrics: {
@@ -1322,6 +1334,11 @@ export default class SessionWrapper extends Component {
   }
 
   handleToggleBatchInput = () => {
+    if (!hasFeature(this.props.config, featureIds.batchCommand)) {
+      message.warning(getFeatureLockedMessage(featureIds.batchCommand))
+      window.store.openSubscriptionSetting()
+      return
+    }
     this.setState(prev => ({
       showBatchInput: !prev.showBatchInput
     }))
@@ -1882,7 +1899,7 @@ export default class SessionWrapper extends Component {
     if (!this.shouldShowSessionAside()) {
       return null
     }
-    const { sessionAsideCollapsed } = this.state
+    const { sessionAsideCollapsed, sessionAsideTab } = this.state
     const { tab } = this.props
     const isSsh = !!tab.host && (!tab.type || tab.type === connectionMap.ssh)
     const title = createName(tab)
@@ -1901,7 +1918,6 @@ export default class SessionWrapper extends Component {
         term?.batchInput(cmd)
       })
     }
-    const handleOpenAIConfig = () => window.store.toggleAIConfig()
     const handleOpenInfoPanel = () => window.store.openInfoPanel()
     const aiReady = !window.store.aiConfigMissing()
     const aiModel = window.store.config.modelAI || '未设置模型'
@@ -1946,104 +1962,130 @@ export default class SessionWrapper extends Component {
         >
           <DoubleRightOutlined />
         </button>
-        <div className='cn-session-aside-head'>
-          <CloudServerOutlined />
-          <div>
-            <strong>{title}</strong>
-            <span>{host}</span>
-          </div>
-        </div>
-
-        {isSsh ? this.renderServerMonitor(activeTerminalId, activeTerminalTitle) : null}
-
-        <section className={classnames('cn-session-ai-section', {
-          'is-open': this.state.showAiAssistant
-        })}
-        >
-          <div className='cn-session-ai-head'>
-            <RobotOutlined />
-            <div>
-              <strong>AI 助手</strong>
-              <span>{aiReady ? `当前模型：${aiModel}` : '需要先配置模型和密钥'}</span>
-            </div>
-            <b className={aiReady ? 'ready' : 'missing'}>{aiReady ? '已配置' : '未配置'}</b>
-          </div>
-          <p className='cn-session-ai-description'>面向当前会话，用来解释报错、生成命令和整理脚本。</p>
-          <div className='cn-session-ai-actions'>
-            <button onClick={this.handleToggleAiAssistant}>{this.state.showAiAssistant ? '收起助手' : '展开助手'}</button>
-            <button onClick={handleOpenAIConfig}>{aiReady ? '模型配置' : '去配置'}</button>
-          </div>
-          {
-            this.state.showAiAssistant
-              ? (
-                <div className='cn-session-ai-chat'>
-                  <AIChat {...aiChatProps} />
-                </div>
-                )
-              : null
-          }
-        </section>
-
-        <SolutionRecords
-          tab={tab}
-          serverName={title}
-          host={host}
-          onRunCommand={this.handleRunSolutionCommand}
-        />
-
-        <div className='cn-session-aside-section'>
-          <div className='cn-session-aside-title'>会话信息</div>
-          <div className='cn-session-info-row'><span>类型</span><b>{type}</b></div>
-          <div className='cn-session-info-row'><span>状态</span><b>{tab.status === 'success' ? '已连接' : '连接中'}</b></div>
-          <div className='cn-session-info-row'><span>标签</span><b>#{tab.tabCount}</b></div>
-        </div>
-
-        <div className='cn-session-aside-section'>
-          <div className='cn-session-aside-title'>会话工具</div>
-          <button className='cn-session-tool-row' onClick={this.handleOpenCommandAssistant}>
-            <SearchOutlined />
-            <span>
-              <b>命令助手</b>
-              <em>用中文查找常用运维命令</em>
-            </span>
+        <div className='cn-session-aside-tabs'>
+          <button
+            className={classnames({ active: sessionAsideTab === 'session' })}
+            onClick={() => this.handleSessionAsideTabChange('session')}
+          >
+            <CloudServerOutlined />
+            <span>会话</span>
           </button>
           <button
-            className={classnames('cn-session-tool-row', {
-              'is-active': this.state.showBatchInput
-            })}
-            onClick={this.handleToggleBatchInput}
+            className={classnames({ active: sessionAsideTab === 'ai' })}
+            onClick={() => this.handleSessionAsideTabChange('ai')}
           >
-            <ThunderboltOutlined />
-            <span>
-              <b>批量命令</b>
-              <em>向选中的终端同时发送命令</em>
-            </span>
-            {this.state.showBatchInput ? <UpOutlined /> : <DownOutlined />}
+            <RobotOutlined />
+            <span>AI</span>
           </button>
+          <button
+            className={classnames({ active: sessionAsideTab === 'records' })}
+            onClick={() => this.handleSessionAsideTabChange('records')}
+          >
+            <BookOutlined />
+            <span>处理记录</span>
+          </button>
+        </div>
+        <div className='cn-session-aside-body'>
           {
-            this.state.showBatchInput
+            sessionAsideTab === 'ai'
               ? (
-                <div className='cn-session-batch-input'>
-                  <BatchInput
-                    input={batchInput}
-                    tabs={window.store.tabs}
-                    batchInputs={window.store.batchInputs}
-                    batchInputSelectedTabIds={window.store.batchInputSelectedTabIds}
-                    activeTabId={window.store.activeTabId}
-                    placeholder='粘贴或输入多行命令'
-                    multiline
-                  />
+                <div className='cn-session-aside-panel cn-session-aside-panel-ai'>
+                  <section className='cn-session-ai-section is-open'>
+                    <div className='cn-session-ai-head'>
+                      <RobotOutlined />
+                      <div>
+                        <strong>AI 助手</strong>
+                        <span>{title} · {activeTerminalTitle}</span>
+                      </div>
+                      <b className={aiReady ? 'ready' : 'missing'}>{aiReady ? '已配置' : '未配置'}</b>
+                    </div>
+                    <p className='cn-session-ai-description'>{aiReady ? `当前模型：${aiModel}` : '需要先配置模型和密钥'}</p>
+                    <div className='cn-session-ai-chat'>
+                      <AIChat {...aiChatProps} />
+                    </div>
+                  </section>
                 </div>
                 )
-              : null
+              : sessionAsideTab === 'records'
+                ? (
+                  <div className='cn-session-aside-panel cn-session-aside-panel-records'>
+                    <SolutionRecords
+                      tab={tab}
+                      serverName={title}
+                      host={host}
+                      onRunCommand={this.handleRunSolutionCommand}
+                    />
+                  </div>
+                  )
+                : (
+                  <div className='cn-session-aside-panel'>
+                    <div className='cn-session-aside-head'>
+                      <CloudServerOutlined />
+                      <div>
+                        <strong>{title}</strong>
+                        <span>{host}</span>
+                      </div>
+                    </div>
+
+                    {isSsh ? this.renderServerMonitor(activeTerminalId, activeTerminalTitle) : null}
+
+                    <div className='cn-session-aside-section'>
+                      <div className='cn-session-aside-title'>会话信息</div>
+                      <div className='cn-session-info-row'><span>类型</span><b>{type}</b></div>
+                      <div className='cn-session-info-row'><span>状态</span><b>{tab.status === 'success' ? '已连接' : '连接中'}</b></div>
+                      <div className='cn-session-info-row'><span>标签</span><b>#{tab.tabCount}</b></div>
+                    </div>
+
+                    <div className='cn-session-aside-section'>
+                      <div className='cn-session-aside-title'>会话工具</div>
+                      <button className='cn-session-tool-row' onClick={this.handleOpenCommandAssistant}>
+                        <SearchOutlined />
+                        <span>
+                          <b>命令助手</b>
+                          <em>用中文查找常用运维命令</em>
+                        </span>
+                      </button>
+                      <button
+                        className={classnames('cn-session-tool-row', {
+                          'is-active': this.state.showBatchInput
+                        })}
+                        onClick={this.handleToggleBatchInput}
+                      >
+                        <ThunderboltOutlined />
+                        <span>
+                          <b>批量命令</b>
+                          <em>向选中的终端同时发送命令</em>
+                        </span>
+                        {this.state.showBatchInput ? <UpOutlined /> : <DownOutlined />}
+                      </button>
+                      {
+                        this.state.showBatchInput
+                          ? (
+                            <div className='cn-session-batch-input'>
+                              <BatchInput
+                                input={batchInput}
+                                tabs={window.store.tabs}
+                                batchInputs={window.store.batchInputs}
+                                batchInputSelectedTabIds={window.store.batchInputSelectedTabIds}
+                                activeTabId={window.store.activeTabId}
+                                placeholder='粘贴或输入多行命令'
+                                multiline
+                              />
+                            </div>
+                            )
+                          : null
+                      }
+                      <button className='cn-session-tool-row' onClick={handleOpenInfoPanel}>
+                        <FontColorsOutlined />
+                        <span>
+                          <b>编码与终端信息</b>
+                          <em>查看字符集、换行和终端参数</em>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                  )
           }
-          <button className='cn-session-tool-row' onClick={handleOpenInfoPanel}>
-            <FontColorsOutlined />
-            <span>
-              <b>编码与终端信息</b>
-              <em>查看字符集、换行和终端参数</em>
-            </span>
-          </button>
         </div>
       </aside>
     )

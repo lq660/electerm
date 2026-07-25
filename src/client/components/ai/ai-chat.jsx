@@ -13,7 +13,8 @@ import {
 } from '@ant-design/icons'
 import {
   aiConfigWikiLink,
-  aiChatModeLsKey
+  aiChatModeLsKey,
+  aiChatContinuousLsKey
 } from '../../common/constants'
 import { getItem, setItem } from '../../common/safe-local-storage.js'
 import {
@@ -21,6 +22,11 @@ import {
   getAiChatScope,
   getAiHistoryTerminalId
 } from '../../common/ai-chat-scope'
+import {
+  featureIds,
+  getFeatureLockedMessage,
+  hasFeature
+} from '../../common/feature-plans'
 import HelpIcon from '../common/help-icon'
 import { refs, refsStatic } from '../common/ref'
 import message from '../common/message'
@@ -30,10 +36,13 @@ const { TextArea } = Input
 const MAX_HISTORY = 100
 const TERMINAL_CONTEXT_LINES = 160
 const MAX_TERMINAL_CONTEXT_CHARS = 16000
+const CONTINUOUS_CONTEXT_LIMIT = 4
+const MAX_CONTINUOUS_CONTEXT_CHARS = 8000
 
 export default function AIChat (props) {
   const [prompt, setPrompt] = useState('')
   const [mode, setMode] = useState(() => getItem(aiChatModeLsKey) || 'ask')
+  const [continuousChat, setContinuousChat] = useState(() => getItem(aiChatContinuousLsKey) !== '0')
   const isAgent = mode === 'agent'
   const submitDisabled = isAgent && props.agentRunning
   const aiScope = getAiChatScope(props)
@@ -47,8 +56,19 @@ export default function AIChat (props) {
   }
 
   function handleModeChange (val) {
+    if (val === 'agent' && !hasFeature(props.config, featureIds.aiAgent)) {
+      message.warning(getFeatureLockedMessage(featureIds.aiAgent))
+      window.store.openSubscriptionSetting()
+      return
+    }
     setItem(aiChatModeLsKey, val)
     setMode(val)
+  }
+
+  function handleContinuousChatToggle () {
+    const next = !continuousChat
+    setItem(aiChatContinuousLsKey, next ? '1' : '0')
+    setContinuousChat(next)
   }
 
   function getCurrentTerminalOutput (lineCount = TERMINAL_CONTEXT_LINES) {
@@ -84,22 +104,62 @@ export default function AIChat (props) {
 
   function buildPromptWithTerminalContext (userPrompt) {
     const terminalOutput = getCurrentTerminalOutput()
-    if (!terminalOutput) {
-      return userPrompt
-    }
+    const conversationContext = continuousChat ? buildContinuousConversationContext() : ''
+    if (!terminalOutput && !conversationContext) return userPrompt
     // 2026-07-20 coder(lq): Normal AI questions should carry the active terminal context so users do not need to copy logs manually.
     return `用户问题：
 ${userPrompt}
 
-当前终端最近输出（最近 ${TERMINAL_CONTEXT_LINES} 行，仅作为本次分析上下文）：
-\`\`\`terminal
-${terminalOutput}
-\`\`\`
+${conversationContext ? `同一终端最近对话（用于连续理解当前问题）：\n${conversationContext}\n\n` : ''}
+${terminalOutput
+? `当前终端最近输出（最近 ${TERMINAL_CONTEXT_LINES} 行，仅作为本次分析上下文）：\n\`\`\`terminal\n${terminalOutput}\n\`\`\`\n\n`
+: ''}
+请结合上述上下文回答。不要要求用户再次粘贴这些终端内容；如果现有输出不足，再明确说明还需要哪类信息。`
+  }
 
-请结合当前终端输出回答。不要要求用户再次粘贴这些终端内容；如果现有输出不足，再明确说明还需要哪类信息。`
+  function trimContinuousContext (text = '') {
+    const clean = String(text || '').trim()
+    if (clean.length <= MAX_CONTINUOUS_CONTEXT_CHARS) return clean
+    return clean.slice(clean.length - MAX_CONTINUOUS_CONTEXT_CHARS).trim()
+  }
+
+  function buildContinuousConversationContext () {
+    const finishedHistory = currentHistory
+      .filter(item => item.prompt && item.response && !item.pending)
+      .slice(-CONTINUOUS_CONTEXT_LIMIT)
+    if (!finishedHistory.length) return ''
+    return trimContinuousContext(finishedHistory.map((item, index) => {
+      return `对话 ${index + 1}
+用户：${item.prompt}
+AI：${item.response}`
+    }).join('\n\n'))
+  }
+
+  function renderContinuousChatToggle () {
+    return (
+      <Tooltip
+        placement='top'
+        title={continuousChat
+          ? '已开启：同一终端下的新问题会带上最近几轮 AI 问答'
+          : '已关闭：新问题只读取当前终端输出，不带前面 AI 问答'}
+      >
+        <button
+          type='button'
+          className={continuousChat ? 'cn-ai-continuous-toggle active' : 'cn-ai-continuous-toggle'}
+          onClick={handleContinuousChatToggle}
+        >
+          连续对话
+        </button>
+      </Tooltip>
+    )
   }
 
   const handleSubmit = useCallback(function (promptOverride, options = {}) {
+    if (!hasFeature(props.config, featureIds.aiChat)) {
+      message.warning(getFeatureLockedMessage(featureIds.aiChat))
+      window.store.openSubscriptionSetting()
+      return
+    }
     if (window.store.aiConfigMissing()) {
       window.store.toggleAIConfig()
       return
@@ -132,6 +192,7 @@ ${terminalOutput}
         'apiPathAI',
         'apiKeyAI',
         'proxyAI',
+        'authHeaderNameAI',
         'languageAI'
       ]),
       timestamp: Date.now(),
@@ -144,7 +205,7 @@ ${terminalOutput}
     if (window.store.aiChatHistory.length > MAX_HISTORY) {
       window.store.aiChatHistory.splice(MAX_HISTORY)
     }
-  }, [prompt, mode, aiScope.sessionRootId, aiScope.terminalSessionId, props.config])
+  }, [prompt, mode, continuousChat, currentHistory, aiScope.sessionRootId, aiScope.terminalSessionId, props.config])
 
   function renderHistory () {
     if (!currentHistory.length) {
@@ -280,6 +341,13 @@ ${terminalOutput}
   }
 
   useEffect(() => {
+    if (mode === 'agent' && !hasFeature(props.config, featureIds.aiAgent)) {
+      setItem(aiChatModeLsKey, 'ask')
+      setMode('ask')
+    }
+  }, [mode, props.config])
+
+  useEffect(() => {
     refsStatic.add('AIChat', {
       setPrompt,
       handleSubmit
@@ -332,7 +400,7 @@ ${terminalOutput}
           onChange={handlePromptChange}
           onPressEnter={handleKeyPress}
           placeholder={modeInfo.placeholder}
-          autoSize={{ minRows: 3, maxRows: 10 }}
+          autoSize={{ minRows: 3, maxRows: props.embedded ? 5 : 10 }}
           className='ai-chat-textarea'
         />
         <Flex className='ai-chat-terminals' justify='space-between' align='center'>
@@ -346,6 +414,7 @@ ${terminalOutput}
               onChange={handleModeChange}
               size='small'
             />
+            {renderContinuousChatToggle()}
             {renderTabSelect()}
             {
               isAgent

@@ -1,9 +1,6 @@
 /**
  * constants
  */
-import logoPath1Ref from '@electerm/electerm-resource/res/imgs/electerm-round-128x128.png'
-import logoPath2Ref from '@electerm/electerm-resource/res/imgs/electerm.png'
-import logoPath3Ref from '@electerm/electerm-resource/res/imgs/electerm-watermark.png'
 export const packInfo = typeof window.et.packInfo === 'undefined' ? window.pre.packInfo : window.et.packInfo
 const buildConst = (props) => {
   return props.reduce((prev, key) => {
@@ -14,9 +11,6 @@ const buildConst = (props) => {
   }, {})
 }
 
-export const logoPath1 = logoPath1Ref.replace(/^\//, '')
-export const logoPath2 = logoPath2Ref.replace(/^\//, '')
-export const logoPath3 = logoPath3Ref.replace(/^\//, '')
 export const maxEditFileSize = 1024 * 3000
 export const defaultBookmarkGroupId = 'default'
 export const newBookmarkIdPrefix = 'new-bookmark'
@@ -222,6 +216,7 @@ export const settingShortcutsId = 'setting-shortcuts'
 export const settingAiId = 'setting-ai'
 export const settingCommonId = 'setting-common'
 export const settingPasswordsId = 'setting-passwords'
+export const settingSubscriptionId = 'setting-subscription'
 export const defaultEnvLang = 'en_US.UTF-8'
 export const fileActions = {
   cancel: 'cancel',
@@ -258,6 +253,7 @@ export const regexHelpLink = 'https://github.com/electerm/electerm/wiki/Terminal
 export const connectionHoppingWikiLink = 'https://github.com/electerm/electerm/wiki/Connection-Hopping-Behavior-Change-in-electerm-since-v1.50.65'
 export const aiConfigWikiLink = 'https://github.com/electerm/electerm/wiki/AI-model-config-guide'
 export const aiChatModeLsKey = 'ai-chat-mode'
+export const aiChatContinuousLsKey = 'ai-chat-continuous'
 export const modals = {
   hide: 0,
   setting: 1

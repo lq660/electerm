@@ -1,4 +1,6 @@
 const MAX_RECORDS = 100
+export const solutionRecordStorageKey = 'solution-records'
+export const solutionRecordsChangedEvent = 'solution-records-changed'
 
 function cleanText (value, maxLength = 0) {
   const text = String(value || '').trim()
@@ -48,6 +50,38 @@ export function sortSolutionRecords (records = []) {
     .filter(record => record.id && record.title)
     .sort((a, b) => b.updatedAt - a.updatedAt)
     .slice(0, MAX_RECORDS)
+}
+
+export function mergeSolutionRecord (records = [], record = {}) {
+  const normalized = normalizeSolutionRecord(record)
+  return sortSolutionRecords([
+    normalized,
+    ...records.filter(item => item.id !== normalized.id)
+  ])
+}
+
+export function extractSolutionCommandsFromToolCalls (toolCalls = []) {
+  const commands = []
+  toolCalls.forEach(toolCall => {
+    const name = toolCall?.name || toolCall?.function?.name
+    if (name !== 'send_terminal_command') {
+      return
+    }
+    const command = toolCall?.args?.command
+    if (command) {
+      commands.push(command)
+      return
+    }
+    try {
+      const parsed = JSON.parse(toolCall?.result || '{}')
+      if (parsed?.command) {
+        commands.push(parsed.command)
+      }
+    } catch {
+      // ignore malformed tool result
+    }
+  })
+  return toSolutionCommands(commands)
 }
 
 export function getSessionRecentCommands (history = [], sessionId = '', limit = 12) {
@@ -116,12 +150,13 @@ export function parseSolutionSummary (value) {
   }
 }
 
-export function buildSolutionSummaryPrompt ({ serverName, host, commands = [], conversation = [] }) {
+export function buildSolutionSummaryPrompt ({ serverName, host, commands = [], conversation = [], conversations = [] }) {
+  const finalConversation = conversation.length ? conversation : conversations
   const commandText = commands.length
     ? commands.map((command, index) => `${index + 1}. ${command}`).join('\n')
     : '没有采集到命令'
-  const conversationText = conversation.length
-    ? conversation.map((item, index) => {
+  const conversationText = finalConversation.length
+    ? finalConversation.map((item, index) => {
       return `对话 ${index + 1}\n用户：${item.prompt || '无'}\nAI：${item.response || '无'}`
     }).join('\n\n')
     : '没有采集到当前会话的 AI 对话'

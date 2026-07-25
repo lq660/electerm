@@ -236,3 +236,30 @@
 
   .subscription-compare
     overflow-x auto
+
+@media (max-width 640px)
+  .subscription-settings
+    .cn-settings-section-title
+      align-items flex-start
+      flex-direction column
+      gap 4px
+
+      span
+        max-width none
+
+  .subscription-current-card
+    align-items flex-start
+    flex-direction column
+
+    .ant-tag
+      align-self flex-start
+
+  .subscription-plan-card
+    min-height auto
+    padding 12px
+
+  .subscription-plan-head
+    align-items flex-start
+
+    .ant-tag
+      flex-shrink 0

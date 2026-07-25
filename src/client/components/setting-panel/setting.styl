@@ -105,9 +105,12 @@
     border-color #1677ff
     box-shadow 0 8px 24px rgba(22, 119, 255, .1)
 
+  p
+    margin 0
+
   ul
     flex 1
-    margin 14px 0
+    margin 12px 0
     padding 0
     list-style none
 
@@ -141,6 +144,95 @@
     color #667085
     font-size 12px
 
+.subscription-plan-highlight
+  margin-top 12px !important
+  color #1f2937
+  font-weight 600
+  line-height 1.45
+
+.subscription-plan-target
+  margin-top 6px !important
+  color #667085
+  font-size 12px
+  line-height 1.5
+
+.subscription-plan-limits
+  display flex
+  flex-direction column
+  gap 6px
+  margin 0 0 12px
+  padding-top 10px
+  border-top 1px solid #edf1f7
+
+  span
+    color #667085
+    font-size 12px
+    line-height 1.45
+
+.subscription-compare
+  overflow hidden
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+
+.subscription-compare-head,
+.subscription-compare-row
+  display grid
+  grid-template-columns minmax(260px, 1.8fr) repeat(3, minmax(90px, .7fr))
+  align-items center
+  min-width 720px
+
+.subscription-compare-head
+  background #f6f9ff
+  border-bottom 1px solid #dbe3ef
+
+  span,
+  strong
+    padding 12px 14px
+    color #1f2937
+    font-size 13px
+
+.subscription-compare-group + .subscription-compare-group
+  border-top 1px solid #dbe3ef
+
+.subscription-compare-title
+  padding 10px 14px
+  background #fbfcff
+  color #475467
+  font-size 12px
+  font-weight 600
+
+.subscription-compare-row
+  border-top 1px solid #edf1f7
+
+  > span
+    padding 11px 14px
+    color #344054
+    line-height 1.45
+
+    &:not(:first-child)
+      text-align center
+
+.subscription-compare-cell
+  display inline-flex
+  align-items center
+  justify-content center
+  min-width 20px
+  color #98a2b3
+
+  &.included
+    color #1677ff
+
+  .anticon
+    font-size 15px
+
+.subscription-release-note
+  .cn-settings-section-title span
+    max-width 860px
+
 @media (max-width 1180px)
   .subscription-plan-grid
     grid-template-columns 1fr
+
+  .subscription-compare
+    overflow-x auto

@@ -78,6 +78,6 @@ export default {
   allowMultiInstance: false,
   disableDeveloperTool: false,
   dragDropBehavior: 'ask',
-  licensePlan: 'free',
+  licensePlan: 'personal',
   licenseExpiresAt: ''
 }

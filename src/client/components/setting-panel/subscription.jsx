@@ -4,9 +4,13 @@ import message from '../common/message'
 import {
   getCurrentPlan,
   getCurrentPlanName,
+  planComparisonGroups,
+  planDescriptions,
   planFeatureGroups,
   planIds,
-  planNames
+  planNames,
+  planTags,
+  planTargets
 } from '../../common/feature-plans'
 
 export default function SubscriptionSettings ({ config, store }) {
@@ -16,9 +20,18 @@ export default function SubscriptionSettings ({ config, store }) {
     // 2026-07-24 coder(lq): Local plan switching is a temporary product validation path; replace with signed server licenses before public release.
     store.setConfig({
       licensePlan: plan,
-      licenseExpiresAt: plan === planIds.free ? '' : '本地测试授权'
+      licenseExpiresAt: plan === planIds.personal ? '' : '本地测试授权'
     })
     message.success(`已切换到${planNames[plan]}`)
+  }
+
+  function renderPlanCheck (plans, plan) {
+    const included = plans.includes(plan)
+    return (
+      <span className={`subscription-compare-cell ${included ? 'included' : 'excluded'}`}>
+        {included ? <CheckCircleOutlined /> : '—'}
+      </span>
+    )
   }
 
   return (
@@ -34,8 +47,8 @@ export default function SubscriptionSettings ({ config, store }) {
             <strong>{getCurrentPlanName(config)}</strong>
             <em>{config.licenseExpiresAt || '永久免费'}</em>
           </div>
-          <Tag color={currentPlan === planIds.free ? 'default' : 'blue'}>
-            {currentPlan === planIds.free ? '基础能力' : '高级能力'}
+          <Tag color={currentPlan === planIds.personal ? 'default' : 'blue'}>
+            {planTags[currentPlan]}
           </Tag>
         </div>
       </section>
@@ -43,7 +56,7 @@ export default function SubscriptionSettings ({ config, store }) {
       <section className='cn-settings-section'>
         <div className='cn-settings-section-title'>
           <strong>版本能力</strong>
-          <span>免费版负责基础连接，个人专业版负责效率，团队版负责协作和管控。</span>
+          <span>个人版负责基础连接，专业版负责效率，团队版负责协作和管控。</span>
         </div>
         <div className='subscription-plan-grid'>
           {planFeatureGroups.map(group => (
@@ -56,8 +69,12 @@ export default function SubscriptionSettings ({ config, store }) {
                   <strong>{planNames[group.plan]}</strong>
                   <span>{group.price}</span>
                 </div>
-                {currentPlan === group.plan ? <Tag color='blue'>当前版本</Tag> : null}
+                <Tag color={currentPlan === group.plan ? 'blue' : 'default'}>
+                  {currentPlan === group.plan ? '当前版本' : planTags[group.plan]}
+                </Tag>
               </div>
+              <p className='subscription-plan-highlight'>{group.highlight}</p>
+              <p className='subscription-plan-target'>{planTargets[group.plan]}</p>
               <ul>
                 {group.features.map(feature => (
                   <li key={feature}>
@@ -66,6 +83,11 @@ export default function SubscriptionSettings ({ config, store }) {
                   </li>
                 ))}
               </ul>
+              <div className='subscription-plan-limits'>
+                {group.limits.map(limit => (
+                  <span key={limit}>{limit}</span>
+                ))}
+              </div>
               <Button
                 type={currentPlan === group.plan ? 'default' : 'primary'}
                 block
@@ -76,6 +98,43 @@ export default function SubscriptionSettings ({ config, store }) {
               </Button>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className='cn-settings-section'>
+        <div className='cn-settings-section-title'>
+          <strong>能力对比</strong>
+          <span>按用户规模拆分基础连接、效率增强和团队管控，后续授权接入后沿用同一份能力控制。</span>
+        </div>
+        <div className='subscription-compare'>
+          <div className='subscription-compare-head'>
+            <span>能力项</span>
+            {planFeatureGroups.map(group => (
+              <strong key={group.plan}>{planNames[group.plan]}</strong>
+            ))}
+          </div>
+          {planComparisonGroups.map(group => (
+            <div className='subscription-compare-group' key={group.title}>
+              <div className='subscription-compare-title'>{group.title}</div>
+              {group.items.map(item => (
+                <div className='subscription-compare-row' key={item.name}>
+                  <span>{item.name}</span>
+                  {planFeatureGroups.map(group => (
+                    <span key={group.plan}>
+                      {renderPlanCheck(item.plans, group.plan)}
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className='cn-settings-section subscription-release-note'>
+        <div className='cn-settings-section-title'>
+          <strong>产品落地顺序</strong>
+          <span>{planDescriptions[planIds.personal]}专业版和团队版先用本地开关验证，后续再接账号、支付和服务端授权。</span>
         </div>
       </section>
     </div>

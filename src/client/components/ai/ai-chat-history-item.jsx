@@ -300,7 +300,7 @@ export default function AIChatHistoryItem ({ item }) {
       })
       const records = safeGetItemJSON(solutionRecordStorageKey, [])
       if (!canCreateSolutionRecord(window.store.config, records)) {
-        message.warning(`免费版最多保存 ${getSolutionRecordLimit(window.store.config)} 条处理记录，请升级后继续保存。`)
+        message.warning(`个人版最多保存 ${getSolutionRecordLimit(window.store.config)} 条处理记录，请升级后继续保存。`)
         window.store.openSubscriptionSetting()
         return
       }

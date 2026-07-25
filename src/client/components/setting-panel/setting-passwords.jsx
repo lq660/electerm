@@ -4,6 +4,7 @@
  */
 import React, { Component } from 'react'
 import {
+  CopyOutlined,
   EditOutlined,
   KeyOutlined,
   LaptopOutlined
@@ -17,7 +18,8 @@ import {
   Tag,
   Tooltip,
   Typography,
-  Input
+  Input,
+  message
 } from 'antd'
 import Search from '../common/search'
 import InputConfirm from '../common/input-confirm'
@@ -85,6 +87,70 @@ export default class SettingPasswords extends Component {
       newPassword: '',
       editModalVisible: true,
       selectedBookmarks: record.bookmarks
+    })
+  }
+
+  handleCopyPassword = (record) => {
+    const requiresAppPassword = !!window.pre.requireAuth
+    const firstTitle = record.titles && record.titles[0]
+      ? record.titles[0]
+      : '已保存连接'
+    let appPassword = ''
+    Modal.confirm({
+      title: '复制已保存密码',
+      content: (
+        <Space direction='vertical' size='middle' className='width-100'>
+          <Alert
+            type='warning'
+            showIcon
+            message='复制密码属于敏感操作'
+            description='复制前需要二次授权。复制成功后，如果剪贴板内容没有被你替换，云舵会在 30 秒后自动清空。'
+          />
+          {
+            requiresAppPassword
+              ? (
+                <Input.Password
+                  autoFocus
+                  placeholder='输入软件访问密码'
+                  onChange={event => {
+                    appPassword = event.target.value
+                  }}
+                />
+                )
+              : (
+                <Alert
+                  type='info'
+                  showIcon
+                  message='未设置软件访问密码'
+                  description='云舵会尝试使用系统认证；如果当前设备不支持，请先在通用设置里设置软件访问密码。'
+                />
+                )
+          }
+        </Space>
+      ),
+      okText: '授权并复制',
+      cancelText: text('cancel') === 'cancel' ? '取消' : text('cancel'),
+      onOk: async () => {
+        if (requiresAppPassword && !appPassword) {
+          message.warning('请输入软件访问密码')
+          return false
+        }
+        try {
+          const res = await window.pre.runGlobalAsync('copySensitiveText', record.password, {
+            reason: `允许云舵复制 ${firstTitle} 的已保存密码`,
+            appPassword,
+            clearAfter: 30 * 1000
+          })
+          if (!res || !res.copied) {
+            message.warning(res && res.reason ? res.reason : '未完成授权，密码未复制')
+            return false
+          }
+          message.success('密码已复制，30 秒后自动清空剪贴板')
+        } catch (err) {
+          message.error(err && err.message ? err.message : '复制密码失败')
+          return false
+        }
+      }
     })
   }
 
@@ -189,18 +255,33 @@ export default class SettingPasswords extends Component {
       {
         title: text('actions') === 'actions' ? '操作' : text('actions'),
         key: 'actions',
-        width: 72,
+        width: 96,
         render: (_, record) => {
+          const copyProps0 = {
+            type: 'text',
+            icon: <CopyOutlined />,
+            onClick: () => this.handleCopyPassword(record)
+          }
           const editProps0 = {
             type: 'text',
             icon: <EditOutlined />,
             onClick: () => this.showEditModal(record)
           }
+          const copyTooltipProps = {
+            title: '授权后复制密码',
+            children: <Button {...copyProps0} />
+          }
           const editTooltipProps = {
             title: text('changePassword') === 'changePassword' ? '重置这一组连接密码' : text('changePassword'),
             children: <Button {...editProps0} />
           }
-          return <Tooltip {...editTooltipProps} />
+          const spaceProps0 = {
+            children: [
+              <Tooltip key='copy' {...copyTooltipProps} />,
+              <Tooltip key='edit' {...editTooltipProps} />
+            ]
+          }
+          return <Space>{spaceProps0.children}</Space>
         }
       }
     ]

@@ -9,7 +9,9 @@ const {
   dialog,
   powerMonitor,
   globalShortcut,
-  shell
+  shell,
+  clipboard,
+  systemPreferences
 } = require('electron')
 const globalState = require('./glob-state')
 const ipcSyncFuncs = require('./ipc-sync')
@@ -97,6 +99,70 @@ const SAFE_ENV_KEYS = [
   'DBUS_SESSION_BUS_ADDRESS', 'DESKTOP_SESSION', 'GNOME_DESKTOP_SESSION_ID', 'KDE_FULL_SESSION',
   'CI', 'DOCKER_HOST', 'CONTAINER'
 ]
+
+const SENSITIVE_CLIPBOARD_CLEAR_MS = 30 * 1000
+let sensitiveClipboardTimer = null
+
+async function authorizeSensitiveAction (options = {}) {
+  const {
+    reason = '允许云舵复制已保存密码',
+    appPassword = ''
+  } = options
+  if (appPassword) {
+    const ok = await checkPassword(appPassword)
+    return ok
+      ? { ok: true, method: 'app-password' }
+      : { ok: false, reason: '软件访问密码不正确' }
+  }
+  if (isMac && systemPreferences && typeof systemPreferences.promptTouchID === 'function') {
+    try {
+      await systemPreferences.promptTouchID(reason)
+      return { ok: true, method: 'system' }
+    } catch (err) {
+      return {
+        ok: false,
+        reason: err && err.message ? err.message : '系统认证未通过'
+      }
+    }
+  }
+  return {
+    ok: false,
+    reason: '请先在通用设置里设置软件访问密码，或在支持系统认证的设备上操作'
+  }
+}
+
+async function copySensitiveText (text, options = {}) {
+  if (!text) {
+    return {
+      copied: false,
+      reason: '没有可复制的密码'
+    }
+  }
+  const auth = await authorizeSensitiveAction(options)
+  if (!auth.ok) {
+    return {
+      copied: false,
+      reason: auth.reason
+    }
+  }
+  const value = String(text)
+  const clearAfter = Number(options.clearAfter) || SENSITIVE_CLIPBOARD_CLEAR_MS
+  clipboard.writeText(value)
+  if (sensitiveClipboardTimer) {
+    clearTimeout(sensitiveClipboardTimer)
+  }
+  sensitiveClipboardTimer = setTimeout(() => {
+    if (clipboard.readText() === value) {
+      clipboard.clear()
+    }
+    sensitiveClipboardTimer = null
+  }, clearAfter)
+  return {
+    copied: true,
+    clearAfter,
+    method: auth.method
+  }
+}
 
 async function initAppServer () {
   const {
@@ -212,6 +278,7 @@ function initIpc () {
     exportConfigMigration: (password, options) => exportConfigMigration(globalState.get('win'), password, options),
     previewConfigMigration,
     importConfigMigration,
+    copySensitiveText,
     AIchat,
     AIchatWithTools,
     getStreamContent,

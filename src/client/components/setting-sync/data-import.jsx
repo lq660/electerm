@@ -95,11 +95,10 @@ export default function DataTransport (props) {
   }
 
   return (
-    <div className='pd2 fix'>
-      <div className='fleft'>
+    <div className='cn-sync-transport'>
+      <div className='cn-sync-migration-actions'>
         <Button
           icon={<ExportOutlined />}
-          className='mg1r'
           onClick={store.handleExportAllData}
         >
           导出迁移包
@@ -116,28 +115,29 @@ export default function DataTransport (props) {
           </Button>
         </Upload>
       </div>
-      <div className='fright'>
-        <Switch
-          checked={autoSyncEnabled}
-          checkedChildren={txt}
-          onChange={handleAutoSync}
-          unCheckedChildren={txt}
-          className='mg3l mg1r'
-        />
+      <div className='cn-sync-auto-controls'>
+        <div className='cn-settings-toggle cn-sync-auto-toggle'>
+          <Switch
+            aria-label={txt}
+            checked={autoSyncEnabled}
+            onChange={handleAutoSync}
+          />
+          <span className='cn-settings-toggle-label'>{txt}</span>
+        </div>
         {autoSyncEnabled && (
-          <Space className='mg1l' size='small'>
+          <Space className='cn-sync-auto-options' size='small'>
             <Select
               value={autoSyncInterval}
               onChange={handleIntervalChange}
               options={intervalOptions}
-              style={{ width: 120 }}
+              style={{ width: 148 }}
               popupMatchSelectWidth={false}
             />
             <Select
               value={autoSyncDirection}
               onChange={handleDirectionChange}
               options={directionOptions}
-              style={{ width: 100 }}
+              style={{ width: 128 }}
               popupMatchSelectWidth={false}
             />
           </Space>

@@ -14,7 +14,7 @@ export default function DataSelect (props) {
     window.store.toggleDataSyncSelected(key)
   }
   return (
-    <div className='pd2y pd1x'>
+    <div className='cn-sync-data-select'>
       {
         Object.keys(syncDataMaps)
           .map(d => {

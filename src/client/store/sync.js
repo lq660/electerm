@@ -684,15 +684,22 @@ export default (Store) => {
     const { names } = store.getDataSyncNames(true)
     for (const n of names) {
       let arr = objs[n]
+      if (!Array.isArray(arr)) {
+        continue
+      }
       if (n === settingMap.terminalThemes) {
         arr = store.fixThemes(arr)
       } else if (n === settingMap.bookmarks) {
         arr = fixBookmarks(arr)
       }
-      store.setItems(n, objs[n])
+      store.setItems(n, arr)
     }
-    store.updateConfig(objs.config)
-    store.setTheme(objs.config.theme)
+    if (objs.config) {
+      store.updateConfig(objs.config)
+      if (objs.config.theme) {
+        store.setTheme(objs.config.theme)
+      }
+    }
   }
 
   Store.prototype.handleAutoSync = function (v) {

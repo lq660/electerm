@@ -347,6 +347,52 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     font-size 12px
     line-height 18px
 
+  .cn-sync-transport
+    display flex
+    align-items flex-start
+    justify-content space-between
+    flex-wrap wrap
+    gap 12px 16px
+    padding 4px 0 8px
+
+  .cn-sync-migration-actions,
+  .cn-sync-auto-controls
+    display flex
+    align-items center
+    flex-wrap wrap
+    gap 8px
+    min-width 0
+
+    .ant-btn
+      margin 0 !important
+
+  .cn-sync-auto-controls
+    justify-content flex-end
+
+  .cn-sync-auto-toggle
+    flex 0 0 auto
+
+  .cn-sync-auto-options
+    flex 0 1 auto
+    min-width 0
+
+  .cn-sync-data-select
+    display grid
+    grid-template-columns repeat(auto-fill, minmax(180px, 1fr))
+    gap 10px 12px
+    padding 4px 0 8px
+
+  .cn-sync-data-option
+    display flex
+    align-items center
+    min-height 34px
+    margin 0 !important
+    padding 6px 8px
+    border 1px solid $cn-border-soft
+    border-radius 8px
+    background $cn-surface-soft
+    color $cn-control-text
+
   .cn-sync-provider-form
     border none !important
     box-shadow none !important

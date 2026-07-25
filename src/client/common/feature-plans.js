@@ -110,7 +110,7 @@ export const featureImplementationStatus = {
   [featureIds.aiAgent]: featureStatusIds.partial,
   [featureIds.solutionRecordsUnlimited]: featureStatusIds.done,
   [featureIds.batchCommand]: featureStatusIds.done,
-  [featureIds.advancedCommandAssistant]: featureStatusIds.planned,
+  [featureIds.advancedCommandAssistant]: featureStatusIds.partial,
   [featureIds.encryptedMigration]: featureStatusIds.done,
   [featureIds.customTheme]: featureStatusIds.done,
   [featureIds.teamWorkspace]: featureStatusIds.planned,
@@ -155,7 +155,7 @@ export const planFeatureGroups = [
     ],
     limits: [
       '授权绑定个人使用',
-      '高级命令助手仍在规划中',
+      '高级命令助手已支持环境识别，AI 自动化仍在补齐',
       '不包含团队资源共享、成员权限和审计'
     ]
   },

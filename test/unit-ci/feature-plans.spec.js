@@ -37,10 +37,12 @@ describe('feature plans', () => {
 
     assert.equal(hasFeature({ licensePlan: planIds.personal }, featureIds.aiChat), false)
     assert.equal(hasFeature({ licensePlan: planIds.personal }, featureIds.batchCommand), false)
+    assert.equal(hasFeature({ licensePlan: planIds.personal }, featureIds.advancedCommandAssistant), false)
     assert.equal(getSolutionRecordLimit({ licensePlan: planIds.personal }), 20)
 
     assert.equal(hasFeature({ licensePlan: planIds.pro }, featureIds.aiChat), true)
     assert.equal(hasFeature({ licensePlan: planIds.pro }, featureIds.batchCommand), true)
+    assert.equal(hasFeature({ licensePlan: planIds.pro }, featureIds.advancedCommandAssistant), true)
     assert.equal(hasFeature({ licensePlan: planIds.pro }, featureIds.teamSharedServers), false)
     assert.equal(getSolutionRecordLimit({ licensePlan: planIds.pro }), Infinity)
 
@@ -67,7 +69,7 @@ describe('feature plans', () => {
     assert.ok(planComparisonGroups.some(group => {
       return group.items.some(item => item.plans.length === 1 && item.plans[0] === planIds.team)
     }))
-    assert.equal(featureImplementationStatus[featureIds.advancedCommandAssistant], featureStatusIds.planned)
+    assert.equal(featureImplementationStatus[featureIds.advancedCommandAssistant], featureStatusIds.partial)
     assert.equal(featureImplementationStatus[featureIds.teamSharedServers], featureStatusIds.planned)
     assert.equal(getFeatureStatus({ featureId: featureIds.batchCommand }), featureStatusIds.done)
     assert.equal(getFeatureStatus({ featureId: featureIds.aiAgent }), featureStatusIds.partial)

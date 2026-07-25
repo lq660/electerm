@@ -8,7 +8,8 @@ import {
   PlayCircleOutlined,
   ReloadOutlined,
   SearchOutlined,
-  SendOutlined
+  SendOutlined,
+  ToolOutlined
 } from '@ant-design/icons'
 import Modal from '../common/modal'
 import { runCmd } from './terminal-apis'
@@ -445,7 +446,8 @@ export default function CommandAssistant ({
   onUseCommand,
   defaultSystem = 'linux',
   terminalName = '当前终端',
-  terminalId
+  terminalId,
+  advancedEnabled = false
 }) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('全部')
@@ -458,6 +460,9 @@ export default function CommandAssistant ({
   const [profileError, setProfileError] = useState('')
   const [profileVersion, setProfileVersion] = useState(0)
   const catalog = useMemo(() => {
+    if (!advancedEnabled) {
+      return commandCatalog
+    }
     const installedSoftware = new Set(
       (machineProfile?.software || []).map(item => item.name)
     )
@@ -468,7 +473,7 @@ export default function CommandAssistant ({
       ...buildMachineCommands(machineProfile),
       ...availableCommands
     ]
-  }, [machineProfile])
+  }, [advancedEnabled, machineProfile])
   const categories = ['全部', ...new Set(catalog.map(item => item.category))]
 
   useEffect(() => {
@@ -476,6 +481,12 @@ export default function CommandAssistant ({
     const inspect = async () => {
       setProfileLoading(true)
       setProfileError('')
+      if (!advancedEnabled) {
+        setMachineProfile(null)
+        setProfileLoading(false)
+        setProfileError('')
+        return
+      }
       if (!terminalId) {
         setProfileLoading(false)
         setProfileError('当前终端尚未就绪，已显示通用命令。')
@@ -506,7 +517,7 @@ export default function CommandAssistant ({
     return () => {
       disposed = true
     }
-  }, [profileVersion, terminalId])
+  }, [advancedEnabled, profileVersion, terminalId])
 
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase()
@@ -608,54 +619,63 @@ export default function CommandAssistant ({
         </div>
       </div>
 
-      <div className='command-assistant-machine'>
-        <DesktopOutlined />
-        {profileLoading
-          ? (
-            <div className='command-assistant-machine-loading'>
-              <strong>正在读取当前终端环境</strong>
-              <span>识别系统、架构、Shell、包管理器和常用软件路径</span>
-            </div>
-            )
-          : machineProfile
-            ? (
-              <>
-                <div className='command-assistant-machine-info'>
-                  <strong>{machineProfile.user ? `${machineProfile.user}@` : ''}{machineProfile.host || terminalName}</strong>
-                  <span>
-                    {[machineProfile.distro || machineProfile.os, machineProfile.arch, machineProfile.shell, machineProfile.packageManager, machineProfile.serviceManager]
-                      .filter(Boolean).join(' · ')}
-                  </span>
+      {advancedEnabled
+        ? (
+          <div className='command-assistant-machine'>
+            <DesktopOutlined />
+            {profileLoading
+              ? (
+                <div className='command-assistant-machine-loading'>
+                  <strong>正在读取当前终端环境</strong>
+                  <span>识别系统、架构、Shell、包管理器和常用软件路径</span>
                 </div>
-                <div className='command-assistant-machine-software'>
-                  {machineProfile.software.slice(0, 8).map(item => (
-                    <button
-                      key={item.name}
-                      title={`${item.path}（${softwareSourceLabels[item.source] || softwareSourceLabels.path}）`}
-                      onClick={() => handleSelectSoftware(item.name)}
-                    >
-                      <b>{item.name}</b>
-                      <span>{softwareSourceLabels[item.source] || softwareSourceLabels.path} · {item.path}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-              )
-            : (
-              <div className='command-assistant-machine-loading error'>
-                <strong>当前环境未识别</strong>
-                <span>{profileError}</span>
-              </div>
-              )}
-        <button
-          className='command-assistant-machine-refresh'
-          title='重新读取当前终端环境'
-          disabled={profileLoading}
-          onClick={() => setProfileVersion(version => version + 1)}
-        >
-          <ReloadOutlined spin={profileLoading} />
-        </button>
-      </div>
+                )
+              : machineProfile
+                ? (
+                  <>
+                    <div className='command-assistant-machine-info'>
+                      <strong>{machineProfile.user ? `${machineProfile.user}@` : ''}{machineProfile.host || terminalName}</strong>
+                      <span>
+                        {[machineProfile.distro || machineProfile.os, machineProfile.arch, machineProfile.shell, machineProfile.packageManager, machineProfile.serviceManager]
+                          .filter(Boolean).join(' · ')}
+                      </span>
+                    </div>
+                    <div className='command-assistant-machine-software'>
+                      {machineProfile.software.slice(0, 8).map(item => (
+                        <button
+                          key={item.name}
+                          title={`${item.path}（${softwareSourceLabels[item.source] || softwareSourceLabels.path}）`}
+                          onClick={() => handleSelectSoftware(item.name)}
+                        >
+                          <b>{item.name}</b>
+                          <span>{softwareSourceLabels[item.source] || softwareSourceLabels.path} · {item.path}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                  )
+                : (
+                  <div className='command-assistant-machine-loading error'>
+                    <strong>当前环境未识别</strong>
+                    <span>{profileError}</span>
+                  </div>
+                  )}
+            <button
+              className='command-assistant-machine-refresh'
+              title='重新读取当前终端环境'
+              disabled={profileLoading}
+              onClick={() => setProfileVersion(version => version + 1)}
+            >
+              <ReloadOutlined spin={profileLoading} />
+            </button>
+          </div>
+          )
+        : (
+          <div className='command-assistant-basic'>
+            <ToolOutlined />
+            <span>基础命令模式</span>
+          </div>
+          )}
 
       <div className='command-assistant-categories'>
         {categories.map(item => (

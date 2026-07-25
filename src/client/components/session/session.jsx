@@ -2129,6 +2129,7 @@ export default class SessionWrapper extends Component {
               defaultSystem={this.isLocalFileTab() && isMac ? 'mac' : 'linux'}
               terminalName={activeTerminal?.title || '当前终端'}
               terminalId={activeTerminalId}
+              advancedEnabled={hasFeature(this.props.config, featureIds.advancedCommandAssistant)}
             />
             )
           : null}

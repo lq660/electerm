@@ -641,9 +641,9 @@ export default (Store) => {
     update('lastDataUpdateTime', store.lastDataUpdateTime)
   }, 1000)
 
-  Store.prototype.handleExportAllData = async function (password) {
+  Store.prototype.handleExportAllData = async function (password, options = {}) {
     if (!window.et.isWebApp) {
-      const res = await window.pre.runGlobalAsync('exportConfigMigration', password)
+      const res = await window.pre.runGlobalAsync('exportConfigMigration', password, options)
       if (res && !res.canceled) {
         message.success('配置迁移包已导出')
       }

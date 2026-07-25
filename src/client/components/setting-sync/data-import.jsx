@@ -8,7 +8,8 @@ import {
   Select,
   Space,
   Input,
-  Alert
+  Alert,
+  Checkbox
 } from 'antd'
 import {
   ImportOutlined,
@@ -82,6 +83,7 @@ export default function DataTransport (props) {
 
   function handleExport () {
     let password = ''
+    let includeExternalKeys = false
     return Modal.confirm({
       title: '导出配置迁移包',
       content: (
@@ -90,8 +92,15 @@ export default function DataTransport (props) {
             type='warning'
             showIcon
             message='迁移包会使用你设置的迁移密码加密'
-            description='迁移包包含连接密码、同步令牌，以及已保存到连接里的私钥内容。仅引用本机路径或 SSH Agent 的外部密钥文件不会自动包含。'
+            description='迁移包包含连接密码、同步令牌，以及已保存到连接里的私钥内容。仅引用本机路径的密钥文件默认不会包含；SSH Agent 状态无法迁移。'
           />
+          <Checkbox
+            onChange={event => {
+              includeExternalKeys = event.target.checked
+            }}
+          >
+            包含连接引用的本地密钥文件
+          </Checkbox>
           <Input.Password
             autoFocus
             placeholder='设置迁移包密码'
@@ -109,7 +118,9 @@ export default function DataTransport (props) {
           return false
         }
         try {
-          const res = await store.handleExportAllData(password)
+          const res = await store.handleExportAllData(password, {
+            includeExternalKeys
+          })
           if (res && res.warnings && res.warnings.length) {
             Modal.info({
               title: '导出完成',

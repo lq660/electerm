@@ -3,11 +3,21 @@
  */
 
 const fs = require('fs').promises
-const { dirname } = require('path')
+const {
+  basename,
+  dirname,
+  extname,
+  resolve
+} = require('path')
+const os = require('os')
 const { dialog } = require('electron')
 const crypto = require('crypto')
 const { dbAction, tables } = require('./db')
-const { packInfo } = require('../common/app-props')
+const {
+  appPath,
+  defaultUserName,
+  packInfo
+} = require('../common/app-props')
 
 const PACKAGE_TYPE = 'yunduo-config-migration'
 const PACKAGE_VERSION = 2
@@ -15,6 +25,8 @@ const LEGACY_PACKAGE_VERSION = 1
 const MIGRATION_CIPHER = 'aes-256-gcm'
 const MIGRATION_KDF = 'scrypt'
 const MIGRATION_KEY_LENGTH = 32
+const MIGRATION_KEY_FILE_MAX_SIZE = 256 * 1024
+const MIGRATION_KEY_DIR = 'migration-keys'
 
 const EXCLUDED_TABLES = new Set([
   'log',
@@ -22,8 +34,11 @@ const EXCLUDED_TABLES = new Set([
   'lastStates'
 ])
 
-const EXTERNAL_KEY_FIELDS = new Set([
-  'privateKeyPath',
+const EXTERNAL_KEY_PATH_FIELDS = new Set([
+  'privateKeyPath'
+])
+
+const EXTERNAL_KEY_AGENT_FIELDS = new Set([
   'sshAgent'
 ])
 
@@ -64,8 +79,31 @@ function createSummary (tableData) {
   }, {})
 }
 
-function createMigrationWarnings (tableData) {
-  let externalKeyRefs = 0
+function getUserDataPath () {
+  const appDataPath = process.env.DATA_PATH || resolve(appPath, 'electerm')
+  return resolve(appDataPath, 'users', defaultUserName)
+}
+
+function getMigrationKeysPath () {
+  return resolve(getUserDataPath(), MIGRATION_KEY_DIR)
+}
+
+function resolveExternalKeyPath (filePath) {
+  if (typeof filePath !== 'string') {
+    return ''
+  }
+  if (filePath === '~') {
+    return os.homedir()
+  }
+  if (filePath.startsWith('~/')) {
+    return resolve(os.homedir(), filePath.slice(2))
+  }
+  return resolve(filePath)
+}
+
+function collectExternalKeyRefs (tableData) {
+  const externalKeyPaths = new Map()
+  let sshAgentRefs = 0
   const walk = (value) => {
     if (!value || typeof value !== 'object') {
       return
@@ -75,18 +113,93 @@ function createMigrationWarnings (tableData) {
       return
     }
     for (const [key, item] of Object.entries(value)) {
-      if (EXTERNAL_KEY_FIELDS.has(key) && item) {
-        externalKeyRefs += 1
+      if (EXTERNAL_KEY_PATH_FIELDS.has(key) && item) {
+        const sourcePath = String(item)
+        const filePath = resolveExternalKeyPath(sourcePath)
+        const ref = externalKeyPaths.get(filePath) || {
+          filePath,
+          sourcePaths: new Set()
+        }
+        ref.sourcePaths.add(sourcePath)
+        externalKeyPaths.set(filePath, ref)
+      } else if (EXTERNAL_KEY_AGENT_FIELDS.has(key) && item) {
+        sshAgentRefs += 1
       }
       walk(item)
     }
   }
   walk(tableData)
+  return {
+    externalKeyPaths: Array.from(externalKeyPaths.values()).map(item => ({
+      filePath: item.filePath,
+      sourcePaths: Array.from(item.sourcePaths)
+    })),
+    sshAgentRefs
+  }
+}
+
+function createMigrationWarnings (keyRefs, options, externalKeyFiles, skippedExternalKeyFiles) {
   const warnings = []
-  if (externalKeyRefs) {
-    warnings.push('检测到连接引用了本机外部密钥路径或 SSH Agent。迁移包不会自动包含这些外部密钥文件，请在新机器上放置同路径密钥、重新上传私钥到连接，或重新配置 SSH Agent。')
+  const externalKeyRefCount = keyRefs.externalKeyPaths.length
+  if (externalKeyRefCount && !options.includeExternalKeys) {
+    warnings.push('检测到连接引用了本机外部密钥路径。迁移包未包含这些密钥文件；如需一键迁移，请重新导出并勾选“包含连接引用的本地密钥文件”。')
+  }
+  if (externalKeyFiles.length) {
+    warnings.push(`已将 ${externalKeyFiles.length} 个连接引用的本地密钥文件放入加密迁移包。`)
+  }
+  if (skippedExternalKeyFiles) {
+    warnings.push(`${skippedExternalKeyFiles} 个连接引用的本地密钥文件无法读取或超过大小限制，未放入迁移包。`)
+  }
+  if (keyRefs.sshAgentRefs) {
+    warnings.push('检测到连接使用 SSH Agent。SSH Agent 状态无法写入迁移包，请在新机器上重新配置 SSH Agent。')
   }
   return warnings
+}
+
+function hashBuffer (buffer) {
+  return crypto.createHash('sha256').update(buffer).digest('hex')
+}
+
+function cleanFileName (fileName) {
+  const cleaned = basename(fileName || 'ssh-key')
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .replace(/^\.+$/, 'ssh-key')
+  return cleaned || 'ssh-key'
+}
+
+async function readExternalKeyFiles (keyRefs) {
+  const externalKeyFiles = []
+  let skipped = 0
+  for (const ref of keyRefs.externalKeyPaths) {
+    try {
+      const stat = await fs.stat(ref.filePath)
+      if (!stat.isFile() || stat.size > MIGRATION_KEY_FILE_MAX_SIZE) {
+        skipped += 1
+        continue
+      }
+      const content = await fs.readFile(ref.filePath)
+      externalKeyFiles.push({
+        id: crypto
+          .createHash('sha256')
+          .update(ref.filePath)
+          .update('\0')
+          .update(content)
+          .digest('hex')
+          .slice(0, 16),
+        fileName: cleanFileName(ref.filePath),
+        sourcePaths: ref.sourcePaths,
+        size: content.length,
+        sha256: hashBuffer(content),
+        content: content.toString('base64')
+      })
+    } catch (e) {
+      skipped += 1
+    }
+  }
+  return {
+    externalKeyFiles,
+    skipped
+  }
 }
 
 async function writeJsonAtomic (filePath, data) {
@@ -152,12 +265,33 @@ function decryptMigrationPayload (data, password) {
   }
 }
 
-async function buildMigrationPackage (password) {
+async function buildMigrationPackage (password, options = {}) {
   const tableData = await readTables()
+  const keyRefs = collectExternalKeyRefs(tableData)
+  const {
+    externalKeyFiles,
+    skipped
+  } = options.includeExternalKeys
+    ? await readExternalKeyFiles(keyRefs)
+    : {
+        externalKeyFiles: [],
+        skipped: 0
+      }
   const summary = createSummary(tableData)
-  const warnings = createMigrationWarnings(tableData)
-  const encrypted = encryptMigrationPayload({
+  const warnings = createMigrationWarnings(
+    keyRefs,
+    options,
+    externalKeyFiles,
+    skipped
+  )
+  const payload = {
     tables: tableData
+  }
+  if (externalKeyFiles.length) {
+    payload.externalKeyFiles = externalKeyFiles
+  }
+  const encrypted = encryptMigrationPayload({
+    ...payload
   }, password)
   return {
     type: PACKAGE_TYPE,
@@ -174,7 +308,7 @@ async function buildMigrationPackage (password) {
   }
 }
 
-async function exportConfigMigration (win, password) {
+async function exportConfigMigration (win, password, options = {}) {
   assertPassword(password)
   const { canceled, filePath } = await dialog.showSaveDialog(win, {
     title: '导出配置迁移包',
@@ -189,7 +323,7 @@ async function exportConfigMigration (win, password) {
       canceled: true
     }
   }
-  const data = await buildMigrationPackage(password)
+  const data = await buildMigrationPackage(password, options)
   await writeJsonAtomic(filePath, data)
   return {
     canceled: false,
@@ -260,8 +394,84 @@ function parseMigrationPackage (text, password) {
   return {
     ...data,
     tables: tableData,
+    externalKeyFiles: Array.isArray(payload.externalKeyFiles)
+      ? payload.externalKeyFiles
+      : [],
     summary: createSummary(tableData),
     warnings: Array.isArray(data.warnings) ? data.warnings : []
+  }
+}
+
+function getRestoredKeyFileName (file) {
+  const sourceName = cleanFileName(file.fileName)
+  const ext = extname(sourceName)
+  const base = ext
+    ? sourceName.slice(0, -ext.length)
+    : sourceName
+  const id = String(file.id || file.sha256 || hashBuffer(Buffer.from(sourceName))).slice(0, 16)
+  return `${base}-${id}${ext}`
+}
+
+function assertInsideDir (dir, filePath) {
+  const rel = resolve(filePath).slice(resolve(dir).length)
+  if (!rel || (rel[0] !== '/' && rel[0] !== '\\')) {
+    throw new Error('迁移包密钥文件路径不安全')
+  }
+}
+
+async function restoreExternalKeyFiles (externalKeyFiles = []) {
+  if (!Array.isArray(externalKeyFiles) || !externalKeyFiles.length) {
+    return {
+      pathMap: new Map(),
+      warnings: []
+    }
+  }
+  const dir = getMigrationKeysPath()
+  await fs.mkdir(dir, { recursive: true, mode: 0o700 })
+  const pathMap = new Map()
+  let restored = 0
+  for (const file of externalKeyFiles) {
+    if (!file || typeof file.content !== 'string') {
+      throw new Error('迁移包包含无效密钥文件')
+    }
+    const content = Buffer.from(file.content, 'base64')
+    if (content.length > MIGRATION_KEY_FILE_MAX_SIZE) {
+      throw new Error('迁移包中的密钥文件超过大小限制')
+    }
+    if (file.sha256 && hashBuffer(content) !== file.sha256) {
+      throw new Error('迁移包中的密钥文件校验失败')
+    }
+    const targetPath = resolve(dir, getRestoredKeyFileName(file))
+    assertInsideDir(dir, targetPath)
+    await fs.writeFile(targetPath, content, { mode: 0o600 })
+    await fs.chmod(targetPath, 0o600).catch(() => {})
+    for (const sourcePath of file.sourcePaths || []) {
+      pathMap.set(sourcePath, targetPath)
+    }
+    restored += 1
+  }
+  return {
+    pathMap,
+    warnings: restored
+      ? [`已恢复 ${restored} 个迁移包内的本地密钥文件，并更新对应连接引用。`]
+      : []
+  }
+}
+
+function rewriteExternalKeyPaths (value, pathMap) {
+  if (!value || typeof value !== 'object') {
+    return
+  }
+  if (Array.isArray(value)) {
+    value.forEach(item => rewriteExternalKeyPaths(item, pathMap))
+    return
+  }
+  for (const [key, item] of Object.entries(value)) {
+    if (EXTERNAL_KEY_PATH_FIELDS.has(key) && pathMap.has(item)) {
+      value[key] = pathMap.get(item)
+      continue
+    }
+    rewriteExternalKeyPaths(item, pathMap)
   }
 }
 
@@ -294,6 +504,8 @@ async function importConfigMigration (filePath, password) {
   }
   const text = await fs.readFile(filePath, 'utf8')
   const data = parseMigrationPackage(text, password)
+  const restoredKeys = await restoreExternalKeyFiles(data.externalKeyFiles)
+  rewriteExternalKeyPaths(data.tables, restoredKeys.pathMap)
   const names = Object.keys(data.tables)
   const backup = await readTables(names)
   try {
@@ -312,7 +524,10 @@ async function importConfigMigration (filePath, password) {
     app: data.app,
     exportedAt: data.exportedAt,
     summary: data.summary,
-    warnings: data.warnings
+    warnings: [
+      ...data.warnings,
+      ...restoredKeys.warnings
+    ]
   }
 }
 

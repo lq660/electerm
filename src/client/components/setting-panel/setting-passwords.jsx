@@ -4,12 +4,12 @@
  */
 import React, { Component } from 'react'
 import {
-  CopyOutlined,
   EditOutlined,
   KeyOutlined,
   LaptopOutlined
 } from '@ant-design/icons'
 import {
+  Alert,
   Button,
   Modal,
   Space,
@@ -22,7 +22,6 @@ import {
 import Search from '../common/search'
 import InputConfirm from '../common/input-confirm'
 import createTitle from '../../common/create-title'
-import { copy as copyToClipboard } from '../../common/clipboard'
 import { settingMap } from '../../common/constants'
 import './setting.styl'
 
@@ -63,13 +62,16 @@ export default class SettingPasswords extends Component {
     })
 
     const groups = []
+    let index = 0
     passwordMap.forEach((bookmarksList, password) => {
       groups.push({
+        id: `password-group-${index}`,
         password,
         count: bookmarksList.length,
         bookmarks: bookmarksList,
         titles: bookmarksList.map(b => createTitle(b))
       })
+      index++
     })
 
     // Sort by count descending
@@ -78,13 +80,9 @@ export default class SettingPasswords extends Component {
     this.setState({ passwordGroups: groups })
   }
 
-  handleCopyPassword = (password) => {
-    copyToClipboard(password)
-  }
-
   showEditModal = (record) => {
     this.setState({
-      newPassword: record.password,
+      newPassword: '',
       editModalVisible: true,
       selectedBookmarks: record.bookmarks
     })
@@ -191,33 +189,18 @@ export default class SettingPasswords extends Component {
       {
         title: text('actions') === 'actions' ? '操作' : text('actions'),
         key: 'actions',
-        width: 80,
+        width: 72,
         render: (_, record) => {
-          const copyProps0 = {
-            type: 'text',
-            icon: <CopyOutlined />,
-            onClick: () => this.handleCopyPassword(record.password)
-          }
           const editProps0 = {
             type: 'text',
             icon: <EditOutlined />,
             onClick: () => this.showEditModal(record)
           }
-          const copyTooltipProps = {
-            title: text('copy') === 'copy' ? '复制' : text('copy'),
-            children: <Button {...copyProps0} />
-          }
           const editTooltipProps = {
-            title: text('changePassword') === 'changePassword' ? '修改密码' : text('changePassword'),
+            title: text('changePassword') === 'changePassword' ? '重置这一组连接密码' : text('changePassword'),
             children: <Button {...editProps0} />
           }
-          const spaceProps0 = {
-            children: [
-              <Tooltip key='copy' {...copyTooltipProps} />,
-              <Tooltip key='edit' {...editTooltipProps} />
-            ]
-          }
-          return <Space>{spaceProps0.children}</Space>
+          return <Tooltip {...editTooltipProps} />
         }
       }
     ]
@@ -246,7 +229,7 @@ export default class SettingPasswords extends Component {
     const tableProps0 = {
       dataSource: data,
       columns: this.getColumns(),
-      rowKey: 'password',
+      rowKey: 'id',
       pagination: { ...pagination, showSizeChanger: true },
       onChange: this.handleTableChange,
       size: 'small'
@@ -276,13 +259,20 @@ export default class SettingPasswords extends Component {
           <strong>
             <KeyOutlined /> 密码管理
           </strong>
-          <span>按服务器连接聚合和维护保存的密码</span>
+          <span>按服务器连接聚合和维护保存的密码，默认不明文展示或复制</span>
         </div>
 
         {this.renderContent()}
 
         <Modal {...modalProps0}>
           <div className='password-edit-form'>
+            <Alert
+              type='info'
+              showIcon
+              className='mg1b'
+              message='出于安全考虑，这里不会显示原密码'
+              description='输入新密码后，会同步更新这一组使用相同旧密码的连接。'
+            />
             <InputConfirm
               value={newPassword}
               onChange={this.handlePasswordChange}

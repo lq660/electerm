@@ -2,6 +2,7 @@
  * data import/export
  */
 
+import { useState } from 'react'
 import {
   Button,
   Switch,
@@ -15,11 +16,38 @@ import {
   ImportOutlined,
   ExportOutlined
 } from '@ant-design/icons'
+import {
+  syncDataMaps
+} from '../../common/constants'
 import Upload from '../common/upload'
 import HelpIcon from '../common/help-icon'
 import Modal from '../common/modal'
 
 const e = window.translate
+
+const migrationExtraDataMaps = {
+  history: ['history', 'terminalCommandHistory'],
+  aiChatHistory: ['aiChatHistory'],
+  autoRunWidgets: ['autoRunWidgets']
+}
+
+const migrationExportDataMaps = {
+  ...Object.keys(syncDataMaps).reduce((prev, key) => {
+    return {
+      ...prev,
+      [key]: syncDataMaps[key].map(name => name === 'config' ? 'data' : name)
+    }
+  }, {}),
+  ...migrationExtraDataMaps
+}
+
+const migrationExportLabels = {
+  history: '历史记录',
+  aiChatHistory: 'AI 对话历史',
+  autoRunWidgets: '自动运行组件'
+}
+
+const migrationExportKeys = Object.keys(migrationExportDataMaps)
 
 const intervalOptions = [
   { value: 0, label: e('autoSyncOnChange') },
@@ -49,6 +77,62 @@ function renderWarnings (warnings = []) {
         <li key={index}>{warning}</li>
       ))}
     </ul>
+  )
+}
+
+function getMigrationExportTables (keys) {
+  return Array.from(new Set(
+    keys
+      .map(key => migrationExportDataMaps[key] || [])
+      .flat()
+  ))
+}
+
+function MigrationExportScope (props) {
+  const {
+    defaultSelectedKeys,
+    onChange
+  } = props
+  const [selectedKeys, setSelectedKeys] = useState(defaultSelectedKeys)
+  const selectedCount = selectedKeys.length
+  const checkedAll = selectedCount === migrationExportKeys.length
+  function updateSelectedKeys (keys) {
+    setSelectedKeys(keys)
+    onChange(keys)
+  }
+  function toggleAll (event) {
+    updateSelectedKeys(event.target.checked ? migrationExportKeys : [])
+  }
+  return (
+    <div className='cn-sync-migration-scope'>
+      <div className='cn-sync-migration-scope-head'>
+        <strong>导出范围</strong>
+        <Checkbox
+          checked={checkedAll}
+          indeterminate={selectedCount > 0 && !checkedAll}
+          onChange={toggleAll}
+        >
+          全选
+        </Checkbox>
+      </div>
+      <Checkbox.Group
+        className='cn-sync-data-select cn-sync-migration-scope-list'
+        value={selectedKeys}
+        onChange={updateSelectedKeys}
+      >
+        {
+          migrationExportKeys.map(key => (
+            <Checkbox
+              className='cn-sync-data-option'
+              key={key}
+              value={key}
+            >
+              {migrationExportLabels[key] || e(key)}
+            </Checkbox>
+          ))
+        }
+      </Checkbox.Group>
+    </div>
   )
 }
 
@@ -84,6 +168,10 @@ export default function DataTransport (props) {
   function handleExport () {
     let password = ''
     let includeExternalKeys = false
+    let selectedExportKeys = migrationExportKeys
+    function updateSelectedExportKeys (keys) {
+      selectedExportKeys = keys
+    }
     return Modal.confirm({
       title: '导出配置迁移包',
       content: (
@@ -93,6 +181,10 @@ export default function DataTransport (props) {
             showIcon
             message='迁移包会使用你设置的迁移密码加密'
             description='迁移包包含连接密码、同步令牌，以及已保存到连接里的私钥内容。仅引用本机路径的密钥文件默认不会包含；SSH Agent 状态无法迁移。'
+          />
+          <MigrationExportScope
+            defaultSelectedKeys={selectedExportKeys}
+            onChange={updateSelectedExportKeys}
           />
           <Checkbox
             onChange={event => {
@@ -117,9 +209,14 @@ export default function DataTransport (props) {
           store.onError(new Error('请设置迁移包密码'))
           return false
         }
+        if (!selectedExportKeys.length) {
+          store.onError(new Error('请选择至少一种导出内容'))
+          return false
+        }
         try {
           const res = await store.handleExportAllData(password, {
-            includeExternalKeys
+            includeExternalKeys,
+            tables: getMigrationExportTables(selectedExportKeys)
           })
           if (res && res.warnings && res.warnings.length) {
             Modal.info({

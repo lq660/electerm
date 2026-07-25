@@ -46,6 +46,20 @@ function getMigrationTables () {
   return tables.filter(table => !EXCLUDED_TABLES.has(table))
 }
 
+function normalizeSelectedMigrationTables (selectedTables) {
+  if (!Array.isArray(selectedTables)) {
+    return getMigrationTables()
+  }
+  const allowed = new Set(getMigrationTables())
+  const names = Array.from(new Set(
+    selectedTables.filter(name => typeof name === 'string' && allowed.has(name))
+  ))
+  if (!names.length) {
+    throw new Error('请选择至少一种导出内容')
+  }
+  return names
+}
+
 function formatDatePart (value) {
   return String(value).padStart(2, '0')
 }
@@ -266,7 +280,7 @@ function decryptMigrationPayload (data, password) {
 }
 
 async function buildMigrationPackage (password, options = {}) {
-  const tableData = await readTables()
+  const tableData = await readTables(normalizeSelectedMigrationTables(options.tables))
   const keyRefs = collectExternalKeyRefs(tableData)
   const {
     externalKeyFiles,
@@ -537,5 +551,6 @@ module.exports = {
   buildMigrationPackage,
   parseMigrationPackage,
   encryptMigrationPayload,
-  decryptMigrationPayload
+  decryptMigrationPayload,
+  normalizeSelectedMigrationTables
 }

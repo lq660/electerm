@@ -41,24 +41,24 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-workbench-home
   color $cn-text
   text-align left
+  min-height calc(100vh - 36px)
 
 .cn-workbench-shell
   display grid
-  // 2026-07-04 coder(lq): Keep the original workbench feel while using the main panel as the primary resource entry.
-  grid-template-columns minmax(560px, 1fr) 280px
+  grid-template-columns minmax(640px, 1fr) 300px
   gap 12px
-  height 100%
+  height calc(100vh - 76px)
+  min-height 0
   padding 12px
   box-sizing border-box
 
 .cn-workbench-sidebar,
-.cn-workbench-main,
 .cn-history-panel
   min-width 0
   border 1px solid $cn-border
   background $cn-panel
   border-radius 8px
-  box-shadow 0 8px 24px $cn-shadow-card
+  box-shadow 0 6px 18px $cn-shadow-card
 
 .cn-workbench-sidebar
   display none
@@ -294,8 +294,10 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-workbench-main
   display flex
   flex-direction column
-  gap 14px
-  padding 16px
+  gap 12px
+  min-width 0
+  min-height 0
+  height 100%
   overflow hidden
 
 .cn-workbench-toolbar
@@ -303,9 +305,12 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   align-items center
   justify-content space-between
   gap 14px
-  min-height 74px
-  padding 2px 0 10px
-  border-bottom 1px solid $cn-border-soft
+  min-height 76px
+  padding 13px 14px
+  border 1px solid $cn-border
+  border-radius 8px
+  background $cn-panel
+  box-shadow 0 6px 18px $cn-shadow-card
 
 .cn-workbench-toolbar h2
   margin 0
@@ -313,8 +318,25 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   line-height 26px
   font-weight 700
 
+.cn-header-meta
+  display flex
+  flex-wrap wrap
+  gap 6px
+  margin-top 6px
+
+  span
+    height 22px
+    line-height 20px
+    padding 0 8px
+    border 1px solid $cn-border-soft
+    border-radius 6px
+    background $cn-panel-soft
+    color $cn-muted
+    font-size 11px
+    font-weight 700
+
 .cn-workbench-toolbar p
-  margin 5px 0 0
+  margin 4px 0 0
   color $cn-muted
   font-size 12px
 
@@ -360,17 +382,17 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   display flex
   align-items center
   gap 12px
-  padding 12px
-  min-height 52px
-  background $cn-panel-soft
+  padding 10px 12px
+  min-height 50px
+  background $cn-panel
 
 .cn-quick-connect .quick-connect
   flex 1
   min-width 0
 
-.cn-workbench-status-grid
+.cn-workbench-status-row
   display grid
-  grid-template-columns minmax(0, 1fr) minmax(0, 1fr)
+  grid-template-columns 1fr
   gap 12px
   flex 0 0 auto
 
@@ -379,8 +401,8 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   grid-template-columns 38px minmax(0, 1fr)
   align-items center
   gap 10px
-  padding 12px
-  min-height 86px
+  padding 10px 12px
+  min-height 70px
 
   > .anticon
     width 38px
@@ -409,12 +431,12 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     line-height 1.5
 
 .cn-saved-connections
-  padding 14px
+  padding 14px 14px 12px
   display flex
   flex-direction column
   gap 12px
-  flex 1 1 auto
-  min-height 176px
+  flex 1 1 0
+  min-height 0
   overflow hidden
 
 .cn-saved-connections-head
@@ -588,15 +610,16 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   font-weight 700
 
 .cn-empty-connections
-  min-height 94px
+  flex 1
+  min-height 180px
   display grid
   grid-template-columns 38px minmax(0, 1fr)
   align-items center
   gap 12px
-  padding 14px
-  border 1px dashed $cn-primary-border
+  padding 22px
+  border 1px dashed $cn-border-strong
   border-radius 8px
-  background $cn-primary-tint
+  background $cn-panel
 
   > .anticon
     width 38px
@@ -627,6 +650,12 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   .ant-btn
     border-radius 6px
     font-weight 700
+
+.cn-empty-actions
+  display flex !important
+  flex-direction row !important
+  gap 8px !important
+  margin-top 10px
 
 .cn-quick-connect-bar
   padding 0 !important
@@ -670,7 +699,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   font-size 12px
 
 .cn-quick-connect .cn-panel-title
-  min-width 82px
+  min-width 100px
 
 .cn-workbench-grid
   min-height 0
@@ -791,11 +820,11 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
 .cn-transfer-drawer
   display grid
-  grid-template-columns 1fr
-  align-content center
-  gap 10px
-  padding 12px
-  min-height 86px
+  grid-template-columns minmax(0, 180px) minmax(180px, 1fr)
+  align-items center
+  gap 12px
+  padding 9px 12px
+  min-height 50px
 
 .cn-transfer-drawer strong
   display block
@@ -808,6 +837,8 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-history-panel
   display flex
   flex-direction column
+  height 100%
+  min-height 0
   padding 14px
   overflow hidden
 
@@ -830,15 +861,15 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   padding-right 0
 
 .cn-empty-history
-  flex 1
+  flex 0 0 auto
   display flex
   flex-direction column
   align-items center
-  justify-content center
+  justify-content flex-start
   gap 8px
-  min-height 220px
-  padding 16px
-  border 1px dashed $cn-border-strong
+  min-height 0
+  padding 28px 14px
+  border 1px dashed $cn-border-soft
   border-radius 8px
   background $cn-panel-soft
   text-align center
@@ -886,7 +917,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     width 100%
     max-width none
     min-width 0
-  .cn-workbench-status-grid
+  .cn-workbench-status-row
     grid-template-columns 1fr
   .cn-file-panel
     grid-column auto

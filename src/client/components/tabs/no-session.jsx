@@ -190,15 +190,10 @@ function buildServerGroups (store) {
   return []
 }
 
-export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch }) {
+export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
   const { store } = window
   const [serverKeyword, setServerKeyword] = useState('')
   const [serverSort, setServerSort] = useState('recent')
-  const props = {
-    style: {
-      height: height + 'px'
-    }
-  }
   const handleClick = () => {
     window.openTabBatch = batch
   }
@@ -258,7 +253,7 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
 
   return (
     <ConfigProvider theme={workbenchTheme}>
-      <div className='no-sessions cn-workbench-home' {...props}>
+      <div className='no-sessions cn-workbench-home'>
         <div className='cn-workbench-shell'>
           <aside className='cn-workbench-sidebar'>
             <div className='cn-brand-block'>
@@ -328,11 +323,15 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
             <header className='cn-workbench-toolbar'>
               <div>
                 <div className='cn-page-kicker'>
-                  <span>主工作页面</span>
+                  <span>云舵工作台</span>
                   <b>连接入口</b>
                 </div>
-                <h2>运维工作台</h2>
-                <p>从这里打开本地终端、快速连接 SSH，连接成功后统一进入顶部 tab。</p>
+                <h2>连接中心</h2>
+                <div className='cn-header-meta' aria-label='工作台概览'>
+                  <span>服务器 {savedConnectionTotal}</span>
+                  <span>最近 {historyItems.length}</span>
+                  <span>传输 {transferTotal}</span>
+                </div>
               </div>
               <div className='cn-toolbar-actions'>
                 <Button type='primary' icon={<CodeOutlined />} onClick={onNewTab} disabled={!window.store.hasNodePty}>
@@ -350,7 +349,7 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
             <section className='cn-quick-connect'>
               <div className='cn-panel-title'>
                 <ThunderboltOutlined />
-                <span>快速连接</span>
+                <span>SSH 快速连接</span>
               </div>
               <QuickConnect batch={batch} inputOnly />
             </section>
@@ -366,7 +365,7 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
                     {
                       normalizedServerKeyword
                         ? `已保存 ${savedConnectionTotal} 个连接，当前显示 ${savedServers.length} 个`
-                        : `已显示全部 ${savedConnectionTotal} 个连接，点击资源卡片直接进入 tab`
+                        : `共 ${savedConnectionTotal} 个连接`
                     }
                   </p>
                 </div>
@@ -439,24 +438,26 @@ export default auto(function NoSessionPanel ({ height, onNewTab, onNewSsh, batch
                           {
                             normalizedServerKeyword
                               ? '请更换名称、IP、分组或类型关键词。'
-                              : '使用右上角“新建连接”保存后会显示在这里，也可以先用上方快速连接。'
+                              : '新建连接后会显示在这里。'
                           }
                         </span>
+                        {
+                          normalizedServerKeyword
+                            ? null
+                            : (
+                              <div className='cn-empty-actions'>
+                                <Button type='primary' size='small' onClick={onNewSsh}>新建连接</Button>
+                                <Button size='small' onClick={onNewTab} disabled={!window.store.hasNodePty}>本地终端</Button>
+                              </div>
+                              )
+                        }
                       </div>
                     </div>
                     )
               }
             </section>
 
-            <div className='cn-workbench-status-grid'>
-              <section className='cn-workbench-empty-info'>
-                <CloudServerOutlined />
-                <div>
-                  <strong>会话信息跟随当前 tab</strong>
-                  <span>服务器详情、文件、快捷命令和监控信息放在 SSH 页右侧边条，首页不展示不属于任何服务器的数据。</span>
-                </div>
-              </section>
-
+            <div className='cn-workbench-status-row'>
               <section className='cn-transfer-drawer'>
                 <div>
                   <strong>传输任务</strong>

@@ -275,9 +275,36 @@ function initIpc () {
     },
     saveUserConfig,
     rebuildUserConfig,
-    exportConfigMigration: (password, options) => exportConfigMigration(globalState.get('win'), password, options),
+    exportConfigMigration: async (password, options = {}) => {
+      const auth = await authorizeSensitiveAction({
+        reason: '允许云舵导出配置迁移包',
+        appPassword: options.appPassword
+      })
+      if (!auth.ok) {
+        throw new Error(auth.reason)
+      }
+      const {
+        appPassword,
+        ...migrationOptions
+      } = options
+      return exportConfigMigration(globalState.get('win'), password, migrationOptions)
+    },
+    authorizeSensitiveAction,
     previewConfigMigration,
-    importConfigMigration,
+    importConfigMigration: async (filePath, password, options = {}) => {
+      const auth = await authorizeSensitiveAction({
+        reason: '允许云舵导入配置迁移包',
+        appPassword: options.appPassword
+      })
+      if (!auth.ok) {
+        throw new Error(auth.reason)
+      }
+      const {
+        appPassword,
+        ...migrationOptions
+      } = options
+      return importConfigMigration(filePath, password, migrationOptions)
+    },
     copySensitiveText,
     AIchat,
     AIchatWithTools,

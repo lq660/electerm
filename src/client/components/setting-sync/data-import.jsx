@@ -24,6 +24,7 @@ import {
 import Upload from '../common/upload'
 import HelpIcon from '../common/help-icon'
 import Modal from '../common/modal'
+import requestSensitiveActionAuth from '../common/sensitive-auth'
 
 const e = window.translate
 
@@ -323,9 +324,19 @@ export default function DataTransport (props) {
           return false
         }
         try {
+          const auth = await requestSensitiveActionAuth({
+            title: '导出配置迁移包',
+            message: '导出迁移包属于敏感操作',
+            description: '迁移包可能包含连接密码、同步令牌和密钥内容。导出前需要完成二次授权。',
+            okText: '授权并导出'
+          })
+          if (!auth) {
+            return false
+          }
           const res = await store.handleExportAllData(password, {
             includeExternalKeys,
-            tables: getMigrationExportTables(selectedExportKeys)
+            tables: getMigrationExportTables(selectedExportKeys),
+            appPassword: auth.appPassword
           })
           if (res && res.warnings && res.warnings.length) {
             Modal.info({
@@ -363,9 +374,19 @@ export default function DataTransport (props) {
       cancelText: e('cancel'),
       onOk: async () => {
         try {
+          const auth = await requestSensitiveActionAuth({
+            title: '导入配置迁移包',
+            message: '导入迁移包会修改本机配置',
+            description: '导入内容可能包含连接密码、同步令牌和密钥引用。写入本机前需要完成二次授权。',
+            okText: '授权并导入'
+          })
+          if (!auth) {
+            return false
+          }
           const res = await store.importAll(file, password, {
             mode,
-            createBackup: true
+            createBackup: true,
+            appPassword: auth.appPassword
           })
           if (!res) {
             return

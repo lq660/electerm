@@ -23,6 +23,7 @@ import {
 } from 'antd'
 import Search from '../common/search'
 import InputConfirm from '../common/input-confirm'
+import requestSensitiveActionAuth from '../common/sensitive-auth'
 import createTitle from '../../common/create-title'
 import { settingMap } from '../../common/constants'
 import './setting.styl'
@@ -138,78 +139,44 @@ export default class SettingPasswords extends Component {
   }
 
   handleCopyPassword = (record) => {
-    const requiresAppPassword = !!window.pre.requireAuth
     const firstTitle = record.titles && record.titles[0]
       ? record.titles[0]
       : '已保存连接'
-    let appPassword = ''
-    Modal.confirm({
+    requestSensitiveActionAuth({
       title: '复制已保存密码',
-      content: (
-        <Space direction='vertical' size='middle' className='width-100'>
-          <Alert
-            type='warning'
-            showIcon
-            message='复制密码属于敏感操作'
-            description='复制前需要二次授权。复制成功后，如果剪贴板内容没有被你替换，云舵会在 30 秒后自动清空。'
-          />
-          {
-            requiresAppPassword
-              ? (
-                <Input.Password
-                  autoFocus
-                  placeholder='输入软件访问密码'
-                  onChange={event => {
-                    appPassword = event.target.value
-                  }}
-                />
-                )
-              : (
-                <Alert
-                  type='info'
-                  showIcon
-                  message='未设置软件访问密码'
-                  description='云舵会尝试使用系统认证；如果当前设备不支持，请先在通用设置里设置软件访问密码。'
-                />
-                )
-          }
-        </Space>
-      ),
-      okText: '授权并复制',
-      cancelText: text('cancel') === 'cancel' ? '取消' : text('cancel'),
-      onOk: async () => {
-        if (requiresAppPassword && !appPassword) {
-          message.warning('请输入软件访问密码')
-          return false
+      message: '复制密码属于敏感操作',
+      description: '复制前需要二次授权。复制成功后，如果剪贴板内容没有被你替换，云舵会在 30 秒后自动清空。',
+      okText: '授权并复制'
+    }).then(async auth => {
+      if (!auth) {
+        return
+      }
+      const clearAfter = SENSITIVE_CLIPBOARD_CLEAR_MS
+      try {
+        const res = await window.pre.runGlobalAsync('copySensitiveText', record.password, {
+          reason: `允许云舵复制 ${firstTitle} 的已保存密码`,
+          appPassword: auth.appPassword,
+          clearAfter
+        })
+        if (!res || !res.copied) {
+          message.warning(res && res.reason ? res.reason : '未完成授权，密码未复制')
+          return
         }
-        const clearAfter = SENSITIVE_CLIPBOARD_CLEAR_MS
+        message.success('密码已复制，30 秒后自动清空剪贴板')
+      } catch (err) {
+        if (!this.isMissingSensitiveCopyError(err)) {
+          message.error(err && err.message ? err.message : '复制密码失败')
+          return
+        }
         try {
-          const res = await window.pre.runGlobalAsync('copySensitiveText', record.password, {
-            reason: `允许云舵复制 ${firstTitle} 的已保存密码`,
-            appPassword,
-            clearAfter
-          })
+          const res = await this.copyWithLegacyAuth(record, auth.appPassword, clearAfter)
           if (!res || !res.copied) {
             message.warning(res && res.reason ? res.reason : '未完成授权，密码未复制')
-            return false
+            return
           }
-          message.success('密码已复制，30 秒后自动清空剪贴板')
-        } catch (err) {
-          if (!this.isMissingSensitiveCopyError(err)) {
-            message.error(err && err.message ? err.message : '复制密码失败')
-            return false
-          }
-          try {
-            const res = await this.copyWithLegacyAuth(record, appPassword, clearAfter)
-            if (!res || !res.copied) {
-              message.warning(res && res.reason ? res.reason : '未完成授权，密码未复制')
-              return false
-            }
-            message.success('密码已复制，30 秒后自动清空剪贴板；重启云舵后可启用系统级安全复制')
-          } catch (fallbackErr) {
-            message.error(fallbackErr && fallbackErr.message ? fallbackErr.message : '复制密码失败')
-            return false
-          }
+          message.success('密码已复制，30 秒后自动清空剪贴板；重启云舵后可启用系统级安全复制')
+        } catch (fallbackErr) {
+          message.error(fallbackErr && fallbackErr.message ? fallbackErr.message : '复制密码失败')
         }
       }
     })

@@ -30,6 +30,8 @@ import './setting.styl'
 const { Text: TextAnt } = Typography
 const e = window.translate
 const text = key => e(key) || key
+const SENSITIVE_CLIPBOARD_CLEAR_MS = 30 * 1000
+const MISSING_SENSITIVE_COPY_RE = /asyncGlobals\[name\] is not a function|Unknown async global: copySensitiveText/
 
 export default class SettingPasswords extends Component {
   state = {
@@ -90,6 +92,51 @@ export default class SettingPasswords extends Component {
     })
   }
 
+  isMissingSensitiveCopyError = (err) => {
+    return !!(err && err.message && MISSING_SENSITIVE_COPY_RE.test(err.message))
+  }
+
+  writeBrowserClipboard = async (value, clearAfter) => {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) {
+      throw new Error('当前环境不支持安全剪贴板，请重启云舵后再试')
+    }
+    const text = String(value)
+    await navigator.clipboard.writeText(text)
+    window.setTimeout(async () => {
+      try {
+        if (navigator.clipboard.readText) {
+          const current = await navigator.clipboard.readText()
+          if (current !== text) {
+            return
+          }
+        }
+        await navigator.clipboard.writeText('')
+      } catch (err) {
+      }
+    }, clearAfter)
+  }
+
+  copyWithLegacyAuth = async (record, appPassword, clearAfter) => {
+    if (!appPassword) {
+      return {
+        copied: false,
+        reason: '安全复制服务需要重启云舵后启用；未设置软件访问密码时不能使用前端兜底复制'
+      }
+    }
+    const ok = await window.pre.runGlobalAsync('checkPassword', appPassword)
+    if (!ok) {
+      return {
+        copied: false,
+        reason: '软件访问密码不正确'
+      }
+    }
+    await this.writeBrowserClipboard(record.password, clearAfter)
+    return {
+      copied: true,
+      legacy: true
+    }
+  }
+
   handleCopyPassword = (record) => {
     const requiresAppPassword = !!window.pre.requireAuth
     const firstTitle = record.titles && record.titles[0]
@@ -135,11 +182,12 @@ export default class SettingPasswords extends Component {
           message.warning('请输入软件访问密码')
           return false
         }
+        const clearAfter = SENSITIVE_CLIPBOARD_CLEAR_MS
         try {
           const res = await window.pre.runGlobalAsync('copySensitiveText', record.password, {
             reason: `允许云舵复制 ${firstTitle} 的已保存密码`,
             appPassword,
-            clearAfter: 30 * 1000
+            clearAfter
           })
           if (!res || !res.copied) {
             message.warning(res && res.reason ? res.reason : '未完成授权，密码未复制')
@@ -147,8 +195,21 @@ export default class SettingPasswords extends Component {
           }
           message.success('密码已复制，30 秒后自动清空剪贴板')
         } catch (err) {
-          message.error(err && err.message ? err.message : '复制密码失败')
-          return false
+          if (!this.isMissingSensitiveCopyError(err)) {
+            message.error(err && err.message ? err.message : '复制密码失败')
+            return false
+          }
+          try {
+            const res = await this.copyWithLegacyAuth(record, appPassword, clearAfter)
+            if (!res || !res.copied) {
+              message.warning(res && res.reason ? res.reason : '未完成授权，密码未复制')
+              return false
+            }
+            message.success('密码已复制，30 秒后自动清空剪贴板；重启云舵后可启用系统级安全复制')
+          } catch (fallbackErr) {
+            message.error(fallbackErr && fallbackErr.message ? fallbackErr.message : '复制密码失败')
+            return false
+          }
         }
       }
     })

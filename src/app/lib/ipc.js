@@ -316,7 +316,11 @@ function initIpc () {
     }
   }
   ipcMain.handle('async', (event, { name, args }) => {
-    return asyncGlobals[name](...args)
+    const func = asyncGlobals[name]
+    if (typeof func !== 'function') {
+      throw new Error(`Unknown async global: ${name}`)
+    }
+    return func(...args)
   })
   ipcMain.handle('show-open-dialog-sync', async (event, ...args) => {
     const win = BrowserWindow.fromWebContents(event.sender)

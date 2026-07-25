@@ -195,6 +195,71 @@ function MigrationExportScope (props) {
   )
 }
 
+function MigrationExportPassword (props) {
+  const {
+    defaultMode,
+    onModeChange,
+    onPasswordChange
+  } = props
+  const [mode, setMode] = useState(defaultMode)
+  const canUseAppPassword = !!window.pre.requireAuth
+  function handleModeChange (event) {
+    const value = event.target.value
+    setMode(value)
+    onModeChange(value)
+  }
+  return (
+    <div className='cn-sync-migration-password'>
+      <div className='cn-sync-migration-password-title'>迁移包密码</div>
+      <Radio.Group
+        className='cn-sync-migration-password-mode'
+        value={mode}
+        onChange={handleModeChange}
+      >
+        <Radio value='custom'>单独设置迁移包密码</Radio>
+        <Radio
+          value='app'
+          disabled={!canUseAppPassword}
+        >
+          使用软件访问密码
+        </Radio>
+      </Radio.Group>
+      {
+        mode === 'custom'
+          ? (
+            <Input.Password
+              autoFocus
+              placeholder='设置迁移包密码'
+              onChange={event => {
+                onPasswordChange(event.target.value)
+              }}
+            />
+            )
+          : (
+            <Alert
+              type='info'
+              showIcon
+              message='导出前会验证软件访问密码'
+              description='迁移包将使用本次输入的软件访问密码加密。迁移包交给别人时，建议改用单独迁移包密码。'
+            />
+            )
+      }
+      {
+        canUseAppPassword
+          ? null
+          : (
+            <Alert
+              type='info'
+              showIcon
+              message='暂未设置软件访问密码'
+              description='如需复用软件访问密码加密迁移包，请先到通用设置里设置软件访问密码。'
+            />
+            )
+      }
+    </div>
+  )
+}
+
 function MigrationImportPreview (props) {
   const {
     preview,
@@ -277,10 +342,17 @@ export default function DataTransport (props) {
 
   function handleExport () {
     let password = ''
+    let passwordMode = 'custom'
     let includeExternalKeys = false
     let selectedExportKeys = migrationExportKeys
     function updateSelectedExportKeys (keys) {
       selectedExportKeys = keys
+    }
+    function updatePasswordMode (mode) {
+      passwordMode = mode
+    }
+    function updatePassword (value) {
+      password = value
     }
     return Modal.confirm({
       title: '导出配置迁移包',
@@ -289,8 +361,8 @@ export default function DataTransport (props) {
           <Alert
             type='warning'
             showIcon
-            message='迁移包会使用你设置的迁移密码加密'
-            description='迁移包包含连接密码、同步令牌，以及已保存到连接里的私钥内容。仅引用本机路径的密钥文件默认不会包含；SSH Agent 状态无法迁移。'
+            message='迁移包会加密保存'
+            description='迁移包包含连接密码、同步令牌，以及已保存到连接里的私钥内容。交给别人使用时，建议单独设置迁移包密码。'
           />
           <MigrationExportScope
             defaultSelectedKeys={selectedExportKeys}
@@ -303,19 +375,17 @@ export default function DataTransport (props) {
           >
             包含连接引用的本地密钥文件
           </Checkbox>
-          <Input.Password
-            autoFocus
-            placeholder='设置迁移包密码'
-            onChange={event => {
-              password = event.target.value
-            }}
+          <MigrationExportPassword
+            defaultMode={passwordMode}
+            onModeChange={updatePasswordMode}
+            onPasswordChange={updatePassword}
           />
         </Space>
       ),
       okText: '加密导出',
       cancelText: e('cancel'),
       onOk: async () => {
-        if (!password) {
+        if (passwordMode === 'custom' && !password) {
           message.warning('请设置迁移包密码')
           return false
         }
@@ -333,7 +403,14 @@ export default function DataTransport (props) {
           if (!auth) {
             return false
           }
-          const res = await store.handleExportAllData(password, {
+          const migrationPassword = passwordMode === 'app'
+            ? auth.appPassword
+            : password
+          if (!migrationPassword) {
+            message.warning('请设置迁移包密码')
+            return false
+          }
+          const res = await store.handleExportAllData(migrationPassword, {
             includeExternalKeys,
             tables: getMigrationExportTables(selectedExportKeys),
             appPassword: auth.appPassword

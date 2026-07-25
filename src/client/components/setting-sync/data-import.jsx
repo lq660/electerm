@@ -11,7 +11,8 @@ import {
   Input,
   Alert,
   Checkbox,
-  Radio
+  Radio,
+  message
 } from 'antd'
 import {
   ImportOutlined,
@@ -64,6 +65,11 @@ const migrationTableLabels = {
 }
 
 const migrationExportKeys = Object.keys(migrationExportDataMaps)
+
+function showMigrationError (action, err) {
+  const text = err && err.message ? err.message : String(err || '未知错误')
+  message.error(`${action}：${text}`)
+}
 
 const intervalOptions = [
   { value: 0, label: e('autoSyncOnChange') },
@@ -309,11 +315,11 @@ export default function DataTransport (props) {
       cancelText: e('cancel'),
       onOk: async () => {
         if (!password) {
-          store.onError(new Error('请设置迁移包密码'))
+          message.warning('请设置迁移包密码')
           return false
         }
         if (!selectedExportKeys.length) {
-          store.onError(new Error('请选择至少一种导出内容'))
+          message.warning('请选择至少一种导出内容')
           return false
         }
         try {
@@ -333,7 +339,7 @@ export default function DataTransport (props) {
             })
           }
         } catch (err) {
-          store.onError(err)
+          showMigrationError('导出迁移包失败', err)
           return false
         }
       }
@@ -376,7 +382,7 @@ export default function DataTransport (props) {
             onOk: () => store.restart()
           })
         } catch (err) {
-          store.onError(err)
+          showMigrationError('导入迁移包失败', err)
           return false
         }
       }
@@ -411,7 +417,7 @@ export default function DataTransport (props) {
           const preview = await store.previewImportAll(file, password)
           showImportPreviewModal(file, password, preview)
         } catch (err) {
-          store.onError(err)
+          showMigrationError('读取迁移包失败', err)
           return false
         }
       }

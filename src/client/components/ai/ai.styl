@@ -23,10 +23,8 @@
     .ai-chat-terminals
       gap 6px
 
-      > .ant-flex:first-child
-        min-width 0
-        flex-wrap wrap
-        row-gap 4px
+      .cn-ai-control-row
+        gap 6px
 
 .cn-ai-chat-intro
   display flex
@@ -174,7 +172,7 @@
   flex 0 0 auto
 
   .ant-input
-    padding-bottom 40px
+    padding-bottom 82px
 
   .ai-chat-textarea::placeholder
     // 2026-07-20 coder(lq): The AI input sits on a large white surface; default placeholder contrast is too low for quick scanning.
@@ -183,12 +181,91 @@
 
   .ai-chat-terminals
     position absolute
-    bottom 5px
-    left 5px
-    right 5px
+    bottom 8px
+    left 10px
+    right 10px
     background transparent
     z-index 1
-    font-size 16px
+    gap 6px
+    font-size 14px
+
+.cn-ai-control-row
+  display flex
+  align-items center
+  justify-content space-between
+  gap 8px
+  min-width 0
+
+.cn-ai-mode-controls
+  display flex
+  align-items center
+  gap 6px
+  min-width 0
+
+  .ant-segmented
+    flex 0 0 auto
+
+.cn-ai-target-select
+  min-width 0
+  flex 1 1 auto
+
+  .batch-tab-select-trigger
+    max-width 100%
+    min-height 26px
+    padding 0
+    overflow hidden
+    white-space nowrap
+    text-overflow ellipsis
+    font-size 13px
+
+.cn-ai-action-icons
+  flex 0 0 auto
+  display inline-flex
+  align-items center
+  justify-content flex-end
+  gap 6px
+
+  > span
+    margin 0
+    width 28px
+    height 28px
+    display inline-flex
+    align-items center
+    justify-content center
+    border-radius 7px
+    color #344054
+    font-size 17px
+    line-height 1
+
+    &:hover
+      background #f5f8ff
+      color #1677ff
+
+.cn-ai-icon-button,
+.cn-ai-send-button
+  width 28px
+  height 28px
+  display inline-flex
+  align-items center
+  justify-content center
+  flex 0 0 28px
+  margin 0
+  border-radius 7px
+  color #344054
+  font-size 17px
+  line-height 1
+
+  &:hover
+    background #f5f8ff
+    color #1677ff
+
+.cn-ai-send-button
+  color #1f2937
+  font-size 19px
+
+  &.disabled
+    color #b8c2d2
+    cursor not-allowed
 
 .cn-ai-mode-label
   display inline-flex

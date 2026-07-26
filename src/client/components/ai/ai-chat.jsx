@@ -269,7 +269,7 @@ AI：${item.response}`
     if (submitDisabled) {
       return (
         <SendOutlined
-          className='mg1l send-to-ai-icon disabled'
+          className='cn-ai-send-button send-to-ai-icon disabled'
           title='Agent 正在执行，请稍候'
         />
       )
@@ -277,7 +277,7 @@ AI：${item.response}`
     return (
       <SendOutlined
         onClick={handleSubmit}
-        className='mg1l pointer icon-hover send-to-ai-icon'
+        className='pointer icon-hover cn-ai-send-button send-to-ai-icon'
         title='发送给 AI，Enter 发送，Shift+Enter 换行'
       />
     )
@@ -403,50 +403,58 @@ AI：${item.response}`
           autoSize={{ minRows: 3, maxRows: props.embedded ? 5 : 10 }}
           className='ai-chat-textarea'
         />
-        <Flex className='ai-chat-terminals' justify='space-between' align='center'>
-          <Flex align='center'>
-            <Segmented
-              options={[
-                { label: renderModeLabel('ask', '问答'), value: 'ask' },
-                { label: renderModeLabel('agent', '代理实验'), value: 'agent' }
-              ]}
-              value={mode}
-              onChange={handleModeChange}
-              size='small'
-            />
-            {renderContinuousChatToggle()}
-            {renderTabSelect()}
-            {
-              isAgent
-                ? null
-                : (
-                  <PlayCircleOutlined
-                    onClick={handleSendPromptToTerminal}
-                    className='mg1l pointer icon-hover send-to-terminal-icon'
-                    title='把输入框内容发送到所选终端'
-                  />
-                  )
-            }
-            <SettingOutlined
-              onClick={toggleConfig}
-              className='mg1l pointer icon-hover toggle-ai-setting-icon'
-            />
-            <Popconfirm
-              title='清空 AI 对话记录？'
-              okText={window.translate('ok')}
-              cancelText={window.translate('cancel')}
-              onConfirm={clearHistory}
-            >
-              <UnorderedListOutlined
-                className='mg2x pointer clear-ai-icon icon-hover'
-                title='清空 AI 对话记录'
+        <Flex className='ai-chat-terminals' vertical>
+          <div className='cn-ai-control-row cn-ai-mode-row'>
+            <div className='cn-ai-mode-controls'>
+              <Segmented
+                options={[
+                  { label: renderModeLabel('ask', '问答'), value: 'ask' },
+                  { label: renderModeLabel('agent', '代理实验'), value: 'agent' }
+                ]}
+                value={mode}
+                onChange={handleModeChange}
+                size='small'
               />
-            </Popconfirm>
-            <HelpIcon
-              link={aiConfigWikiLink}
-            />
-          </Flex>
-          {renderSendIcon()}
+              {renderContinuousChatToggle()}
+            </div>
+            {renderSendIcon()}
+          </div>
+          <div className='cn-ai-control-row cn-ai-target-row'>
+            <div className='cn-ai-target-select'>
+              {renderTabSelect()}
+            </div>
+            <div className='cn-ai-action-icons'>
+              {
+                isAgent
+                  ? null
+                  : (
+                    <PlayCircleOutlined
+                      onClick={handleSendPromptToTerminal}
+                      className='pointer icon-hover cn-ai-icon-button send-to-terminal-icon'
+                      title='把输入框内容发送到所选终端'
+                    />
+                    )
+              }
+              <SettingOutlined
+                onClick={toggleConfig}
+                className='pointer icon-hover cn-ai-icon-button toggle-ai-setting-icon'
+              />
+              <Popconfirm
+                title='清空 AI 对话记录？'
+                okText={window.translate('ok')}
+                cancelText={window.translate('cancel')}
+                onConfirm={clearHistory}
+              >
+                <UnorderedListOutlined
+                  className='pointer clear-ai-icon icon-hover cn-ai-icon-button'
+                  title='清空 AI 对话记录'
+                />
+              </Popconfirm>
+              <HelpIcon
+                link={aiConfigWikiLink}
+              />
+            </div>
+          </div>
         </Flex>
       </Flex>
     </Flex>

@@ -13,8 +13,6 @@ import BookmarksList from '../sidebar/bookmark-select'
 import History from '../sidebar/history'
 import DragHandle from '../common/drag-handle'
 
-const e = window.translate
-
 export const addPanelDefaultWidth = 480
 export const addPanelMinWidth = 420
 export const addPanelMaxWidth = 760
@@ -50,14 +48,18 @@ export default function AddBtnMenu ({
   const cls = 'context-item pointer cn-add-menu-secondary-btn'
   const panelWidth = getAddPanelWidth(addPanelWidth, window.innerWidth)
   const panelHeight = getAddPanelHeight(menuTop, window.innerHeight)
+  const handleLocalTerminal = useCallback(() => {
+    onTabAdd()
+    onClose()
+  }, [onClose, onTabAdd])
   const addTabBtn = window.store.hasNodePty
     ? (
       <button
         type='button'
         className={cls}
-        onClick={onTabAdd}
+        onClick={handleLocalTerminal}
       >
-        <RightSquareFilled /> {e('newTab')}
+        <RightSquareFilled /> 本地终端
       </button>
       )
     : null
@@ -149,6 +151,23 @@ export default function AddBtnMenu ({
         />
       </div>
       <div className='add-menu-list'>
+        {
+          window.store.hasNodePty
+            ? (
+              <button
+                type='button'
+                className='cn-add-menu-local-terminal'
+                onClick={handleLocalTerminal}
+              >
+                <RightSquareFilled />
+                <span>
+                  <strong>本地终端</strong>
+                  <b>打开当前机器的命令行</b>
+                </span>
+              </button>
+              )
+            : null
+        }
         {listContent}
       </div>
       <div className='cn-add-menu-footer'>

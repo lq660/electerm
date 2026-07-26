@@ -36,7 +36,8 @@ test.describe('China workbench UI smoke test', () => {
     await closeServerSelector.click()
     await expect(serverSelector).toBeHidden()
 
-    await expect(client.locator('.cn-side-icon-menu .cn-yunduo-logo-glyph')).toHaveText('云')
+    await expect(client.locator('.cn-side-icon-menu .cn-yunduo-logo-mark-icon')).toBeVisible()
+    await expect(client.locator('.cn-side-icon-menu .anticon-appstore')).toHaveCount(0)
     await expect(client.locator('.cn-side-icon-theme, .cn-side-icon-setting, .cn-side-icon-sync, .cn-side-icon-tools')).toHaveCount(0)
     const resourceEntry = client.locator('.cn-side-icon-server')
     await resourceEntry.hover()

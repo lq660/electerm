@@ -6,6 +6,9 @@ import { PureComponent } from 'react'
 import {
   Popover
 } from 'antd'
+import {
+  CloudOutlined
+} from '@ant-design/icons'
 import { shortcutDescExtend } from '../shortcuts/shortcut-handler.js'
 import MenuRender from './sys-menu.jsx'
 import { refsStatic } from '../common/ref.js'
@@ -218,7 +221,7 @@ class MenuBtn extends PureComponent {
             className='menu-logo cn-menu-logo-mark'
             aria-hidden='true'
           >
-            <span className='cn-yunduo-logo-glyph'>云</span>
+            <CloudOutlined className='cn-yunduo-logo-mark-icon' />
           </span>
         </div>
       </Popover>

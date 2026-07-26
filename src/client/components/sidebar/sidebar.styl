@@ -299,6 +299,16 @@
     border-radius 10px !important
     color #667085 !important
 
+    .menu-control,
+    .menu-logo,
+    .cn-menu-logo-mark
+      width 100% !important
+      height 100% !important
+      display flex !important
+      align-items center !important
+      justify-content center !important
+      line-height 1 !important
+
     &.active
       background #eef5ff !important
       box-shadow inset 0 0 0 1px #b8d8ff !important
@@ -308,9 +318,22 @@
         color #1677ff !important
 
     .control-icon,
-    .open-about-icon
+    .open-about-icon,
+    .menu-logo .anticon,
+    .cn-menu-logo-mark .anticon
+      width 22px !important
+      height 22px !important
+      display inline-flex !important
+      align-items center !important
+      justify-content center !important
       color #667085 !important
       font-size 18px !important
+      line-height 1 !important
+
+      svg
+        display block
+        width 1em
+        height 1em
 
       &:hover
         color #1677ff !important
@@ -319,7 +342,9 @@
       background #f5f8ff !important
 
       .control-icon,
-      .open-about-icon
+      .open-about-icon,
+      .menu-logo .anticon,
+      .cn-menu-logo-mark .anticon
         color #1677ff !important
 
   .btns .open-about-icon

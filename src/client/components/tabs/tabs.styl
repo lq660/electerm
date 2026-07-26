@@ -332,8 +332,12 @@
 
   .tab
     // 2026-07-22 coder(lq): Outer connection tabs are the primary navigation; keep them visually stronger than the inner terminal/file tabs.
+    display inline-flex !important
+    align-items center !important
+    justify-content center !important
+    gap 6px !important
     height 37px !important
-    line-height 36px !important
+    line-height 1 !important
     margin 3px 3px 0 0 !important
     border 1px solid transparent !important
     border-bottom 0 !important
@@ -362,14 +366,24 @@
 
       &:before
         content '⌂'
-        margin-right 5px
+        display inline-flex
+        align-items center
+        justify-content center
+        width 14px
+        height 14px
+        margin 0
         color #1677ff
         font-size 13px
+        line-height 1
 
       &.active
         background #fff !important
         border-color #9ec5ff !important
         color #1769e0 !important
+
+    .tab-title
+      display block
+      line-height 1
 
   .tab-close
     background #eef2f7 !important
@@ -387,6 +401,32 @@
 
     &:hover
       color #1677ff !important
+
+  .tabs-add-btn
+    display inline-flex !important
+    align-items center !important
+    justify-content center !important
+    width 40px
+    height 40px
+    margin 0 3px !important
+    line-height 1 !important
+
+    &.empty
+      margin 0 3px !important
+
+  .tabs-extra
+    display inline-flex !important
+    align-items center !important
+    justify-content center !important
+    height 40px !important
+    line-height 1 !important
+
+  .tab-scroll-icon,
+  .tabs-dd-icon
+    display inline-flex !important
+    align-items center !important
+    justify-content center !important
+    line-height 1 !important
 
   .window-controls
     background #fff !important

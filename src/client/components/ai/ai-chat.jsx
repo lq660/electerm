@@ -283,6 +283,42 @@ AI：${item.response}`
     )
   }
 
+  function renderActionIcons () {
+    return (
+      <div className='cn-ai-action-icons'>
+        {
+          isAgent
+            ? null
+            : (
+              <PlayCircleOutlined
+                onClick={handleSendPromptToTerminal}
+                className='pointer icon-hover cn-ai-icon-button send-to-terminal-icon'
+                title='把输入框内容发送到所选终端'
+              />
+              )
+        }
+        <SettingOutlined
+          onClick={toggleConfig}
+          className='pointer icon-hover cn-ai-icon-button toggle-ai-setting-icon'
+        />
+        <Popconfirm
+          title='清空 AI 对话记录？'
+          okText={window.translate('ok')}
+          cancelText={window.translate('cancel')}
+          onConfirm={clearHistory}
+        >
+          <UnorderedListOutlined
+            className='pointer clear-ai-icon icon-hover cn-ai-icon-button'
+            title='清空 AI 对话记录'
+          />
+        </Popconfirm>
+        <HelpIcon
+          link={aiConfigWikiLink}
+        />
+      </div>
+    )
+  }
+
   function getModeInfo () {
     if (isAgent) {
       return {
@@ -394,7 +430,7 @@ AI：${item.response}`
         {renderHistory()}
       </Flex>
 
-      <Flex className='ai-chat-input'>
+      <Flex className={isAgent ? 'ai-chat-input ai-chat-agent-input' : 'ai-chat-input'}>
         <TextArea
           value={prompt}
           onChange={handlePromptChange}
@@ -416,45 +452,26 @@ AI：${item.response}`
                 size='small'
               />
               {renderContinuousChatToggle()}
+              {
+                isAgent
+                  ? renderActionIcons()
+                  : null
+              }
             </div>
             {renderSendIcon()}
           </div>
-          <div className='cn-ai-control-row cn-ai-target-row'>
-            <div className='cn-ai-target-select'>
-              {renderTabSelect()}
-            </div>
-            <div className='cn-ai-action-icons'>
-              {
-                isAgent
-                  ? null
-                  : (
-                    <PlayCircleOutlined
-                      onClick={handleSendPromptToTerminal}
-                      className='pointer icon-hover cn-ai-icon-button send-to-terminal-icon'
-                      title='把输入框内容发送到所选终端'
-                    />
-                    )
-              }
-              <SettingOutlined
-                onClick={toggleConfig}
-                className='pointer icon-hover cn-ai-icon-button toggle-ai-setting-icon'
-              />
-              <Popconfirm
-                title='清空 AI 对话记录？'
-                okText={window.translate('ok')}
-                cancelText={window.translate('cancel')}
-                onConfirm={clearHistory}
-              >
-                <UnorderedListOutlined
-                  className='pointer clear-ai-icon icon-hover cn-ai-icon-button'
-                  title='清空 AI 对话记录'
-                />
-              </Popconfirm>
-              <HelpIcon
-                link={aiConfigWikiLink}
-              />
-            </div>
-          </div>
+          {
+            isAgent
+              ? null
+              : (
+                <div className='cn-ai-control-row cn-ai-target-row'>
+                  <div className='cn-ai-target-select'>
+                    {renderTabSelect()}
+                  </div>
+                  {renderActionIcons()}
+                </div>
+                )
+          }
         </Flex>
       </Flex>
     </Flex>

@@ -1955,13 +1955,6 @@ export default class SessionWrapper extends Component {
           title='拖动调整侧栏宽度'
           onPointerDown={this.handleSessionAsideResizeStart}
         />
-        <button
-          className='cn-session-aside-toggle'
-          title='隐藏会话信息'
-          onClick={this.handleToggleSessionAside}
-        >
-          <DoubleRightOutlined />
-        </button>
         <div className='cn-session-aside-tabs'>
           <button
             className={classnames({ active: sessionAsideTab === 'session' })}

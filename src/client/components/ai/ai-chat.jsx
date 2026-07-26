@@ -430,7 +430,7 @@ AI：${item.response}`
         {renderHistory()}
       </Flex>
 
-      <Flex className={isAgent ? 'ai-chat-input ai-chat-agent-input' : 'ai-chat-input'}>
+      <Flex className='ai-chat-input'>
         <TextArea
           value={prompt}
           onChange={handlePromptChange}
@@ -452,26 +452,23 @@ AI：${item.response}`
                 size='small'
               />
               {renderContinuousChatToggle()}
-              {
-                isAgent
-                  ? renderActionIcons()
-                  : null
-              }
             </div>
             {renderSendIcon()}
           </div>
-          {
-            isAgent
-              ? null
-              : (
-                <div className='cn-ai-control-row cn-ai-target-row'>
-                  <div className='cn-ai-target-select'>
-                    {renderTabSelect()}
-                  </div>
-                  {renderActionIcons()}
-                </div>
-                )
-          }
+          <div className='cn-ai-control-row cn-ai-target-row'>
+            <div className='cn-ai-target-select'>
+              {
+                isAgent
+                  ? (
+                    <span className='cn-ai-agent-target'>
+                      执行目标：当前终端
+                    </span>
+                    )
+                  : renderTabSelect()
+              }
+            </div>
+            {renderActionIcons()}
+          </div>
         </Flex>
       </Flex>
     </Flex>

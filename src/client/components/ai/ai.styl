@@ -189,10 +189,6 @@
     gap 6px
     font-size 14px
 
-  &.ai-chat-agent-input
-    .ant-input
-      padding-bottom 48px
-
 .cn-ai-control-row
   display flex
   align-items center
@@ -205,6 +201,8 @@
   align-items center
   gap 6px
   min-width 0
+  flex 1 1 auto
+  overflow hidden
 
   .ant-segmented
     flex 0 0 auto
@@ -212,6 +210,9 @@
 .cn-ai-target-select
   min-width 0
   flex 1 1 auto
+  display flex
+  align-items center
+  overflow hidden
 
   .batch-tab-select-trigger
     max-width 100%
@@ -221,6 +222,23 @@
     white-space nowrap
     text-overflow ellipsis
     font-size 13px
+
+.cn-ai-agent-target
+  display inline-flex
+  align-items center
+  min-width 0
+  max-width 100%
+  height 26px
+  padding 0 8px
+  border-radius 6px
+  background #f6f9fd
+  color #344054
+  font-size 13px
+  font-weight 600
+  line-height 1
+  overflow hidden
+  white-space nowrap
+  text-overflow ellipsis
 
 .cn-ai-action-icons
   flex 0 0 auto
@@ -266,6 +284,7 @@
 .cn-ai-send-button
   color #1f2937
   font-size 19px
+  margin-left 6px
 
   &.disabled
     color #b8c2d2
@@ -292,10 +311,10 @@
 
 .cn-ai-continuous-toggle
   height 24px
+  flex 0 0 auto
   display inline-flex
   align-items center
   justify-content center
-  margin-left 6px
   padding 0 8px
   border 1px solid #dbe3ef
   border-radius 6px
@@ -304,6 +323,7 @@
   cursor pointer
   font-size 12px
   line-height 1
+  white-space nowrap
 
   &:hover
     border-color #b8d8ff

@@ -5,9 +5,34 @@
 
 import { CloseOutlined } from '@ant-design/icons'
 import classnames from 'classnames'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import './modal.styl'
+
+function isEditableTarget (target) {
+  if (!target || target === document.body) {
+    return false
+  }
+
+  const tagName = target.tagName ? target.tagName.toLowerCase() : ''
+  if (['input', 'textarea', 'select'].includes(tagName)) {
+    return true
+  }
+
+  if (target.isContentEditable) {
+    return true
+  }
+
+  return Boolean(target.closest?.([
+    'input',
+    'textarea',
+    'select',
+    '[contenteditable="true"]',
+    '.ant-select',
+    '.ant-picker',
+    '.ant-input-number'
+  ].join(',')))
+}
 
 export default function Modal (props) {
   const {
@@ -23,6 +48,8 @@ export default function Modal (props) {
     onCancel
   } = props
 
+  const contentRef = useRef(null)
+
   function handleMaskClick (e) {
     if (e.target === e.currentTarget && maskClosable && onCancel) {
       onCancel()
@@ -34,6 +61,32 @@ export default function Modal (props) {
       onCancel()
     }
   }
+
+  useEffect(() => {
+    if (!open) return
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (onCancel) {
+          onCancel()
+          e.preventDefault()
+        }
+      } else if ((e.key === 'Enter' || e.key === ' ')) {
+        if (isEditableTarget(e.target)) {
+          return
+        }
+
+        const okBtn = contentRef.current?.querySelector('.custom-modal-ok-btn')
+        if (okBtn && !okBtn.disabled) {
+          okBtn.click()
+          e.preventDefault()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [open, onCancel])
 
   if (!open) {
     return null
@@ -53,29 +106,6 @@ export default function Modal (props) {
     className
   )
 
-  useEffect(() => {
-    if (!open) return
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        if (onCancel) {
-          onCancel()
-          e.preventDefault()
-        }
-      } else if ((e.key === 'Enter' || e.key === ' ')) {
-        // For confirm, Enter/Space confirms
-        const okBtn = document.querySelector('.custom-modal-ok-btn')
-        if (okBtn) {
-          okBtn.click()
-          e.preventDefault()
-        }
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [open, onCancel])
-
   return (
     <div className={cls} style={modalStyle}>
       <div
@@ -86,6 +116,7 @@ export default function Modal (props) {
         <div
           className='custom-modal-content'
           style={contentStyle}
+          ref={contentRef}
         >
           {title && (
             <div className='custom-modal-header'>

@@ -859,13 +859,28 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   top auto !important
   bottom auto !important
   min-height 0
+  min-width 0
   width 100%
-  overflow auto
+  overflow-x hidden
+  overflow-y auto
   flex 1
+
+.cn-history-panel .sidebar-panel-history .history-body
+  min-width 0
+  overflow-x hidden
+
+.cn-history-panel .sidebar-panel-history .item-list-unit
+  width 100%
+  min-width 0
+  box-sizing border-box
 
 .cn-history-panel .sidebar-panel-history .pd2x
   padding-left 0
   padding-right 0
+  min-width 0
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
 
 .cn-empty-history
   flex 0 0 auto

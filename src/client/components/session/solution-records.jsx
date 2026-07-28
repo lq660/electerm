@@ -118,6 +118,7 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
 
   function openComposer (record) {
     if (record) {
+      setLibraryOpen(false)
       setDraft({
         id: record.id,
         title: record.title,
@@ -463,8 +464,8 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
           <span>查看处理记录</span>
         </button>
       </div>
-      {renderComposer()}
       {renderLibrary()}
+      {renderComposer()}
     </>
   )
 })

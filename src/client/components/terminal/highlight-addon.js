@@ -6,40 +6,20 @@ const DEFAULT_LOG_PATTERNS = [
     colorCode: '\u001b[90m'
   },
   {
-    regex: /\b(FATAL|ERROR|ERR)\b/g,
+    regex: /\bERROR\b/g,
     colorCode: '\u001b[1;31m'
   },
   {
-    regex: /\b(WARN|WARNING)\b/g,
+    regex: /\bWARN\b/g,
     colorCode: '\u001b[1;33m'
   },
   {
-    regex: /\b(INFO|NOTICE)\b/g,
+    regex: /\bINFO\b/g,
     colorCode: '\u001b[1;36m'
   },
   {
-    regex: /\b(DEBUG|TRACE)\b/g,
+    regex: /\bDEBUG\b/g,
     colorCode: '\u001b[2;37m'
-  },
-  {
-    regex: /\berror=(?!null\b)[^,\s]+/g,
-    colorCode: '\u001b[1;31m'
-  },
-  {
-    regex: /"[^"\r\n]{1,64}"(?=:)/g,
-    colorCode: '\u001b[36m'
-  },
-  {
-    regex: /\btrue\b/g,
-    colorCode: '\u001b[32m'
-  },
-  {
-    regex: /\bfalse\b/g,
-    colorCode: '\u001b[33m'
-  },
-  {
-    regex: /\bnull\b/g,
-    colorCode: '\u001b[90m'
   },
   {
     regex: /\bhttps?:\/\/[^\s,"]+/g,
@@ -155,11 +135,10 @@ export class KeywordHighlighterAddon {
   }
 
   containsLogSignal = (text) => {
-    const hasLevel = /\b(?:FATAL|ERROR|ERR|WARN|WARNING|INFO|NOTICE|DEBUG|TRACE)\b/.test(text)
-    const hasTimestamp = /\b\d{4}-\d{2}-\d{2}[T ][0-9:.]{8,18}(?:Z|[+-]\d{2}:?\d{2})?\b/.test(text)
-    const hasLogField = /\b(?:success|response|error|costMillis|traceId|spanId|thread|pid|email)=/.test(text)
-    const hasJsonPayload = /[{,]"[^"\r\n]{1,64}":/.test(text)
-    return hasLevel || (hasTimestamp && (hasLogField || hasJsonPayload))
+    return /\b(?:INFO|WARN|ERROR|DEBUG)\b/.test(text) ||
+      /\b\d{4}-\d{2}-\d{2}[T ][0-9:.]{8,18}(?:Z|[+-]\d{2}:?\d{2})?\b/.test(text) ||
+      /\bhttps?:\/\/[^\s,"]+/.test(text) ||
+      /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(text)
   }
 
   getPatternsForText = (text) => {

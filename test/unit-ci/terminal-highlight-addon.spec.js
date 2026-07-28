@@ -31,4 +31,18 @@ test('terminal highlight addon', async (t) => {
 
     assert.ok(addon.highlightKeywords('deploy failed\n').includes(`${ESC}[31mfailed${ESC}[0m`))
   })
+
+  await t.test('can disable automatic log highlighting while keeping keywords', () => {
+    const addon = new KeywordHighlighterAddon([{ keyword: 'failed', color: 'red' }], {
+      enableLogHighlight: false
+    })
+    const highlighted = addon.highlightKeywords(
+      '2026-07-28T21:51:46.331+08:00 INFO deploy failed email=ops@example.com\n'
+    )
+
+    assert.equal(highlighted.includes(`${ESC}[90m2026-07-28T21:51:46.331+08:00${ESC}[0m`), false)
+    assert.equal(highlighted.includes(`${ESC}[1;36mINFO${ESC}[0m`), false)
+    assert.equal(highlighted.includes(`${ESC}[36mops@example.com${ESC}[0m`), false)
+    assert.ok(highlighted.includes(`${ESC}[31mfailed${ESC}[0m`))
+  })
 })

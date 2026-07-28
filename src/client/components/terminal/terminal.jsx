@@ -1578,7 +1578,9 @@ class Term extends Component {
     this.fitAddon.fit()
     term.displayRaw = displayRaw
     term.loadAddon(
-      new KeywordHighlighterAddon(keywords)
+      new KeywordHighlighterAddon(keywords, {
+        enableLogHighlight: config.enableTerminalLogHighlight !== false
+      })
     )
   }
 

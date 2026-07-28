@@ -574,6 +574,9 @@ export default class SettingTerminal extends Component {
                   resetKeywordForm={this.resetKeywordForm}
                 />
               </div>
+              <div className='cn-settings-toggle-grid'>
+                {this.renderToggle('enableTerminalLogHighlight', '', e('enableTerminalLogHighlight'))}
+              </div>
               <KeywordForm {...ps} />
             </div>
           )

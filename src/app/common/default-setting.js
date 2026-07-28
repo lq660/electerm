@@ -28,6 +28,7 @@ module.exports = exports.default = {
   rendererType: 'canvas',
   terminalType: 'xterm-256color',
   keepaliveCountMax: 10,
+  enableTerminalLogHighlight: true,
   saveTerminalLogToFile: false,
   checkUpdateOnStart: true,
   cursorBlink: false,

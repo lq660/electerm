@@ -785,6 +785,7 @@ export default (Store) => {
       'disableTransferHistory',
       'terminalType',
       'keepaliveCountMax',
+      'enableTerminalLogHighlight',
       'saveTerminalLogToFile',
       'checkUpdateOnStart',
       'cursorBlink',

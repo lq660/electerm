@@ -1,7 +1,62 @@
+const RESET = '\u001b[0m'
+
+const DEFAULT_LOG_PATTERNS = [
+  {
+    regex: /\b\d{4}-\d{2}-\d{2}[T ][0-9:.]{8,18}(?:Z|[+-]\d{2}:?\d{2})?\b/g,
+    colorCode: '\u001b[90m'
+  },
+  {
+    regex: /\b(FATAL|ERROR|ERR)\b/g,
+    colorCode: '\u001b[1;31m'
+  },
+  {
+    regex: /\b(WARN|WARNING)\b/g,
+    colorCode: '\u001b[1;33m'
+  },
+  {
+    regex: /\b(INFO|NOTICE)\b/g,
+    colorCode: '\u001b[1;36m'
+  },
+  {
+    regex: /\b(DEBUG|TRACE)\b/g,
+    colorCode: '\u001b[2;37m'
+  },
+  {
+    regex: /\berror=(?!null\b)[^,\s]+/g,
+    colorCode: '\u001b[1;31m'
+  },
+  {
+    regex: /"[^"\r\n]{1,64}"(?=:)/g,
+    colorCode: '\u001b[36m'
+  },
+  {
+    regex: /\btrue\b/g,
+    colorCode: '\u001b[32m'
+  },
+  {
+    regex: /\bfalse\b/g,
+    colorCode: '\u001b[33m'
+  },
+  {
+    regex: /\bnull\b/g,
+    colorCode: '\u001b[90m'
+  },
+  {
+    regex: /\bhttps?:\/\/[^\s,"]+/g,
+    colorCode: '\u001b[4;36m'
+  },
+  {
+    regex: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
+    colorCode: '\u001b[36m'
+  }
+]
+
 export class KeywordHighlighterAddon {
-  constructor (keywords) {
+  constructor (keywords, options = {}) {
     this.keywords = keywords || []
+    this.enableLogHighlight = options.enableLogHighlight !== false
     this.compiledPatterns = this.compilePatterns()
+    this.compiledLogPatterns = this.compileLogPatterns()
   }
 
   // Pre-compile all regex patterns once for better performance
@@ -21,6 +76,13 @@ export class KeywordHighlighterAddon {
       }
     }
     return patterns
+  }
+
+  compileLogPatterns = () => {
+    return DEFAULT_LOG_PATTERNS.map(pattern => ({
+      ...pattern,
+      regex: new RegExp(pattern.regex.source, pattern.regex.flags)
+    }))
   }
 
   getColorCode = (color) => {
@@ -48,7 +110,7 @@ export class KeywordHighlighterAddon {
 
   highlightKeywords = (text) => {
     // Early exit if no patterns
-    if (this.compiledPatterns.length === 0) {
+    if (this.compiledPatterns.length === 0 && !this.enableLogHighlight) {
       return text
     }
 
@@ -86,12 +148,43 @@ export class KeywordHighlighterAddon {
         return seg.content
       }
       const content = seg.content
+      return this.highlightPlainText(content)
+    }).join('')
+
+    return result
+  }
+
+  containsLogSignal = (text) => {
+    const hasLevel = /\b(?:FATAL|ERROR|ERR|WARN|WARNING|INFO|NOTICE|DEBUG|TRACE)\b/.test(text)
+    const hasTimestamp = /\b\d{4}-\d{2}-\d{2}[T ][0-9:.]{8,18}(?:Z|[+-]\d{2}:?\d{2})?\b/.test(text)
+    const hasLogField = /\b(?:success|response|error|costMillis|traceId|spanId|thread|pid|email)=/.test(text)
+    const hasJsonPayload = /[{,]"[^"\r\n]{1,64}":/.test(text)
+    return hasLevel || (hasTimestamp && (hasLogField || hasJsonPayload))
+  }
+
+  getPatternsForText = (text) => {
+    const patterns = [...this.compiledPatterns]
+    if (this.enableLogHighlight && this.containsLogSignal(text)) {
+      patterns.push(...this.compiledLogPatterns)
+    }
+    return patterns
+  }
+
+  highlightPlainText = (text) => {
+    return text.split(/(\r\n|\n|\r)/).map(part => {
+      if (/^(?:\r\n|\n|\r)$/.test(part)) {
+        return part
+      }
+      const patterns = this.getPatternsForText(part)
+      if (patterns.length === 0) {
+        return part
+      }
       // Phase 1: collect all match positions from all patterns on original text
       const matches = []
-      for (const { regex, colorCode } of this.compiledPatterns) {
+      for (const { regex, colorCode } of patterns) {
         regex.lastIndex = 0
         let m
-        while ((m = regex.exec(content)) !== null) {
+        while ((m = regex.exec(part)) !== null) {
           if (m[0].length === 0) {
             regex.lastIndex++
             continue
@@ -105,7 +198,7 @@ export class KeywordHighlighterAddon {
         }
       }
       if (matches.length === 0) {
-        return content
+        return part
       }
       // Phase 2: sort by position, remove overlaps (first pattern wins)
       matches.sort((a, b) => a.start - b.start || a.end - b.end)
@@ -119,15 +212,13 @@ export class KeywordHighlighterAddon {
       let highlighted = ''
       let pos = 0
       for (const m of filtered) {
-        highlighted += content.slice(pos, m.start)
-        highlighted += m.colorCode + m.text + '\u001b[0m'
+        highlighted += part.slice(pos, m.start)
+        highlighted += m.colorCode + m.text + RESET
         pos = m.end
       }
-      highlighted += content.slice(pos)
+      highlighted += part.slice(pos)
       return highlighted
     }).join('')
-
-    return result
   }
 
   activate (terminal) {
@@ -135,15 +226,16 @@ export class KeywordHighlighterAddon {
     // Store the original write method properly bound to terminal
     this.originalWrite = terminal.write.bind(terminal)
     const self = this
-    terminal.write = function (data) {
+    terminal.write = function (data, callback) {
       if (typeof data !== 'string') {
-        return self.originalWrite(data)
+        return self.originalWrite(data, callback)
       }
       if (self.containsDcsSequence(data)) {
-        return self.originalWrite(data)
+        return self.originalWrite(data, callback)
       }
       self.originalWrite(
-        terminal.displayRaw ? self.escape(data) : self.highlightKeywords(data)
+        terminal.displayRaw ? self.escape(data) : self.highlightKeywords(data),
+        callback
       )
     }
   }

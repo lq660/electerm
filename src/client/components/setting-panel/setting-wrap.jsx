@@ -5,11 +5,12 @@
 import { Component } from 'react'
 import classnames from 'classnames'
 import Drawer from '../common/drawer'
-import { CloseCircleOutlined, CloudServerOutlined } from '@ant-design/icons'
+import { CloseCircleOutlined } from '@ant-design/icons'
 import { ConfigProvider } from 'antd'
 import { sidebarWidth } from '../../common/constants'
 import AppDrag from '../tabs/app-drag'
 import { getWorkbenchAntdTheme } from '../../common/workbench-theme'
+import YunduoLogo from '../icons/yunduo-logo.jsx'
 import './setting-wrap.styl'
 
 export default class SettingWrap extends Component {
@@ -43,7 +44,9 @@ export default class SettingWrap extends Component {
         >
           <div className='cn-setting-header'>
             <div className='cn-setting-brand'>
-              <span className='cn-setting-logo'><CloudServerOutlined /></span>
+              <span className='cn-setting-logo'>
+                <YunduoLogo className='cn-setting-logo-mark' />
+              </span>
               <span>
                 <strong>{pageMeta.title}</strong>
                 <em>{pageMeta.desc}</em>

@@ -1,4 +1,5 @@
 const { resolve } = require('path')
+const fs = require('fs')
 const { cp } = require('shelljs')
 const from = resolve(
   __dirname,
@@ -36,4 +37,17 @@ for (const obj of arr) {
   } else {
     cp('-r', from, to)
   }
+}
+
+const appIconSrc = resolve(
+  __dirname,
+  '../../build/icons/yunduo-128.png'
+)
+const appIconDst = resolve(
+  to1,
+  'electerm-round-128x128.png'
+)
+
+if (fs.existsSync(appIconSrc)) {
+  fs.copyFileSync(appIconSrc, appIconDst)
 }

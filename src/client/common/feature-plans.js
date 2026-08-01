@@ -91,7 +91,7 @@ export const featureMap = {
 
 export const featureLabels = {
   [featureIds.aiChat]: 'AI 助手',
-  [featureIds.aiAgent]: '代理实验',
+  [featureIds.aiAgent]: 'AI Agent 诊断助手',
   [featureIds.solutionRecordsUnlimited]: '无限处理记录',
   [featureIds.batchCommand]: '批量命令',
   [featureIds.advancedCommandAssistant]: '高级命令助手',
@@ -107,10 +107,10 @@ export const featureLabels = {
 
 export const featureImplementationStatus = {
   [featureIds.aiChat]: featureStatusIds.done,
-  [featureIds.aiAgent]: featureStatusIds.partial,
+  [featureIds.aiAgent]: featureStatusIds.done,
   [featureIds.solutionRecordsUnlimited]: featureStatusIds.done,
   [featureIds.batchCommand]: featureStatusIds.done,
-  [featureIds.advancedCommandAssistant]: featureStatusIds.partial,
+  [featureIds.advancedCommandAssistant]: featureStatusIds.done,
   [featureIds.encryptedMigration]: featureStatusIds.done,
   [featureIds.customTheme]: featureStatusIds.done,
   [featureIds.teamWorkspace]: featureStatusIds.planned,
@@ -147,7 +147,7 @@ export const planFeatureGroups = [
     features: [
       { label: '包含个人版全部能力', status: featureStatusIds.done },
       { label: 'AI 助手、终端上下文问答和连接生成', featureId: featureIds.aiChat },
-      { label: 'AI Agent 代理实验', featureId: featureIds.aiAgent },
+      { label: 'AI Agent 诊断助手', featureId: featureIds.aiAgent },
       { label: 'AI 整理并保存处理记录', featureId: featureIds.aiChat },
       { label: '处理记录不限数量', featureId: featureIds.solutionRecordsUnlimited },
       { label: '批量命令输入', featureId: featureIds.batchCommand },
@@ -155,7 +155,7 @@ export const planFeatureGroups = [
     ],
     limits: [
       '授权绑定个人使用',
-      '高级命令助手已支持环境识别，AI 自动化仍在补齐',
+      'AI Agent 默认优先只读诊断，变更和危险命令需要用户确认',
       '不包含团队资源共享、成员权限和审计'
     ]
   },
@@ -210,7 +210,7 @@ export const planComparisonGroups = [
         featureId: featureIds.aiChat
       },
       {
-        name: 'AI Agent 代理实验',
+        name: 'AI Agent 诊断助手',
         plans: [planIds.pro, planIds.team],
         featureId: featureIds.aiAgent
       },

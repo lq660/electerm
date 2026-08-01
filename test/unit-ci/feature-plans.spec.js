@@ -69,9 +69,10 @@ describe('feature plans', () => {
     assert.ok(planComparisonGroups.some(group => {
       return group.items.some(item => item.plans.length === 1 && item.plans[0] === planIds.team)
     }))
-    assert.equal(featureImplementationStatus[featureIds.advancedCommandAssistant], featureStatusIds.partial)
+    assert.equal(featureImplementationStatus[featureIds.aiAgent], featureStatusIds.done)
+    assert.equal(featureImplementationStatus[featureIds.advancedCommandAssistant], featureStatusIds.done)
     assert.equal(featureImplementationStatus[featureIds.teamSharedServers], featureStatusIds.planned)
     assert.equal(getFeatureStatus({ featureId: featureIds.batchCommand }), featureStatusIds.done)
-    assert.equal(getFeatureStatus({ featureId: featureIds.aiAgent }), featureStatusIds.partial)
+    assert.equal(getFeatureStatus({ featureId: featureIds.aiAgent }), featureStatusIds.done)
   })
 })

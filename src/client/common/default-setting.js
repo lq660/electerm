@@ -73,6 +73,7 @@ export default {
   proxyAI: '',
   sessionLogPath: '',
   sshSftpSplitView: false,
+  autoSaveTerminalCommandHistory: true,
   showCmdSuggestions: false,
   autoReconnectTerminal: false,
   startDirectoryLocal: '',

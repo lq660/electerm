@@ -236,11 +236,14 @@ class Term extends Component {
     // Check for shell integration related config changes
     const prevShowSuggestions = prevProps.config.showCmdSuggestions
     const currShowSuggestions = props.config.showCmdSuggestions
+    const prevAutoSaveCommandHistory = prevProps.config.autoSaveTerminalCommandHistory !== false
+    const currAutoSaveCommandHistory = props.config.autoSaveTerminalCommandHistory !== false
     const prevSftpFollow = prevProps.sftpPathFollowSsh
     const currSftpFollow = props.sftpPathFollowSsh
 
     if (
       (!prevShowSuggestions && currShowSuggestions) ||
+      (!prevAutoSaveCommandHistory && currAutoSaveCommandHistory) ||
       (!prevSftpFollow && currSftpFollow)
     ) {
       // Config was toggled to true, try to inject shell integration if not already done
@@ -1038,7 +1041,7 @@ class Term extends Component {
     if (d === '\r' || d === '\n') {
       const currentCmd = this.getCurrentInput()
       if (currentCmd && currentCmd.trim() && this.shouldUseManualHistory()) {
-        window.store.addCmdHistory(currentCmd.trim(), 'terminal', this.getCommandHistorySessionId())
+        window.store.addCmdHistory(currentCmd.trim(), 'terminal', this.getCommandHistorySessionId(), { signal: 'manual' })
       }
       if (currentCmd && currentCmd.trim() === 'exit') {
         this.userTypeExit = true
@@ -1181,8 +1184,8 @@ class Term extends Component {
     this.fitAddon = new FitAddon()
     this.cmdAddon = new CommandTrackerAddon()
     this.cmdAddon.onCommandExecuted((cmd) => {
-      if (cmd && cmd.trim()) {
-        window.store.addCmdHistory(cmd.trim(), 'terminal', this.getCommandHistorySessionId())
+      if (this.props.config.autoSaveTerminalCommandHistory !== false && cmd && cmd.trim()) {
+        window.store.addCmdHistory(cmd.trim(), 'terminal', this.getCommandHistorySessionId(), { signal: 'shell' })
       }
     })
     this.cmdAddon.onCwdChanged((cwd) => {
@@ -1278,12 +1281,13 @@ class Term extends Component {
   }
 
   shouldUseManualHistory = () => {
-    return !this.cmdAddon || !this.cmdAddon.hasShellIntegration()
+    return this.props.config.autoSaveTerminalCommandHistory !== false &&
+      (!this.cmdAddon || !this.cmdAddon.hasShellIntegration())
   }
 
   canInjectShellIntegration = () => {
     const { config } = this.props
-    const canInject = (config.showCmdSuggestions || this.props.sftpPathFollowSsh) &&
+    const canInject = (config.showCmdSuggestions || config.autoSaveTerminalCommandHistory !== false || this.props.sftpPathFollowSsh) &&
     (
       this.isSsh() ||
       (this.isLocal() && !isWin)

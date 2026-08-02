@@ -52,6 +52,15 @@ export default function createTitle (res, hide = true) {
   return f || '本地终端'
 }
 
+export function createHeaderTitle (res) {
+  if (!res) {
+    return ''
+  }
+  const { title, host, path, url } = res
+  // 2026-07-29 coder(lq): Keep the top workbench tab focused on the user-defined resource name; full account/host details stay in the tooltip.
+  return normalizeTitle(title) || path || host || url || '本地终端'
+}
+
 export function createTitleTag (obj) {
   const { color } = obj
   if (!color) {

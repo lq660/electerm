@@ -15,6 +15,7 @@ import AIChat from '../ai/ai-chat-entry'
 import CommandAssistant from '../terminal/command-assistant'
 import TerminalInfoRunner from '../terminal-info/run-cmd'
 import SolutionRecords from './solution-records'
+import CommandHistoryPanel from './command-history-panel'
 import {
   SearchOutlined,
   CopyOutlined,
@@ -29,6 +30,7 @@ import {
   DoubleRightOutlined,
   RobotOutlined,
   BookOutlined,
+  HistoryOutlined,
   FontColorsOutlined,
   DownOutlined,
   UpOutlined,
@@ -1371,6 +1373,14 @@ export default class SessionWrapper extends Component {
     }, 0)
   }
 
+  handleUseHistoryCommand = (command, execute) => {
+    const terminalId = this.getActiveTerminalSessionId()
+    this.editTab({ pane: paneMap.terminal })
+    setTimeout(() => {
+      refs.get('term-' + terminalId)?.runQuickCommand(command, !execute)
+    }, 0)
+  }
+
   handleToggleAiAssistant = () => {
     this.setState(prev => ({
       showAiAssistant: !prev.showAiAssistant
@@ -1977,6 +1987,13 @@ export default class SessionWrapper extends Component {
             <BookOutlined />
             <span>处理记录</span>
           </button>
+          <button
+            className={classnames({ active: sessionAsideTab === 'history' })}
+            onClick={() => this.handleSessionAsideTabChange('history')}
+          >
+            <HistoryOutlined />
+            <span>命令历史</span>
+          </button>
         </div>
         <div className='cn-session-aside-body'>
           {
@@ -2010,48 +2027,58 @@ export default class SessionWrapper extends Component {
                     />
                   </div>
                   )
-                : (
-                  <div className='cn-session-aside-panel'>
-                    <div className='cn-session-aside-head'>
-                      <CloudServerOutlined />
-                      <div>
-                        <strong>{title}</strong>
-                        <span>{host}</span>
+                : sessionAsideTab === 'history'
+                  ? (
+                    <div className='cn-session-aside-panel cn-session-aside-panel-history'>
+                      <CommandHistoryPanel
+                        tab={tab}
+                        activeTerminalTitle={activeTerminalTitle}
+                        onUseCommand={this.handleUseHistoryCommand}
+                      />
+                    </div>
+                    )
+                  : (
+                    <div className='cn-session-aside-panel'>
+                      <div className='cn-session-aside-head'>
+                        <CloudServerOutlined />
+                        <div>
+                          <strong>{title}</strong>
+                          <span>{host}</span>
+                        </div>
                       </div>
-                    </div>
 
-                    {isSsh ? this.renderServerMonitor(activeTerminalId, activeTerminalTitle) : null}
+                      {isSsh ? this.renderServerMonitor(activeTerminalId, activeTerminalTitle) : null}
 
-                    <div className='cn-session-aside-section'>
-                      <div className='cn-session-aside-title'>会话信息</div>
-                      <div className='cn-session-info-row'><span>类型</span><b>{type}</b></div>
-                      <div className='cn-session-info-row'><span>状态</span><b>{tab.status === 'success' ? '已连接' : '连接中'}</b></div>
-                      <div className='cn-session-info-row'><span>标签</span><b>#{tab.tabCount}</b></div>
-                    </div>
+                      <div className='cn-session-aside-section'>
+                        <div className='cn-session-aside-title'>会话信息</div>
+                        <div className='cn-session-info-row'><span>类型</span><b>{type}</b></div>
+                        <div className='cn-session-info-row'><span>状态</span><b>{tab.status === 'success' ? '已连接' : '连接中'}</b></div>
+                        <div className='cn-session-info-row'><span>标签</span><b>#{tab.tabCount}</b></div>
+                      </div>
 
-                    <div className='cn-session-aside-section'>
-                      <div className='cn-session-aside-title'>会话工具</div>
-                      <button className='cn-session-tool-row' onClick={this.handleOpenCommandAssistant}>
-                        <SearchOutlined />
-                        <span>
-                          <b>命令助手</b>
-                          <em>用中文查找常用运维命令</em>
-                        </span>
-                      </button>
-                      <button
-                        className={classnames('cn-session-tool-row', {
-                          'is-active': this.state.showBatchInput
-                        })}
-                        onClick={this.handleToggleBatchInput}
-                      >
-                        <ThunderboltOutlined />
-                        <span>
-                          <b>批量命令</b>
-                          <em>向选中的终端同时发送命令</em>
-                        </span>
-                        {this.state.showBatchInput ? <UpOutlined /> : <DownOutlined />}
-                      </button>
-                      {
+                      <div className='cn-session-aside-section'>
+                        <div className='cn-session-aside-title'>会话工具</div>
+                        <button className='cn-session-tool-row' onClick={this.handleOpenCommandAssistant}>
+                          <SearchOutlined />
+                          <span>
+                            <b>命令助手</b>
+                            <em>用中文查找常用运维命令</em>
+                          </span>
+                        </button>
+                        <button
+                          className={classnames('cn-session-tool-row', {
+                            'is-active': this.state.showBatchInput
+                          })}
+                          onClick={this.handleToggleBatchInput}
+                        >
+                          <ThunderboltOutlined />
+                          <span>
+                            <b>批量命令</b>
+                            <em>向选中的终端同时发送命令</em>
+                          </span>
+                          {this.state.showBatchInput ? <UpOutlined /> : <DownOutlined />}
+                        </button>
+                        {
                         this.state.showBatchInput
                           ? (
                             <div className='cn-session-batch-input'>
@@ -2068,16 +2095,16 @@ export default class SessionWrapper extends Component {
                             )
                           : null
                       }
-                      <button className='cn-session-tool-row' onClick={handleOpenInfoPanel}>
-                        <FontColorsOutlined />
-                        <span>
-                          <b>编码与终端信息</b>
-                          <em>查看字符集、换行和终端参数</em>
-                        </span>
-                      </button>
+                        <button className='cn-session-tool-row' onClick={handleOpenInfoPanel}>
+                          <FontColorsOutlined />
+                          <span>
+                            <b>编码与终端信息</b>
+                            <em>查看字符集、换行和终端参数</em>
+                          </span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  )
+                    )
           }
         </div>
       </aside>

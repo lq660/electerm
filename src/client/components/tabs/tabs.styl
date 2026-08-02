@@ -327,48 +327,58 @@
 // 2026-07-03 coder(lq): Light outer tab/title frame for the China workbench. Terminal canvases keep their dark theme; the app chrome should not.
 #container
   .tabs
-    height 40px !important
-    background #f8fbff !important
-    border-bottom 1px solid #cbd8ea !important
-    box-shadow 0 6px 16px rgba(15, 23, 42, .06) !important
+    height 31px !important
+    background #eef0f3 !important
+    border-bottom 1px solid #c6cbd3 !important
+    box-shadow none !important
 
   .tabs-inner,
   .tabs-wrapper
-    height 40px !important
-    background #f8fbff !important
+    height 31px !important
+    background #eef0f3 !important
 
   .tab
-    // 2026-07-22 coder(lq): Outer connection tabs are the primary navigation; keep them visually stronger than the inner terminal/file tabs.
+    // 2026-07-29 coder(lq): Use a compact FinalShell-like connection tab so ops users can scan many servers quickly.
     display inline-flex !important
     align-items center !important
-    justify-content center !important
-    gap 6px !important
-    height 37px !important
+    justify-content flex-start !important
+    gap 0 !important
+    height 28px !important
     line-height 1 !important
-    margin 3px 3px 0 0 !important
-    border 1px solid transparent !important
+    min-width 86px !important
+    max-width 170px !important
+    padding 0 24px 0 9px !important
+    margin 3px 0 0 0 !important
+    border 1px solid #cbd0d8 !important
+    border-left 0 !important
     border-bottom 0 !important
-    border-radius 6px 6px 0 0 !important
-    background transparent !important
-    color #52647a !important
-    font-size 14px !important
+    border-radius 0 !important
+    background #f7f8fa !important
+    color #3f4a5a !important
+    font-size 12px !important
+    font-weight 600 !important
 
     &:hover
-      background #edf5ff !important
-      border-color #c8dcf8 !important
-      color #1677ff !important
+      background #fff !important
+      color #1f6feb !important
 
     &.active
       background #fff !important
-      border-color #9ec5ff !important
-      color #1769e0 !important
+      border-color #aeb6c2 !important
+      color #1f6feb !important
       font-weight 700 !important
-      box-shadow 0 -1px 0 #fff inset, 0 4px 12px rgba(23, 105, 224, .10) !important
+      box-shadow inset 0 2px 0 #1f6feb !important
+
+    &.active-all
+      background #fff !important
+      color #111827 !important
+      box-shadow inset 0 2px 0 #1f6feb !important
 
     &.home-tab
-      min-width 76px
-      max-width 92px
-      padding 0 12px
+      min-width 78px !important
+      max-width 90px !important
+      padding 0 10px !important
+      border-left 1px solid #cbd0d8 !important
       color #344054 !important
 
       &:before
@@ -385,8 +395,11 @@
 
       &.active
         background #fff !important
-        border-color #9ec5ff !important
+        border-color #aeb6c2 !important
         color #1769e0 !important
+
+    > .tab-status
+      display none !important
 
     .tab-title
       min-width 0
@@ -404,6 +417,30 @@
       min-width 0
       max-width 100%
       line-height 1
+      gap 5px
+
+    .tab-title-dot
+      display inline-block
+      flex 0 0 auto
+      width 7px
+      height 7px
+      border-radius 50%
+      background #9aa4b2
+
+      &.success
+        background #22c55e
+
+      &.error
+        background #ef4444
+
+      &.processing
+        background #f59e0b
+
+    .tab-title-index
+      flex 0 0 auto
+      color #667085
+      font-size 12px
+      font-weight 700
 
     .tab-title-text
       display block
@@ -414,12 +451,20 @@
       line-height 1
 
   .tab-close
-    background #eef2f7 !important
+    display block !important
+    right 5px !important
+    width 14px !important
+    height 14px !important
+    margin-top -7px !important
+    line-height 14px !important
+    border-radius 2px !important
+    background transparent !important
     color #667085 !important
+    font-size 10px !important
 
     &:hover
-      background #f04438 !important
-      color #fff !important
+      background #e8edf3 !important
+      color #111827 !important
 
   .tabs-add-btn,
   .tabs-extra,
@@ -434,19 +479,19 @@
     display inline-flex !important
     align-items center !important
     justify-content center !important
-    width 40px
-    height 40px
-    margin 0 3px !important
+    width 31px
+    height 31px
+    margin 0 0 0 3px !important
     line-height 1 !important
 
     &.empty
-      margin 0 3px !important
+      margin 0 0 0 3px !important
 
   .tabs-extra
     display inline-flex !important
     align-items center !important
     justify-content center !important
-    height 40px !important
+    height 31px !important
     line-height 1 !important
 
   .tab-scroll-icon,

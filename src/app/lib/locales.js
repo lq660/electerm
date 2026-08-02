@@ -10,6 +10,7 @@ const localeOverrides = {
   en_us: {
     sftpPathFollowSsh: 'file path follows current terminal',
     sftpPathFollowSshTip: 'When enabled, only the active file tab follows the current active terminal directory.',
+    autoSaveTerminalCommandHistory: 'auto save executed commands',
     timeoutDesc: 'SSH/SFTP timeout (ms)',
     keepaliveIntervalDesc: 'keepalive interval',
     autoRefreshWhenSwitchToSftp: 'refresh when switching to SFTP',
@@ -196,6 +197,7 @@ const localeOverrides = {
   zh_cn: {
     sftpPathFollowSsh: '文件路径跟随当前终端',
     sftpPathFollowSshTip: '开启后，仅当前文件页签跟随当前终端目录。',
+    autoSaveTerminalCommandHistory: '自动保存执行命令',
     timeoutDesc: 'SSH/SFTP 超时时间（毫秒）',
     keepaliveIntervalDesc: '连接保活间隔',
     autoRefreshWhenSwitchToSftp: '切换到 SFTP 时自动刷新',
@@ -396,6 +398,7 @@ const localeOverrides = {
   zh_tw: {
     sftpPathFollowSsh: '檔案路徑跟隨目前終端',
     sftpPathFollowSshTip: '開啟後，只有目前檔案頁籤會跟隨目前終端目錄。',
+    autoSaveTerminalCommandHistory: '自動儲存執行命令',
     timeoutDesc: 'SSH/SFTP 逾時時間（毫秒）',
     keepaliveIntervalDesc: '連線保活間隔',
     autoRefreshWhenSwitchToSftp: '切換到 SFTP 時自動重新整理',

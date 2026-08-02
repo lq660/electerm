@@ -385,12 +385,13 @@
 .cn-session-aside-tabs
   // 2026-07-24 coder(lq): Separate AI, reusable records, and session details so the sidebar has a clear primary context.
   display grid
-  grid-template-columns repeat(3, minmax(0, 1fr))
+  grid-template-columns repeat(4, minmax(0, 1fr))
   gap 6px
   flex 0 0 auto
   margin-bottom 8px
 
   button
+    min-width 0
     height 32px
     display inline-flex
     align-items center
@@ -401,8 +402,14 @@
     background #fff
     color #667085
     cursor pointer
-    font-size 13px
+    font-size 12px
     font-weight 600
+
+    span
+      min-width 0
+      overflow hidden
+      text-overflow ellipsis
+      white-space nowrap
 
     &:hover
       border-color #b8d8ff
@@ -426,6 +433,225 @@
   display flex
   flex-direction column
   gap 8px
+
+.cn-session-aside-panel-history
+  height 100%
+  min-height 0
+
+.cn-command-history-panel
+  height 100%
+  min-height 0
+  display flex
+  flex-direction column
+  gap 8px
+  color #1f2937
+
+.cn-command-history-head
+  display grid
+  grid-template-columns 30px minmax(0, 1fr)
+  gap 8px
+  align-items center
+  padding 8px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+
+  > .anticon
+    width 30px
+    height 30px
+    display flex
+    align-items center
+    justify-content center
+    border-radius 8px
+    background #e6f1ff
+    color #1677ff
+    font-size 18px
+
+  div
+    min-width 0
+
+  strong,
+  span
+    display block
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  strong
+    color #1f2937
+    font-size 13px
+
+  span
+    margin-top 2px
+    color #667085
+    font-size 12px
+
+.cn-command-history-filter
+  padding 8px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+
+  .ant-input-affix-wrapper
+    height 32px
+    border-color #dbe3ef
+    border-radius 6px
+    background #fff
+    color #1f2937
+
+    &:hover,
+    &:focus,
+    &.ant-input-affix-wrapper-focused
+      border-color #1677ff
+      box-shadow 0 0 0 2px rgba(22, 119, 255, .1)
+
+  .ant-input
+    background #fff !important
+    color #1f2937 !important
+
+    &::placeholder
+      color #98a2b3 !important
+
+.cn-command-history-segments
+  display grid
+  grid-template-columns 1fr 1fr
+  gap 6px
+  margin-top 8px
+
+  button
+    height 28px
+    border 1px solid #dbe3ef
+    border-radius 6px
+    background #fff
+    color #667085
+    cursor pointer
+    font-size 12px
+
+    &:hover,
+    &.active
+      border-color #1677ff
+      background #eef5ff
+      color #1677ff
+
+.cn-command-history-list
+  min-height 0
+  flex 1
+  display flex
+  flex-direction column
+  gap 6px
+  overflow-y auto
+  padding-right 2px
+
+  .ant-empty
+    margin-top 42px
+    color #98a2b3
+
+.cn-command-history-item
+  display grid
+  grid-template-columns minmax(0, 1fr) auto
+  gap 6px
+  align-items stretch
+  padding 7px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+
+  &:hover
+    border-color #b8d8ff
+    background #f8fbff
+
+.cn-command-history-command
+  min-width 0
+  display flex
+  flex-direction column
+  gap 5px
+  border 0
+  background transparent
+  color #344054
+  cursor pointer
+  padding 0
+  text-align left
+
+  code
+    max-height 44px
+    overflow hidden
+    color #1f2937
+    font-family var(--font-mono), "SFMono-Regular", Consolas, monospace
+    font-size 12px
+    line-height 18px
+    word-break break-all
+
+  span
+    display flex
+    align-items center
+    gap 8px
+    color #98a2b3
+    font-size 11px
+
+  em,
+  b
+    font-style normal
+    font-weight 400
+    white-space nowrap
+
+  b
+    color #667085
+
+.cn-command-history-actions
+  display grid
+  grid-template-columns repeat(2, 26px)
+  grid-auto-rows 26px
+  gap 4px
+
+  button
+    width 26px
+    height 26px
+    display inline-flex
+    align-items center
+    justify-content center
+    border 1px solid #dbe3ef
+    border-radius 6px
+    background #fff
+    color #667085
+    cursor pointer
+
+    &:hover
+      border-color #1677ff
+      background #eef5ff
+      color #1677ff
+
+.cn-command-history-footer
+  flex 0 0 auto
+  display flex
+  align-items center
+  justify-content space-between
+  gap 8px
+  padding 7px 8px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #f8fafc
+  color #667085
+  font-size 12px
+
+  span
+    min-width 0
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  button
+    height 26px
+    flex 0 0 auto
+    padding 0 9px
+    border 1px solid #dbe3ef
+    border-radius 6px
+    background #fff
+    color #667085
+    cursor pointer
+
+    &:hover
+      border-color #ff7875
+      color #d4380d
 
 .cn-session-aside-section
   padding 8px

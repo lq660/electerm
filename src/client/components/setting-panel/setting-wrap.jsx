@@ -13,6 +13,75 @@ import { getWorkbenchAntdTheme } from '../../common/workbench-theme'
 import YunduoLogo from '../icons/yunduo-logo.jsx'
 import './setting-wrap.styl'
 
+function getCompactSettingTheme (themeConfig) {
+  const base = getWorkbenchAntdTheme(themeConfig)
+  const baseComponents = base.components || {}
+  return {
+    ...base,
+    token: {
+      ...base.token,
+      fontSize: 13,
+      fontSizeSM: 12,
+      fontSizeLG: 14,
+      controlHeight: 32,
+      controlHeightSM: 28,
+      controlHeightLG: 36,
+      lineHeight: 1.45
+    },
+    components: {
+      ...baseComponents,
+      Button: {
+        ...(baseComponents.Button || {}),
+        controlHeight: 32,
+        controlHeightSM: 28,
+        controlHeightLG: 36,
+        fontSize: 13,
+        fontSizeSM: 12,
+        paddingInline: 12,
+        paddingInlineSM: 8
+      },
+      Form: {
+        ...(baseComponents.Form || {}),
+        labelFontSize: 13,
+        marginLG: 14,
+        marginSM: 8
+      },
+      Input: {
+        ...(baseComponents.Input || {}),
+        controlHeight: 32,
+        controlHeightLG: 36,
+        fontSize: 13
+      },
+      InputNumber: {
+        ...(baseComponents.InputNumber || {}),
+        controlHeight: 32,
+        fontSize: 13
+      },
+      Modal: {
+        ...(baseComponents.Modal || {}),
+        titleFontSize: 15
+      },
+      Select: {
+        ...(baseComponents.Select || {}),
+        controlHeight: 32,
+        controlHeightLG: 36,
+        fontSize: 13
+      },
+      Table: {
+        ...(baseComponents.Table || {}),
+        cellFontSize: 13,
+        cellFontSizeSM: 12
+      },
+      Tabs: {
+        ...(baseComponents.Tabs || {}),
+        titleFontSize: 13,
+        titleFontSizeLG: 13,
+        titleFontSizeSM: 12
+      }
+    }
+  }
+}
+
 export default class SettingWrap extends Component {
   renderDrag () {
     return (
@@ -36,7 +105,7 @@ export default class SettingWrap extends Component {
       zIndex: 888,
       placement: 'left'
     }
-    const settingTheme = getWorkbenchAntdTheme(window.store.getUiThemeConfig())
+    const settingTheme = getCompactSettingTheme(window.store.getUiThemeConfig())
     return (
       <ConfigProvider theme={settingTheme}>
         <Drawer

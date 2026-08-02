@@ -102,6 +102,49 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
 // 2026-07-02 coder(lq): Final settings-dialog overrides live here because component styles load after the global workbench skin.
 .setting-wrap
+  font-size 12px
+
+  .ant-btn
+    height 32px !important
+    padding 0 12px !important
+    font-size 13px !important
+    line-height 30px !important
+    border-radius 6px !important
+
+    &.ant-btn-sm
+      height 28px !important
+      padding 0 8px !important
+      font-size 12px !important
+      line-height 26px !important
+
+  .ant-tabs-tab-btn,
+  .ant-form-item-label > label,
+  .ant-radio-button-wrapper,
+  .ant-select-selection-item,
+  .ant-select-selection-placeholder,
+  .ant-input,
+  .ant-input-number-input,
+  textarea.ant-input
+    font-size 13px !important
+
+  .ant-form-item
+    margin-bottom 14px !important
+
+  .ant-form-item-label > label
+    height 32px !important
+    line-height 32px !important
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-number
+    min-height 32px !important
+
+  textarea.ant-input
+    line-height 20px !important
+
+  .ant-select-single
+    min-height 32px !important
+
   .ant-select:not(.ant-select-customize-input) .ant-select-selector,
   .ant-select-selector,
   .ant-auto-complete .ant-input,
@@ -116,7 +159,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
   .ant-select-single .ant-select-selector,
   .ant-select-multiple .ant-select-selector
-    min-height 34px !important
+    min-height 32px !important
     height auto !important
 
   .ant-select-selection-item,

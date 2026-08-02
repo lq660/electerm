@@ -1,23 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
-    <linearGradient id="bg" x1="188" y1="112" x2="844" y2="906" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#1D75FF"/>
-      <stop offset=".58" stop-color="#147EEB"/>
+    <linearGradient id="bg" x1="180" y1="128" x2="844" y2="896" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1F7CFF"/>
       <stop offset="1" stop-color="#0891B2"/>
     </linearGradient>
-    <filter id="markShadow" x="76" y="152" width="872" height="700" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="30" stdDeviation="30" flood-color="#063D73" flood-opacity=".24"/>
+    <linearGradient id="sail" x1="380" y1="286" x2="720" y2="712" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1F7CFF"/>
+      <stop offset="1" stop-color="#0EA5E9"/>
+    </linearGradient>
+    <linearGradient id="mast" x1="508" y1="326" x2="508" y2="704" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1E3A8A"/>
+      <stop offset="1" stop-color="#15315F"/>
+    </linearGradient>
+    <filter id="softShadow" x="92" y="112" width="840" height="760" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="28" stdDeviation="32" flood-color="#063D73" flood-opacity=".20"/>
     </filter>
   </defs>
-  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="228" fill="url(#bg)"/>
   <path
-    d="M282 714c-78 0-142-60-142-134 0-70 56-128 128-133 34-104 132-180 252-180 128 0 236 90 262 210 64 20 110 78 110 148 0 36-12 63-36 80-24 17-57 26-100 26H282v-17Z"
-    fill="#F8FCFF"
-    filter="url(#markShadow)"
+    d="M284 720c-78 0-142-60-142-134 0-72 58-130 132-134 34-98 123-164 228-164 112 0 206 75 232 177 84 9 150 79 150 165 0 50-23 89-60 106-20 9-43 14-70 14H284Z"
+    fill="#FFFFFF"
+    opacity=".96"
+    filter="url(#softShadow)"
   />
   <path
-    d="M492 224c20-28 64-14 64 20v432c0 31-38 47-60 25L392 596l-118 64c-25 14-52-13-39-39l257-397Z"
-    fill="#F8FCFF"
-    filter="url(#markShadow)"
+    d="M493 326c0-10 8-18 18-18s18 8 18 18v378c0 10-8 18-18 18s-18-8-18-18V326Z"
+    fill="url(#mast)"
+    opacity=".94"
+  />
+  <path
+    d="M544 318c108 72 188 181 222 316-84-22-158-57-222-104V318Z"
+    fill="url(#sail)"
+  />
+  <path
+    d="M466 402c-78 72-127 158-154 252 58-18 108-46 154-84V402Z"
+    fill="#12386F"
+    opacity=".9"
+  />
+  <path
+    d="M333 760h346c46 0 88-9 123-25-31 58-92 97-162 97H376c-48 0-91-28-113-70 22-1 45-2 70-2Z"
+    fill="#075985"
+    opacity=".22"
   />
 </svg>

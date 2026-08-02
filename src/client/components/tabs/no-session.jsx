@@ -20,6 +20,7 @@ import {
 } from '../../common/constants'
 import { dedupeRecentHistory } from '../../common/recent-history'
 import { getWorkbenchAntdTheme, getWorkbenchTokens } from '../../common/workbench-theme'
+import { getZoomPercent } from '../../common/zoom-display'
 import './no-session.styl'
 
 function safeGroup (group) {
@@ -295,6 +296,7 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
   const uiTheme = store.getUiThemeConfig()
   const workbenchTheme = getCompactWorkbenchTheme(uiTheme)
   const workbenchTokens = getWorkbenchTokens(uiTheme)
+  const zoomPercent = getZoomPercent(store.config?.zoom)
 
   return (
     <ConfigProvider theme={workbenchTheme}>
@@ -376,6 +378,7 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
                   <span>服务器 {savedConnectionTotal}</span>
                   <span>最近 {historyItems.length}</span>
                   <span>传输 {transferTotal}</span>
+                  <span>缩放 {zoomPercent}%</span>
                 </div>
               </div>
               <div className='cn-toolbar-actions'>

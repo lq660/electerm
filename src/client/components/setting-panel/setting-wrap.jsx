@@ -10,6 +10,7 @@ import { ConfigProvider } from 'antd'
 import { sidebarWidth } from '../../common/constants'
 import AppDrag from '../tabs/app-drag'
 import { getWorkbenchAntdTheme } from '../../common/workbench-theme'
+import { getZoomPercent } from '../../common/zoom-display'
 import YunduoLogo from '../icons/yunduo-logo.jsx'
 import './setting-wrap.styl'
 
@@ -106,6 +107,7 @@ export default class SettingWrap extends Component {
       placement: 'left'
     }
     const settingTheme = getCompactSettingTheme(window.store.getUiThemeConfig())
+    const zoomPercent = getZoomPercent(window.store.config?.zoom)
     return (
       <ConfigProvider theme={settingTheme}>
         <Drawer
@@ -123,6 +125,7 @@ export default class SettingWrap extends Component {
             </div>
             <div className='cn-setting-status'>
               <span>{pageMeta.scope}</span>
+              <span>缩放 {zoomPercent}%</span>
               <b>{pageMeta.badge}</b>
             </div>
           </div>

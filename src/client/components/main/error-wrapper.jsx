@@ -7,6 +7,7 @@ import {
   isWin
 } from '../../common/constants'
 import { copy } from '../../common/clipboard'
+import YunduoLogo from '../icons/yunduo-logo.jsx'
 
 const e = window.translate
 const os = isMac ? 'macOS' : isWin ? 'Windows' : 'Linux'
@@ -70,7 +71,7 @@ export default class ErrorBoundary extends React.PureComponent {
       const { stack, message } = this.state.error
       return (
         <div className='pd3 error-wrapper'>
-          <div className='cn-error-logo'>云</div>
+          <YunduoLogo className='cn-error-logo' />
           <h1>
             <FrownOutlined className='mg1r iblock' />
             <span className='iblock mg1r'>{productName}运行异常</span>

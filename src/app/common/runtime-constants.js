@@ -47,8 +47,9 @@ module.exports = {
   trayIconPath,
   extIconPath,
   defaultUserName,
-  minWindowWidth: 590,
-  minWindowHeight: 400,
+  // Keep the redesigned workbench from restoring into the old electerm narrow layout.
+  minWindowWidth: 960,
+  minWindowHeight: 640,
   defaultLang: 'zh_cn',
   tempDir: require('os').tmpdir(),
   homeOrTmp: os.homedir() || os.tmpdir(),

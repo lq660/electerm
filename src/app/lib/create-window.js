@@ -9,6 +9,7 @@ const {
 const defaults = require('../common/default-setting')
 const {
   getWindowSize,
+  getScreenSize,
   setWindowPos
 } = require('./window-control')
 const { onClose } = require('./on-close')
@@ -59,6 +60,21 @@ exports.createWindow = async function (userConfig) {
   webviewHandler.init(win)
 
   globalState.set('win', win)
+  const maximizeWorkbenchWindow = () => {
+    if (win.isDestroyed()) {
+      return
+    }
+    const bounds = getScreenSize()
+    if (bounds.width >= minWindowWidth && bounds.height >= minWindowHeight) {
+      win.setBounds(bounds)
+    }
+    if (!win.isMaximized()) {
+      win.maximize()
+    }
+  }
+  // Cloud workbench is a desktop workspace; start maximized instead of restoring a cramped session size.
+  maximizeWorkbenchWindow()
+  win.once('ready-to-show', maximizeWorkbenchWindow)
 
   await initAppServer()
   initIpc()
@@ -77,6 +93,7 @@ exports.createWindow = async function (userConfig) {
   })
   win.loadURL(opts)
   win.webContents.once('dom-ready', () => {
+    maximizeWorkbenchWindow()
     if (isDev && process.env.ELECTERM_OPEN_DEVTOOLS === '1' && !userConfig.disableDeveloperTool) {
       win.webContents.openDevTools()
     }

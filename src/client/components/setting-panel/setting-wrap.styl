@@ -575,3 +575,174 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
       .ant-space-addon:first-of-type
         display none
+
+// 2026-08-02 coder(lq): Settings center density pass. Keep the page on a compact two-column rhythm.
+#container .setting-wrap.cn-area-settings
+  .setting-tabs-setting
+    .setting-row-left
+      width 282px !important
+      padding 8px 0 10px 14px !important
+
+    .setting-row-right
+      left 298px !important
+      padding 8px 14px 10px 0 !important
+
+  .cn-setting-column-head
+    min-height 40px !important
+    margin 0 0 8px !important
+    padding 8px 12px !important
+    border-radius 7px !important
+
+    strong
+      font-size 13px !important
+      line-height 18px !important
+
+    span
+      margin-top 1px !important
+      font-size 11px !important
+      line-height 16px !important
+
+  .item-list
+    padding 10px !important
+    border-radius 7px !important
+
+    .pd1y,
+    .pd1b
+      padding 0 0 8px !important
+
+  .item-list-wrap
+    padding 0 !important
+
+  .item-list-unit
+    min-height 32px !important
+    margin 0 0 3px !important
+    padding 0 6px !important
+    border-radius 6px !important
+    font-size 12px !important
+    line-height 18px !important
+
+    > div:first-child
+      padding 7px 38px 7px 8px !important
+
+  .list-item-edit,
+  .list-item-remove,
+  .list-item-duplicate,
+  .list-item-apply
+    top 6px !important
+
+  .setting-row-right > .form-wrap,
+  .setting-row-right > .cn-setting-detail-form
+    padding 14px 16px !important
+    border-radius 7px !important
+
+  .cn-setting-card-title,
+  .form-wrap > h2,
+  .form-wrap > .font16.bold
+    min-height 40px !important
+    margin -14px -16px 14px !important
+    padding 10px 16px !important
+    font-size 14px !important
+    line-height 20px !important
+
+    strong,
+    h3,
+    h4
+      font-size 14px !important
+      line-height 20px !important
+
+  .cn-settings-section
+    margin 0 0 12px !important
+    border-radius 7px !important
+
+  .cn-settings-section-title
+    min-height 36px !important
+    padding 8px 12px !important
+
+    strong
+      font-size 13px !important
+      line-height 18px !important
+
+    span
+      font-size 11px !important
+      line-height 16px !important
+
+  .cn-settings-section-body
+    padding 12px 12px 2px !important
+
+  .cn-settings-field
+    grid-template-columns 132px minmax(0, 1fr) !important
+    gap 10px 12px !important
+    padding 0 0 10px !important
+
+  .cn-settings-label
+    padding-top 6px !important
+
+    strong
+      font-size 12px !important
+      line-height 18px !important
+
+    span
+      margin-top 1px !important
+      font-size 11px !important
+      line-height 16px !important
+
+  .cn-settings-toggle-grid
+    grid-template-columns repeat(auto-fill, minmax(190px, 1fr)) !important
+    gap 8px 10px !important
+    padding 0 0 8px !important
+
+  .cn-settings-toggle
+    min-height 30px !important
+
+  .cn-settings-toggle-label
+    font-size 12px !important
+    line-height 18px !important
+
+  .ant-form-item
+    margin-bottom 12px !important
+
+  .ant-form-item-label > label
+    height 32px !important
+    line-height 32px !important
+    font-size 12px !important
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-number,
+  .ant-select-selector,
+  .ant-auto-complete .ant-input,
+  textarea.ant-input,
+  input.form-control,
+  .shortcut-input
+    min-height 32px !important
+
+  .cn-sync-provider-form
+    max-width none !important
+    margin 0 !important
+    padding 0 12px 12px !important
+
+    .ant-form-item
+      margin-bottom 12px !important
+
+    .ant-form-item-row
+      grid-template-columns 128px minmax(0, 1fr) !important
+      gap 10px 12px !important
+
+    .ant-form-item-label
+      width 128px !important
+
+  @media (max-width: 1100px)
+    .setting-tabs-setting
+      .setting-row-left,
+      .setting-row-right
+        width auto !important
+        left auto !important
+        padding 10px 12px !important
+
+    .cn-settings-field,
+    .cn-sync-provider-form .ant-form-item-row
+      grid-template-columns 1fr !important
+
+    .cn-sync-provider-form .ant-form-item-label
+      width auto !important
+      text-align left !important

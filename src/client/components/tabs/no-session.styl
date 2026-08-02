@@ -42,14 +42,15 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   color $cn-text
   text-align left
   min-height calc(100vh - 36px)
+  font-size 11px
 
 .cn-workbench-shell
   display grid
-  grid-template-columns minmax(640px, 1fr) 300px
-  gap 10px
-  height calc(100vh - 60px)
+  grid-template-columns minmax(680px, 1fr) 260px
+  gap 6px
+  height calc(100vh - 56px)
   min-height 0
-  padding 10px
+  padding 6px
   box-sizing border-box
 
 .cn-workbench-sidebar,
@@ -301,7 +302,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-workbench-main
   display flex
   flex-direction column
-  gap 10px
+  gap 6px
   min-width 0
   min-height 0
   height 100%
@@ -311,9 +312,9 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   display flex
   align-items center
   justify-content space-between
-  gap 12px
-  min-height 62px
-  padding 10px 12px
+  gap 10px
+  min-height 42px
+  padding 6px 9px
   border 1px solid $cn-border
   border-radius 8px
   background $cn-panel
@@ -321,45 +322,50 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
 .cn-workbench-toolbar h2
   margin 0
-  font-size 18px
-  line-height 24px
+  font-size 14px
+  line-height 18px
   font-weight 700
 
 .cn-header-meta
   display flex
   flex-wrap wrap
-  gap 6px
-  margin-top 4px
+  gap 4px
+  margin-top 2px
 
   span
-    height 22px
-    line-height 20px
-    padding 0 8px
+    height 18px
+    line-height 16px
+    padding 0 5px
     border 1px solid $cn-border-soft
     border-radius 6px
     background $cn-panel-soft
     color $cn-muted
-    font-size 11px
+    font-size 10px
     font-weight 700
 
 .cn-workbench-toolbar p
   margin 2px 0 0
   color $cn-muted
-  font-size 12px
+  font-size 11px
 
 .cn-toolbar-actions
   display flex
   flex-wrap wrap
   justify-content flex-end
-  gap 8px
+  gap 6px
 
 .cn-toolbar-actions .ant-btn
   border-radius 6px
-  height 34px
+  height 26px
+  padding 0 8px
   border-color $cn-border-strong !important
   background $cn-panel !important
   color $cn-control-text !important
+  font-size 11px
   font-weight 600
+
+  .anticon
+    font-size 12px
 
   &:hover
     border-color $cn-primary-base !important
@@ -388,9 +394,9 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-quick-connect
   display flex
   align-items center
-  gap 10px
-  padding 8px 10px
-  min-height 46px
+  gap 7px
+  padding 5px 8px
+  min-height 34px
   background $cn-panel
 
 .cn-quick-connect .quick-connect
@@ -400,48 +406,48 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-workbench-status-row
   display grid
   grid-template-columns 1fr
-  gap 12px
+  gap 8px
   flex 0 0 auto
 
 .cn-workbench-empty-info
   display grid
-  grid-template-columns 38px minmax(0, 1fr)
+  grid-template-columns 32px minmax(0, 1fr)
   align-items center
-  gap 10px
-  padding 10px 12px
-  min-height 70px
+  gap 8px
+  padding 8px 10px
+  min-height 58px
 
   > .anticon
-    width 38px
-    height 38px
+    width 32px
+    height 32px
     display flex
     align-items center
     justify-content center
     border-radius 8px
     background $cn-primary-icon-bg
     color $cn-primary-base
-    font-size 18px
+    font-size 16px
 
   div
     min-width 0
     display flex
     flex-direction column
-    gap 4px
+    gap 3px
 
   strong
     color $cn-text
-    font-size 13px
+    font-size 12px
 
   span
     color $cn-muted
-    font-size 12px
-    line-height 1.5
+    font-size 11px
+    line-height 1.45
 
 .cn-saved-connections
-  padding 12px
+  padding 8px
   display flex
   flex-direction column
-  gap 12px
+  gap 8px
   flex 1 1 0
   min-height 0
   overflow hidden
@@ -450,41 +456,41 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   display flex
   align-items center
   justify-content space-between
-  gap 12px
+  gap 8px
 
   p
-    margin 4px 0 0
+    margin 2px 0 0
     color $cn-muted
-    font-size 12px
+    font-size 11px
 
   .ant-btn
-    height 32px
+    height 26px
     border-radius 6px
     font-weight 600
 
 .cn-saved-connection-search
-  width 280px
+  width 260px
   max-width 42%
-  height 34px
+  height 28px
 
   .ant-input
-    height 32px
+    height 26px
     background transparent !important
 
 .cn-saved-connection-tools
   display flex
   align-items center
   justify-content flex-end
-  gap 8px
-  min-width 320px
+  gap 7px
+  min-width 300px
   max-width 56%
 
 .cn-saved-connection-sort
-  width 116px
-  flex 0 0 116px
+  width 108px
+  flex 0 0 108px
 
   .ant-select-selector
-    height 34px !important
+    height 28px !important
     border-color $cn-border-strong !important
     border-radius 8px !important
     background $cn-panel !important
@@ -492,7 +498,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
   .ant-select-selection-item
     color $cn-control-text !important
-    font-size 12px
+    font-size 11px
     font-weight 600
 
   .ant-select-arrow
@@ -500,14 +506,14 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
 .cn-saved-connection-tools
   .cn-saved-connection-search
-    width 280px
+    width 260px
     max-width none
-    flex 1 1 240px
+    flex 1 1 220px
 
 .cn-saved-connection-grid
   display grid
-  grid-template-columns repeat(2, minmax(0, 1fr))
-  gap 8px
+  grid-template-columns repeat(auto-fill, minmax(420px, 1fr))
+  gap 6px
   flex 1 1 auto
   min-height 0
   padding-right 4px
@@ -534,12 +540,12 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     background-clip padding-box
 
 .cn-connection-card
-  min-height 52px
+  min-height 38px
   display grid
   grid-template-columns 10px minmax(0, 1fr) auto auto
   align-items center
-  gap 8px
-  padding 8px
+  gap 5px
+  padding 4px 7px
   border 1px solid $cn-border
   border-radius 8px
   background $cn-panel
@@ -557,9 +563,9 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   min-width 0
   display grid
   grid-template-columns minmax(0, 1fr) auto
-  grid-template-rows 20px 18px
-  column-gap 8px
-  row-gap 2px
+  grid-template-rows 16px 14px
+  column-gap 6px
+  row-gap 1px
   align-items center
 
   strong,
@@ -572,7 +578,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     grid-column 1
     grid-row 1
     color $cn-text
-    font-size 13px
+    font-size 11px
     font-weight 700
 
   em
@@ -580,64 +586,66 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     grid-row 2
     color $cn-muted
     font-style normal
-    font-size 12px
+    font-size 10px
 
   span
     grid-column 2
     grid-row 1
     align-self center
-    max-width 88px
-    height 20px
-    line-height 18px
-    padding 0 6px
+    max-width 82px
+    height 16px
+    line-height 14px
+    padding 0 4px
     border 1px solid $cn-border-strong
     border-radius 5px
     background $cn-panel-soft
     color $cn-muted
-    font-size 11px
+    font-size 10px
     overflow hidden
     text-overflow ellipsis
     white-space nowrap
 
 .cn-connection-type.ant-tag
-  min-width 48px
+  min-width 38px
   margin 0
   text-align center
   border-color $cn-primary-border !important
   border-radius 5px
   background $cn-primary-soft !important
   color $cn-primary-base !important
-  font-size 11px
+  font-size 10px
   font-weight 700
 
 .cn-connection-open-btn.ant-btn
-  min-width 54px
-  height 28px
+  min-width 42px
+  height 22px
+  padding 0 8px
   border-radius 6px
+  font-size 11px
   font-weight 700
 
 .cn-empty-connections
   flex 1
-  min-height 150px
+  min-height 120px
   display grid
-  grid-template-columns 38px minmax(0, 1fr)
+  grid-template-columns 32px minmax(0, 1fr)
   align-items center
-  gap 12px
-  padding 18px
+  gap 10px
+  padding 14px
   border 1px dashed $cn-border-strong
   border-radius 8px
   background $cn-panel
 
   > .anticon
-    width 38px
-    height 38px
+    width 32px
+    height 32px
     display flex
     align-items center
     justify-content center
     border-radius 8px
     background $cn-primary-icon-bg
     color $cn-primary-base
-    font-size 18px
+    font-size 16px
 
   div
     min-width 0
@@ -647,12 +655,12 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
   strong
     color $cn-text
-    font-size 13px
+    font-size 12px
 
   span
     color $cn-muted
-    font-size 12px
-    line-height 1.5
+    font-size 11px
+    line-height 1.45
 
   .ant-btn
     border-radius 6px
@@ -661,15 +669,16 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-empty-actions
   display flex !important
   flex-direction row !important
-  gap 8px !important
-  margin-top 10px
+  gap 6px !important
+  margin-top 8px
 
 .cn-quick-connect-bar
   padding 0 !important
   align-items center
 
   .ant-btn
-    height 34px
+    height 26px
+    font-size 11px
     border-color $cn-border-strong !important
     background $cn-panel !important
     color $cn-control-text !important
@@ -680,7 +689,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
       color $cn-primary-base !important
 
   .ant-btn:last-child
-    width 42px
+    width 34px
     border-color $cn-primary-base !important
     background $cn-primary-base !important
     color $cn-on-primary !important
@@ -691,7 +700,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
       color $cn-on-primary !important
 
   .cn-quick-connect-input
-    height 34px
+    height 26px
     background $cn-panel !important
     color $cn-text !important
     border-color $cn-border-strong !important
@@ -699,25 +708,28 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-panel-title
   display flex
   align-items center
-  gap 7px
+  gap 6px
   white-space nowrap
   color $cn-control-text
   font-weight 600
-  font-size 12px
+  font-size 11px
+
+  .anticon
+    font-size 12px
 
 .cn-quick-connect .cn-panel-title
-  min-width 100px
+  min-width 88px
 
 .cn-workbench-grid
   min-height 0
   display grid
   grid-template-columns minmax(320px, 1.4fr) minmax(220px, .8fr)
   grid-template-rows minmax(180px, 1fr) minmax(172px, .9fr)
-  gap 12px
+  gap 8px
   flex 1
 
 .cn-panel
-  padding 12px
+  padding 10px
   overflow hidden
 
 .cn-terminal-preview
@@ -726,15 +738,15 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
 .cn-terminal-screen
   flex 1
-  margin-top 10px
+  margin-top 8px
   border-radius 8px
   background $cn-sidebar
   color $cn-sidebar-text
-  padding 14px
+  padding 12px
   overflow hidden
   font-family 'Maple Mono', 'SFMono-Regular', Consolas, monospace
-  font-size 12px
-  line-height 1.65
+  font-size 11px
+  line-height 1.55
 
 .cn-terminal-screen p
   margin 0 0 4px
@@ -746,27 +758,27 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-monitor-panel
   display flex
   flex-direction column
-  gap 12px
+  gap 8px
 
 .cn-metric-list
   display flex
   flex-direction column
-  gap 12px
-  margin-top 12px
+  gap 8px
+  margin-top 8px
 
 .cn-metric-list span
   display block
   margin-bottom 3px
   color $cn-muted
-  font-size 12px
+  font-size 11px
 
 .cn-network-row
   display grid
   grid-template-columns 1fr 1fr 1fr
   gap 8px
   color $cn-muted
-  font-size 12px
-  padding-top 10px
+  font-size 11px
+  padding-top 8px
   border-top 1px solid $cn-border-soft
 
 .cn-network-row strong
@@ -779,22 +791,22 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .cn-file-columns
   display grid
   grid-template-columns 1fr 1fr
-  gap 12px
-  margin-top 10px
+  gap 8px
+  margin-top 8px
 
 .cn-file-columns h3
   margin 0 0 8px
   color $cn-muted
-  font-size 12px
+  font-size 11px
   font-weight 600
 
 .cn-file-row
   display grid
   grid-template-columns 18px 1fr
-  gap 8px
+  gap 6px
   align-items center
   min-width 0
-  padding 8px
+  padding 6px
   border-radius 6px
   background $cn-panel
   border 1px solid $cn-border-soft
@@ -814,12 +826,12 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   margin-bottom 2px
 
 .cn-command-panel button
-  height 32px
+  height 28px
   border 1px solid $cn-border
   border-radius 6px
   background $cn-panel
   text-align left
-  padding 0 10px
+  padding 0 8px
 
 .cn-command-panel button:hover
   border-color $cn-primary
@@ -827,11 +839,11 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
 .cn-transfer-drawer
   display grid
-  grid-template-columns minmax(0, 180px) minmax(180px, 1fr)
+  grid-template-columns minmax(0, 170px) minmax(180px, 1fr)
   align-items center
-  gap 12px
-  padding 9px 12px
-  min-height 50px
+  gap 10px
+  padding 5px 8px
+  min-height 34px
 
 .cn-transfer-drawer strong
   display block

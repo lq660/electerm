@@ -61,6 +61,51 @@ const serverSortOptions = [
   { value: 'type', label: '类型' }
 ]
 
+function getCompactWorkbenchTheme (themeConfig) {
+  const base = getWorkbenchAntdTheme(themeConfig)
+  const baseComponents = base.components || {}
+  return {
+    ...base,
+    token: {
+      ...base.token,
+      fontSize: 11,
+      fontSizeSM: 10,
+      fontSizeLG: 13,
+      controlHeight: 28,
+      controlHeightSM: 24,
+      controlHeightLG: 30,
+      lineHeight: 1.35
+    },
+    components: {
+      ...baseComponents,
+      Button: {
+        ...(baseComponents.Button || {}),
+        controlHeight: 28,
+        controlHeightSM: 24,
+        controlHeightLG: 30,
+        fontSize: 11,
+        fontSizeSM: 10,
+        paddingInline: 8,
+        paddingInlineSM: 6
+      },
+      Input: {
+        ...(baseComponents.Input || {}),
+        controlHeight: 28,
+        fontSize: 11
+      },
+      Select: {
+        ...(baseComponents.Select || {}),
+        controlHeight: 28,
+        fontSize: 11
+      },
+      Tag: {
+        ...(baseComponents.Tag || {}),
+        fontSizeSM: 10
+      }
+    }
+  }
+}
+
 function parseTime (value) {
   const time = new Date(value || 0).getTime()
   return Number.isNaN(time) ? 0 : time
@@ -248,7 +293,7 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
     : dedupeRecentHistory(store.history || [])
 
   const uiTheme = store.getUiThemeConfig()
-  const workbenchTheme = getWorkbenchAntdTheme(uiTheme)
+  const workbenchTheme = getCompactWorkbenchTheme(uiTheme)
   const workbenchTokens = getWorkbenchTokens(uiTheme)
 
   return (

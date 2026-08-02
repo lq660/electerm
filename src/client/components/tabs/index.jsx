@@ -14,7 +14,6 @@ import {
 } from '@ant-design/icons'
 import { Dropdown } from 'antd'
 import Tab from './tab'
-import LayoutMenu from './layout-menu'
 import './tabs.styl'
 import {
   tabWidth,
@@ -201,11 +200,7 @@ export default class Tabs extends Component {
   }
 
   renderNoExtra () {
-    return (
-      <div className='tabs-extra pd1x'>
-        {this.renderLayoutMenu()}
-      </div>
-    )
+    return null
   }
 
   renderExtra () {
@@ -241,9 +236,6 @@ export default class Tabs extends Component {
         >
           <DownOutlined className='tabs-dd-icon' />
         </Dropdown>
-        {
-          this.renderLayoutMenu()
-        }
       </div>
     )
   }
@@ -340,15 +332,6 @@ export default class Tabs extends Component {
     )
   }
 
-  renderLayoutMenu = () => {
-    return (
-      <LayoutMenu
-        layout={this.props.layout}
-        visible={this.shouldRenderWindowControl()}
-      />
-    )
-  }
-
   shouldRenderWindowControl = () => {
     const { layout, batch } = this.props
     const batchToRender = {
@@ -365,7 +348,7 @@ export default class Tabs extends Component {
   }
 
   getExtraTabWidth = () => {
-    return this.shouldRenderWindowControl()
+    return !isMacJs && this.shouldRenderWindowControl()
       ? windowControlWidth
       : 0
   }

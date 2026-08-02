@@ -3,7 +3,8 @@
  */
 
 import {
-  settingMap
+  settingMap,
+  splitMap
 } from '../common/constants'
 import getInitItem from '../common/init-setting-item'
 import generate from '../common/uid'
@@ -14,11 +15,11 @@ export default Store => {
    */
   Store.prototype.getCurrentWorkspaceState = function () {
     const { store } = window
-    const { layout, tabs } = store
+    const { tabs } = store
     // Group tabs by batch and get bookmark srcIds
     const tabsByBatch = {}
     for (const tab of tabs) {
-      const batch = tab.batch || 0
+      const batch = 0
       if (!tabsByBatch[batch]) {
         tabsByBatch[batch] = []
       }
@@ -30,7 +31,7 @@ export default Store => {
       }
     }
     return {
-      layout,
+      layout: splitMap.c1,
       tabsByBatch
     }
   }
@@ -67,20 +68,19 @@ export default Store => {
     if (!workspace) {
       return
     }
-    const { layout, tabsByBatch } = workspace
+    const { tabsByBatch } = workspace
 
     // Close all existing tabs first
     store.removeTabs(() => true)
 
     // Set layout
-    store.setLayout(layout)
+    store.setLayout(splitMap.c1)
     // Open tabs for each batch
-    for (const [batchStr, tabInfos] of Object.entries(tabsByBatch)) {
-      const batch = parseInt(batchStr, 10)
+    for (const tabInfos of Object.values(tabsByBatch)) {
       for (const tabInfo of tabInfos) {
         if (tabInfo.srcId) {
           // Open from bookmark
-          window.openTabBatch = batch
+          window.openTabBatch = 0
           store.onSelectBookmark(tabInfo.srcId)
         }
       }

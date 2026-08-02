@@ -4,6 +4,7 @@
 
 import { debounce } from 'lodash-es'
 import {
+  splitMap,
   splitConfig,
   statusMap,
   paneMap,
@@ -21,6 +22,18 @@ import {
   findRecentHistoryIndex,
   normalizeRecentHistory
 } from '../common/recent-history'
+
+function collapseToSingleBatch (store, activeTabId) {
+  for (let i = 0; i < store.tabs.length; i++) {
+    if (store.tabs[i].batch !== 0) {
+      store.tabs[i].batch = 0
+    }
+  }
+  store.currentLayoutBatch = 0
+  if (activeTabId) {
+    store.activeTabId0 = activeTabId
+  }
+}
 
 export default Store => {
   Store.prototype.nextTabCount = function () {
@@ -438,7 +451,6 @@ export default Store => {
     }
     const { store } = window
     const defaultStatus = statusMap.processing
-    const { layout, currentLayoutBatch } = store
     const ntb = deepCopy(tab)
     Object.assign(ntb, {
       id: generate(),
@@ -446,24 +458,21 @@ export default Store => {
       isTransporting: undefined,
       pane: paneMap.terminal
     })
-    let maxBatch = splitConfig[layout].children
-    if (maxBatch < 2) {
-      maxBatch = 2
-    }
-    ntb.batch = (currentLayoutBatch + 1) % maxBatch
-    if (layout === 'c1') {
-      store.setLayout('c2')
-    }
+    ntb.batch = 0
     store.addTab(ntb)
   }
 
   Store.prototype.setLayout = function (layout) {
     const { store } = window
+    layout = splitMap.c1
     const prevLayout = store.layout
     const { activeTabId } = store
+    collapseToSingleBatch(store, activeTabId)
 
     // If layout hasn't changed, do nothing
     if (prevLayout === layout) {
+      ls.setItem('layout', layout)
+      store.layout = layout
       return store.focus()
     }
 

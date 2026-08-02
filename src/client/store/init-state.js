@@ -43,7 +43,7 @@ function getDefaultBookmarkGroups (bookmarks) {
 }
 
 export default () => {
-  const layout = ls.getItem('layout') || splitMap.c1
+  const layout = splitMap.c1
   return {
     // common
     wsInited: false,

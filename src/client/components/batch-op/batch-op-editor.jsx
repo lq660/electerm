@@ -17,6 +17,7 @@ import generate from '../../common/uid'
 import { safeGetItem, safeSetItem } from '../../common/safe-local-storage'
 
 const batchOpEditorKey = 'batch-op-editor-content'
+const e = window.translate
 const workflowExample = `[
   {
     "name": "Connect SSH",
@@ -110,16 +111,16 @@ export default function BatchOpEditor ({ widget }) {
       try {
         workflows = JSON.parse(value)
         if (!Array.isArray(workflows)) throw new Error('Workflow must be an array')
-      } catch (e) {
-        message.error('Invalid workflow JSON: ' + e.message)
+      } catch (error) {
+        message.error(`${e('invalidWorkflowJson')}: ${error.message}`)
         refsStatic.get('batch-op-logs')?.reset()
         return
       }
       await runner.executeWorkflow(workflows)
-      message.success('Workflow execution completed')
+      message.success(e('workflowCompleted'))
     } catch (err) {
       if (err.message !== 'Workflow aborted') {
-        message.error('Workflow execution failed: ' + err.message)
+        message.error(`${e('workflowFailed')}: ${err.message}`)
       }
     } finally {
       setExecuting(false)

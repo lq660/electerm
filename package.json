@@ -1,5 +1,6 @@
 {
   "name": "electerm",
+  "productName": "云舵工作台",
   "version": "3.15.91",
   "description": "Terminal/ssh/telnet/serialport/sftp client(linux, mac, win)",
   "main": "app.js",
@@ -27,7 +28,7 @@
     "b": "npm run clean && npm run compile && npm run prepare-file",
     "r": "./build/bin/release",
     "w": "./build/bin/web-release",
-    "t": "./node_modules/.bin/electron work/app/app.js",
+    "t": "./node_modules/.bin/electron ./work/app",
     "lock": "npm i --package-lock-only"
   },
   "license": "MIT",

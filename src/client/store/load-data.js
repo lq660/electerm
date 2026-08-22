@@ -175,6 +175,8 @@ export default (Store) => {
     store.appPath = globs.appPath
     store.exePath = globs.exePath
     store.isPortable = globs.isPortable
+    // 2026-08-04 coder(lq): Legacy keychain-backed config is ignored before this status is built; only genuinely unreadable local rows stay locked.
+    store.userConfigSaveLocked = Boolean(globs.storageStatus?.tables?.data)
     store._config = globs.config
     window.et.langs = globs.langs
     store.zoom(store.config.zoom, false, true)
@@ -228,9 +230,7 @@ export default (Store) => {
         },
         2000
       )
-      if (store.config.checkUpdateOnStart) {
-        store.onCheckUpdate(false)
-      }
+      // 2026-07-04 coder(lq): Disable automatic upstream kernel update popups while the product shell is being customized; manual checks remain available from the menu.
       store.startAutoRunWidgets().catch(err => {
         console.error('Failed to start autorun widgets:', err)
       })

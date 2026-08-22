@@ -110,7 +110,7 @@ export default function TerminalInfoDisk (props) {
   }
   return (
     <div className='terminal-info-section terminal-info-network'>
-      <div className='pd1y bold'><ApiOutlined /> Network</div>
+      <div className='terminal-info-section-title'><ApiOutlined /> 网络流量</div>
       <Table {...ps} />
     </div>
   )

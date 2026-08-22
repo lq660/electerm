@@ -10,6 +10,7 @@ import {
   LaptopOutlined
 } from '@ant-design/icons'
 import {
+  Alert,
   Button,
   Modal,
   Space,
@@ -17,17 +18,21 @@ import {
   Tag,
   Tooltip,
   Typography,
-  Input
+  Input,
+  message
 } from 'antd'
 import Search from '../common/search'
 import InputConfirm from '../common/input-confirm'
+import requestSensitiveActionAuth from '../common/sensitive-auth'
 import createTitle from '../../common/create-title'
-import { copy as copyToClipboard } from '../../common/clipboard'
 import { settingMap } from '../../common/constants'
 import './setting.styl'
 
 const { Text: TextAnt } = Typography
 const e = window.translate
+const text = key => e(key) || key
+const SENSITIVE_CLIPBOARD_CLEAR_MS = 30 * 1000
+const MISSING_SENSITIVE_COPY_RE = /asyncGlobals\[name\] is not a function|Unknown async global: copySensitiveText/
 
 export default class SettingPasswords extends Component {
   state = {
@@ -62,13 +67,16 @@ export default class SettingPasswords extends Component {
     })
 
     const groups = []
+    let index = 0
     passwordMap.forEach((bookmarksList, password) => {
       groups.push({
+        id: `password-group-${index}`,
         password,
         count: bookmarksList.length,
         bookmarks: bookmarksList,
         titles: bookmarksList.map(b => createTitle(b))
       })
+      index++
     })
 
     // Sort by count descending
@@ -77,15 +85,100 @@ export default class SettingPasswords extends Component {
     this.setState({ passwordGroups: groups })
   }
 
-  handleCopyPassword = (password) => {
-    copyToClipboard(password)
-  }
-
   showEditModal = (record) => {
     this.setState({
-      newPassword: record.password,
+      newPassword: '',
       editModalVisible: true,
       selectedBookmarks: record.bookmarks
+    })
+  }
+
+  isMissingSensitiveCopyError = (err) => {
+    return !!(err && err.message && MISSING_SENSITIVE_COPY_RE.test(err.message))
+  }
+
+  writeBrowserClipboard = async (value, clearAfter) => {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) {
+      throw new Error('当前环境不支持安全剪贴板，请重启云舵后再试')
+    }
+    const text = String(value)
+    await navigator.clipboard.writeText(text)
+    window.setTimeout(async () => {
+      try {
+        if (navigator.clipboard.readText) {
+          const current = await navigator.clipboard.readText()
+          if (current !== text) {
+            return
+          }
+        }
+        await navigator.clipboard.writeText('')
+      } catch (err) {
+      }
+    }, clearAfter)
+  }
+
+  copyWithLegacyAuth = async (record, appPassword, clearAfter) => {
+    if (!appPassword) {
+      return {
+        copied: false,
+        reason: '安全复制服务需要重启云舵后启用；未设置软件访问密码时不能使用前端兜底复制'
+      }
+    }
+    const ok = await window.pre.runGlobalAsync('checkPassword', appPassword)
+    if (!ok) {
+      return {
+        copied: false,
+        reason: '软件访问密码不正确'
+      }
+    }
+    await this.writeBrowserClipboard(record.password, clearAfter)
+    return {
+      copied: true,
+      legacy: true
+    }
+  }
+
+  handleCopyPassword = (record) => {
+    const firstTitle = record.titles && record.titles[0]
+      ? record.titles[0]
+      : '已保存连接'
+    requestSensitiveActionAuth({
+      title: '复制已保存密码',
+      message: '复制密码属于敏感操作',
+      description: '复制前需要二次授权。复制成功后，如果剪贴板内容没有被你替换，云舵会在 30 秒后自动清空。',
+      okText: '授权并复制'
+    }).then(async auth => {
+      if (!auth) {
+        return
+      }
+      const clearAfter = SENSITIVE_CLIPBOARD_CLEAR_MS
+      try {
+        const res = await window.pre.runGlobalAsync('copySensitiveText', record.password, {
+          reason: `允许云舵复制 ${firstTitle} 的已保存密码`,
+          appPassword: auth.appPassword,
+          clearAfter
+        })
+        if (!res || !res.copied) {
+          message.warning(res && res.reason ? res.reason : '未完成授权，密码未复制')
+          return
+        }
+        message.success('密码已复制，30 秒后自动清空剪贴板')
+      } catch (err) {
+        if (!this.isMissingSensitiveCopyError(err)) {
+          message.error(err && err.message ? err.message : '复制密码失败')
+          return
+        }
+        try {
+          const res = await this.copyWithLegacyAuth(record, auth.appPassword, clearAfter)
+          if (!res || !res.copied) {
+            message.warning(res && res.reason ? res.reason : '未完成授权，密码未复制')
+            return
+          }
+          message.success('密码已复制，30 秒后自动清空剪贴板；重启云舵后可启用系统级安全复制')
+        } catch (fallbackErr) {
+          message.error(fallbackErr && fallbackErr.message ? fallbackErr.message : '复制密码失败')
+        }
+      }
     })
   }
 
@@ -146,7 +239,7 @@ export default class SettingPasswords extends Component {
   getColumns = () => {
     const columns = [
       {
-        title: e('password'),
+        title: text('password'),
         dataIndex: 'password',
         key: 'password',
         render: () => {
@@ -160,7 +253,7 @@ export default class SettingPasswords extends Component {
         }
       },
       {
-        title: e('count'),
+        title: text('count') === 'count' ? '数量' : text('count'),
         dataIndex: 'count',
         key: 'count',
         width: 80,
@@ -173,7 +266,7 @@ export default class SettingPasswords extends Component {
         }
       },
       {
-        title: e('host'),
+        title: text('host') === 'host' ? '服务器' : text('host'),
         dataIndex: 'titles',
         key: 'host',
         render: (titles) => {
@@ -188,14 +281,14 @@ export default class SettingPasswords extends Component {
         }
       },
       {
-        title: e('actions'),
+        title: text('actions') === 'actions' ? '操作' : text('actions'),
         key: 'actions',
-        width: 80,
+        width: 96,
         render: (_, record) => {
           const copyProps0 = {
             type: 'text',
             icon: <CopyOutlined />,
-            onClick: () => this.handleCopyPassword(record.password)
+            onClick: () => this.handleCopyPassword(record)
           }
           const editProps0 = {
             type: 'text',
@@ -203,11 +296,11 @@ export default class SettingPasswords extends Component {
             onClick: () => this.showEditModal(record)
           }
           const copyTooltipProps = {
-            title: e('copy'),
+            title: '授权后复制密码',
             children: <Button {...copyProps0} />
           }
           const editTooltipProps = {
-            title: e('changePassword'),
+            title: text('changePassword') === 'changePassword' ? '重置这一组连接密码' : text('changePassword'),
             children: <Button {...editProps0} />
           }
           const spaceProps0 = {
@@ -231,7 +324,8 @@ export default class SettingPasswords extends Component {
       return (
         <div className='setting-passwords-empty'>
           <LaptopOutlined style={{ fontSize: 48, color: '#ccc' }} />
-          <p>{e('noPasswordsFound')}</p>
+          <p>暂无已保存密码</p>
+          <span>保存服务器连接密码后，可在这里按密码聚合维护。</span>
         </div>
       )
     }
@@ -239,12 +333,12 @@ export default class SettingPasswords extends Component {
     const searchProps0 = {
       value: search,
       onChange: this.handleSearchChange,
-      placeholder: e('search')
+      placeholder: text('search') === 'search' ? '搜索服务器' : text('search')
     }
     const tableProps0 = {
       dataSource: data,
       columns: this.getColumns(),
-      rowKey: 'password',
+      rowKey: 'id',
       pagination: { ...pagination, showSizeChanger: true },
       onChange: this.handleTableChange,
       size: 'small'
@@ -262,32 +356,40 @@ export default class SettingPasswords extends Component {
     const { editModalVisible, newPassword, selectedBookmarks } = this.state
 
     const modalProps0 = {
-      title: e('changePassword'),
+      title: text('changePassword') === 'changePassword' ? '修改密码' : text('changePassword'),
       open: editModalVisible,
       onCancel: this.handleEditCancel,
       footer: null
     }
 
     return (
-      <div className='setting-passwords'>
-        <div className='setting-passwords-header'>
-          <h3>
-            <KeyOutlined /> {e('passwords')}
-          </h3>
+      <div className='form-wrap pd1y pd2x cn-setting-detail-form setting-passwords'>
+        <div className='cn-setting-card-title setting-passwords-header'>
+          <strong>
+            <KeyOutlined /> 密码管理
+          </strong>
+          <span>按服务器连接聚合和维护保存的密码，默认不明文展示或复制</span>
         </div>
 
         {this.renderContent()}
 
         <Modal {...modalProps0}>
           <div className='password-edit-form'>
+            <Alert
+              type='info'
+              showIcon
+              className='mg1b'
+              message='出于安全考虑，这里不会显示原密码'
+              description='输入新密码后，会同步更新这一组使用相同旧密码的连接。'
+            />
             <InputConfirm
               value={newPassword}
               onChange={this.handlePasswordChange}
-              placeholder={e('newPassword')}
+              placeholder={text('newPassword') === 'newPassword' ? '请输入新密码' : text('newPassword')}
               inputComponent={Input.Password}
             />
             <div className='affected-bookmarks pd2y'>
-              <h3>{e('bookmarks')}</h3>
+              <h3>影响的服务器</h3>
               {
                 selectedBookmarks.map(b => (
                   <p key={b.id}>

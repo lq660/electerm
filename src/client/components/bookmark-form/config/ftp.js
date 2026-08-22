@@ -27,7 +27,7 @@ const ftpConfig = {
       fields: [
         commonFields.category,
         commonFields.colorTitle,
-        { type: 'input', name: 'host', label: () => e('host'), rules: [{ required: true, message: e('host') + ' required' }] },
+        { type: 'input', name: 'host', label: () => e('host'), rules: [{ required: true, message: '请输入主机地址' }] },
         commonFields.port,
         { type: 'profileItem', name: '__profile__', label: '', profileFilter: d => !isEmpty(d.ftp) },
         { type: 'input', name: 'user', label: () => e('username') },

@@ -157,7 +157,7 @@ export default function renderConnectionHopping (props) {
       )
     },
     {
-      title: 'NO.',
+      title: '序号',
       dataIndex: 'index',
       key: 'index',
       render: (k) => k

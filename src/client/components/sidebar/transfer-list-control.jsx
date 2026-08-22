@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import {
+  Button,
   Select
 } from 'antd'
 import Transport from './transport-ui'
@@ -132,7 +133,7 @@ export default class TransferModalUI extends Component {
     const all = [
       {
         id: 'all',
-        title: 'All'
+        title: '全部任务'
       },
       ...groups
     ]
@@ -159,32 +160,35 @@ export default class TransferModalUI extends Component {
   }
 
   render () {
+    const pausing = this.computePausing()
     return (
-      <div className='pd1t'>
-        <div className='transports-wrap-side fix pd1y'>
-          <div
-            className='fleft'
-          >
+      <div className='pd1t cn-transfer-task-view'>
+        <div className='transports-wrap-side cn-transfer-toolbar'>
+          <div className='cn-transfer-filter'>
             {
               this.renderFilters()
             }
           </div>
-          <div className='fright'>
-            <span
-              className='pointer'
+          <div className='cn-transfer-actions'>
+            <Button
+              size='small'
+              type='text'
+              icon={this.renderTransportIcon()}
               onClick={this.handlePauseOrResumeAll}
             >
-              {this.renderTransportIcon()} {this.computePercent()}%({this.computeLeftTime()})
-              <span className='mg1x'>
-                [{this.getCurrentTransports().length} / {this.getTransferList().length}]
-              </span>
+              {pausing ? '继续全部' : '暂停全部'}
+            </Button>
+            <span className='cn-transfer-progress'>
+              {this.computePercent()}% / 剩余 {this.computeLeftTime()} / {this.getCurrentTransports().length} / {this.getTransferList().length}
             </span>
-            <span
-              className='color-red pointer'
+            <Button
+              size='small'
+              danger
+              type='text'
               onClick={this.handleCancelAll}
             >
-              {e('cancelAll')}
-            </span>
+              {e('cancelAll') || '全部取消'}
+            </Button>
           </div>
         </div>
         {this.renderTransfers()}

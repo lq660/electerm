@@ -114,8 +114,8 @@ export class XmodemClient extends TransferClientBase {
     this.writeBanner('SEND', null)
 
     const files = await this.openFileSelect({
-      title: 'Choose file to send via XMODEM',
-      message: 'Choose file to send via XMODEM'
+      title: window.translate('chooseFileToSendXmodem'),
+      message: window.translate('chooseFileToSendXmodem')
     })
     if (files && files.length > 0) {
       this.sendToServer({
@@ -177,8 +177,8 @@ export class XmodemClient extends TransferClientBase {
 
     // Ask user to select files
     const files = await this.openFileSelect({
-      title: 'Choose file(s) to send via XMODEM',
-      message: 'Choose file(s) to send via XMODEM'
+      title: window.translate('chooseFilesToSendXmodem'),
+      message: window.translate('chooseFilesToSendXmodem')
     })
     if (files && files.length > 0) {
       this.sendToServer({

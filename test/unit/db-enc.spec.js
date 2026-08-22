@@ -11,6 +11,7 @@ const assert = require('node:assert/strict')
 const os = require('os')
 const fs = require('fs')
 const path = require('path')
+const { DatabaseSync } = require('node:sqlite')
 
 // ---------------------------------------------------------------------------
 // Simple reversible enc/dec for tests (XOR-rotate + base64)
@@ -168,6 +169,72 @@ describe('sqlite createDb', () => {
       assert.equal(uc.value, 'topSecret123', 'userConfig value should be decrypted')
       assert.ok(ver, 'should find version')
       assert.equal(ver.value, '1.0.0', 'version value should be readable')
+    })
+
+    test('locked userConfig can only be rebuilt with force', async () => {
+      const dbPath = path.join(dbFolder, 'electerm_data.db')
+      const rawDb = new DatabaseSync(dbPath)
+      rawDb.prepare(
+        'INSERT OR REPLACE INTO data (_id, data) VALUES (?, ?)'
+      ).run('userConfig', 'enc:not-json')
+      rawDb.close()
+
+      const locked = await db.dbAction('data', 'findOne', { _id: 'userConfig' })
+      assert.equal(locked, null)
+      await assert.rejects(
+        db.dbAction('data', 'update', { _id: 'userConfig' }, { _id: 'userConfig', apiKeyAI: 'new-key' }, { upsert: true }),
+        /锁定的旧版加密数据/
+      )
+
+      await db.dbAction(
+        'data',
+        'update',
+        { _id: 'userConfig' },
+        { _id: 'userConfig', apiKeyAI: 'new-key' },
+        { upsert: true, force: true }
+      )
+      const rebuilt = await db.dbAction('data', 'findOne', { _id: 'userConfig' })
+      assert.equal(rebuilt.apiKeyAI, 'new-key')
+    })
+
+    test('legacy safeStorage userConfig is ignored and does not lock future local saves', async () => {
+      const legacyTmpDir = makeTmpDir()
+      const legacyDbFolder = path.join(legacyTmpDir, 'electerm', 'users', 'testuser')
+      const legacyDb = createDb(legacyTmpDir, 'testuser', {
+        enc: simpleEnc,
+        dec: (str) => {
+          if (str.startsWith('v2:safe:')) {
+            const error = new Error('legacy safe storage disabled')
+            error.code = 'SAFE_STORAGE_DISABLED'
+            throw error
+          }
+          return simpleDec(str)
+        }
+      })
+      const dbPath = path.join(legacyDbFolder, 'electerm_data.db')
+      const rawDb = new DatabaseSync(dbPath)
+      rawDb.prepare(
+        'INSERT OR REPLACE INTO data (_id, data) VALUES (?, ?)'
+      ).run('userConfig', 'enc:v2:safe:legacy-ciphertext')
+      rawDb.close()
+
+      try {
+        const legacyConfig = await legacyDb.dbAction('data', 'findOne', { _id: 'userConfig' })
+        assert.equal(legacyConfig, null)
+        assert.equal(legacyDb.getStorageStatus().lockedCount, 0)
+
+        await legacyDb.dbAction(
+          'data',
+          'update',
+          { _id: 'userConfig' },
+          { _id: 'userConfig', apiKeyAI: 'new-local-key' },
+          { upsert: true }
+        )
+        const rebuilt = await legacyDb.dbAction('data', 'findOne', { _id: 'userConfig' })
+        assert.equal(rebuilt.apiKeyAI, 'new-local-key')
+      } finally {
+        fs.rmSync(legacyTmpDir, { recursive: true, force: true })
+      }
     })
 
     test('profiles table is encrypted', async () => {

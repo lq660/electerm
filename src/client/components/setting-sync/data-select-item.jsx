@@ -11,6 +11,7 @@ export default function DataSelectItem (props) {
   } = props
   const boxProps = {
     checked,
+    className: 'cn-sync-data-option',
     onChange,
     'data-key': value
   }

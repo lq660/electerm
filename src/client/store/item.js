@@ -17,6 +17,15 @@ export default Store => {
   Store.prototype.addItems = function (objs, type) {
     const { store } = window
     const items = store.getItems(type)
+    if (type === settingMap.bookmarks) {
+      const createdAt = Date.now()
+      objs.forEach(item => {
+        // 2026-07-20 coder(lq): Keep creation time on saved server resources so the home page can sort by add time without relying on list order.
+        if (!item.createdAt) {
+          item.createdAt = createdAt
+        }
+      })
+    }
     items.push(...objs)
   }
 

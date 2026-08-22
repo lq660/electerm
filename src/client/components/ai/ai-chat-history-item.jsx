@@ -10,17 +10,41 @@ import {
 import {
   CopyOutlined,
   CloseOutlined,
+  BookOutlined,
   CaretDownOutlined,
   CaretRightOutlined
 } from '@ant-design/icons'
 import { copy } from '../../common/clipboard'
+import createName from '../../common/create-title'
+import uid from '../../common/uid'
+import { safeGetItemJSON, safeSetItemJSON } from '../../common/safe-local-storage'
+import message from '../common/message'
+import {
+  buildSolutionSummaryPrompt,
+  extractSolutionCommandsFromToolCalls,
+  getSessionRecentCommands,
+  getSolutionConnectionKey,
+  mergeSolutionRecord,
+  normalizeSolutionRecord,
+  parseSolutionSummary,
+  solutionRecordsChangedEvent,
+  solutionRecordStorageKey
+} from '../../common/solution-record-utils.mjs'
+import {
+  canCreateSolutionRecord,
+  getSolutionRecordLimit
+} from '../../common/feature-plans'
+
+const e = window.translate
 
 export default function AIChatHistoryItem ({ item }) {
   const [showOutput, setShowOutput] = useState(true)
   const [isStreaming, setIsStreaming] = useState(false)
+  const [savingRecord, setSavingRecord] = useState(false)
   const abortRef = useRef(false)
   const {
     prompt,
+    requestPrompt,
     sessionId,
     nameAI,
     modelAI,
@@ -29,10 +53,39 @@ export default function AIChatHistoryItem ({ item }) {
     apiPathAI,
     apiKeyAI,
     proxyAI,
+    authHeaderNameAI,
     languageAI,
     mode,
     toolCalls
   } = item
+
+  function getCurrentSolutionTab () {
+    const tabs = typeof window.store.getTabs === 'function' ? window.store.getTabs() : window.store.tabs || []
+    return tabs.find(tab => tab.id === item.sessionRootId) || tabs.find(tab => tab.id === window.store.activeTabId) || {}
+  }
+
+  function getSolutionTargetInfo () {
+    const tab = getCurrentSolutionTab()
+    const host = tab.host
+      ? `${tab.username ? tab.username + '@' : ''}${tab.host}${tab.port ? ':' + tab.port : ''}`
+      : '本机'
+    return {
+      tab,
+      serverName: createName(tab) || '当前服务器',
+      host
+    }
+  }
+
+  function getExecutedCommands () {
+    const toolCommands = extractSolutionCommandsFromToolCalls(toolCalls)
+    if (toolCommands.length) {
+      return toolCommands
+    }
+    return getSessionRecentCommands(
+      window.store.terminalCommandHistory,
+      item.terminalSessionId || item.sessionRootId
+    )
+  }
 
   function toggleOutput () {
     setShowOutput(!showOutput)
@@ -72,9 +125,10 @@ export default function AIChatHistoryItem ({ item }) {
 
   const startRequest = useCallback(async () => {
     try {
+      const aiPrompt = requestPrompt || prompt
       const aiResponse = await window.pre.runGlobalAsync(
         'AIchat',
-        prompt,
+        aiPrompt,
         modelAI,
         buildRole(),
         baseURLAI,
@@ -107,7 +161,7 @@ export default function AIChatHistoryItem ({ item }) {
       window.store.removeAiHistory(item.id)
       window.store.onError(error)
     }
-  }, [prompt, modelAI, baseURLAI, apiPathAI, apiKeyAI, proxyAI, item.id, pollStreamContent])
+  }, [prompt, requestPrompt, modelAI, baseURLAI, apiPathAI, apiKeyAI, proxyAI, item.id, pollStreamContent])
 
   const startAgentRequest = useCallback(async () => {
     abortRef.current = false
@@ -118,10 +172,11 @@ export default function AIChatHistoryItem ({ item }) {
       apiPathAI,
       apiKeyAI,
       proxyAI,
+      authHeaderNameAI,
       languageAI
     }
     await runAgentLoop(item, config, abortRef, setIsStreaming)
-  }, [modelAI, roleAI, baseURLAI, apiPathAI, apiKeyAI, proxyAI, languageAI, item.id])
+  }, [modelAI, roleAI, baseURLAI, apiPathAI, apiKeyAI, proxyAI, authHeaderNameAI, languageAI, item.id])
 
   useEffect(() => {
     if (item.pending) {
@@ -161,7 +216,7 @@ export default function AIChatHistoryItem ({ item }) {
     return (
       <AIStopIcon
         onClick={handleStop}
-        title='Stop this AI request'
+        title={e('stopAiRequest')}
       />
     )
   }
@@ -187,25 +242,97 @@ export default function AIChatHistoryItem ({ item }) {
     copy(prompt)
   }
 
+  async function handleSaveSolutionRecord () {
+    const finalResponse = String(item.response || '').trim()
+    if (!finalResponse) {
+      message.warning('AI 还没有生成可保存的结果')
+      return
+    }
+    const { tab, serverName, host } = getSolutionTargetInfo()
+    const commands = getExecutedCommands()
+    const conversation = [{
+      prompt,
+      response: finalResponse
+    }]
+    setSavingRecord(true)
+    try {
+      let summary = null
+      if (!window.store.aiConfigMissing()) {
+        try {
+          const response = await window.pre.runGlobalAsync(
+            'AIchat',
+            buildSolutionSummaryPrompt({
+              serverName,
+              host,
+              commands,
+              conversation
+            }),
+            modelAI,
+            '你只根据提供的事实整理处理记录，返回严格 JSON。',
+            baseURLAI,
+            apiPathAI,
+            apiKeyAI,
+            proxyAI,
+            false,
+            authHeaderNameAI
+          )
+          if (!response?.error) {
+            summary = parseSolutionSummary(response?.response)
+          }
+        } catch {
+          // 2026-07-24 coder(lq): Saving should still work when the second-pass AI structuring call is unavailable.
+          summary = null
+        }
+      }
+      const now = Date.now()
+      const record = normalizeSolutionRecord({
+        id: uid(),
+        connectionKey: getSolutionConnectionKey(tab),
+        serverName,
+        host,
+        title: summary?.title || prompt.slice(0, 28),
+        problem: summary?.problem || prompt,
+        summary: summary?.summary || finalResponse,
+        commands: summary?.commands?.length ? summary.commands : commands,
+        tags: summary?.tags || [],
+        createdAt: now,
+        updatedAt: now
+      })
+      const records = safeGetItemJSON(solutionRecordStorageKey, [])
+      if (!canCreateSolutionRecord(window.store.config, records)) {
+        message.warning(`个人版最多保存 ${getSolutionRecordLimit(window.store.config)} 条处理记录，请升级后继续保存。`)
+        window.store.openSubscriptionSetting()
+        return
+      }
+      safeSetItemJSON(solutionRecordStorageKey, mergeSolutionRecord(records, record))
+      window.dispatchEvent(new window.CustomEvent(solutionRecordsChangedEvent))
+      message.success('已保存到处理记录')
+    } catch (error) {
+      message.error(`保存处理记录失败：${error.message}`)
+    } finally {
+      setSavingRecord(false)
+    }
+  }
+
   function renderTitle () {
     return (
       <div>
         {nameAI && (
           <p>
-            <b>Name:</b> {nameAI}
+            <b>{e('name')}:</b> {nameAI}
           </p>
         )}
         <p>
-          <b>Model:</b> {modelAI}
+          <b>{e('model')}:</b> {modelAI}
         </p>
         <p>
-          <b>Role:</b> {roleAI}
+          <b>{e('role')}:</b> {roleAI}
         </p>
         <p>
-          <b>Base URL:</b> {baseURLAI}
+          <b>{e('baseURL')}:</b> {baseURLAI}
         </p>
         <p>
-          <b>Time:</b> {new Date(item.timestamp).toLocaleString()}
+          <b>{e('time')}:</b> {new Date(item.timestamp).toLocaleString()}
         </p>
         <p>
           <CopyOutlined
@@ -234,6 +361,24 @@ export default function AIChatHistoryItem ({ item }) {
     )
   }
 
+  function renderSolutionRecordAction () {
+    if (isStreaming || !String(item.response || '').trim()) {
+      return null
+    }
+    return (
+      <div className='ai-solution-record-actions'>
+        <button
+          disabled={savingRecord}
+          onClick={handleSaveSolutionRecord}
+          title='AI 会整理当前问题、回复结果和实际执行命令，再保存到处理记录'
+        >
+          <BookOutlined />
+          <span>{savingRecord ? '整理保存中' : 'AI 整理并保存'}</span>
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className='chat-history-item'>
       <div className='mg1y'>
@@ -241,8 +386,13 @@ export default function AIChatHistoryItem ({ item }) {
           <Alert {...alertProps} />
         </Tooltip>
       </div>
-      {renderToolCalls()}
-      {showOutput && <AIOutput item={item} />}
+      {showOutput && (
+        <div className='ai-history-item-body'>
+          {renderToolCalls()}
+          <AIOutput item={item} />
+          {renderSolutionRecordAction()}
+        </div>
+      )}
       {renderStopButton()}
     </div>
   )

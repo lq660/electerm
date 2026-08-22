@@ -32,6 +32,7 @@ export default {
   terminalType: 'xterm-256color',
   keepaliveCountMax: 10,
   keyword2FA: 'verification code,otp,one-time,two-factor,2fa,totp,authenticator,duo,yubikey,security code,mfa,passcode',
+  enableTerminalLogHighlight: true,
   saveTerminalLogToFile: false,
   checkUpdateOnStart: true,
   cursorBlink: false,
@@ -41,7 +42,7 @@ export default {
   defaultEditor: '',
   terminalWordSeparator: './\\()"\'-:,.;<>~!@#$%^&*|+=[]{}`~ ?',
   confirmBeforeExit: false,
-  initDefaultTabOnStart: true,
+  initDefaultTabOnStart: false,
   screenReaderMode: false,
   autoRefreshWhenSwitchToSftp: false,
   addTimeStampToTermLog: false,
@@ -72,10 +73,13 @@ export default {
   proxyAI: '',
   sessionLogPath: '',
   sshSftpSplitView: false,
+  autoSaveTerminalCommandHistory: true,
   showCmdSuggestions: false,
   autoReconnectTerminal: false,
   startDirectoryLocal: '',
   allowMultiInstance: false,
   disableDeveloperTool: false,
-  dragDropBehavior: 'ask'
+  dragDropBehavior: 'ask',
+  licensePlan: 'personal',
+  licenseExpiresAt: ''
 }

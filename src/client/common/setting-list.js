@@ -3,12 +3,17 @@ import {
   settingShortcutsId,
   settingTerminalId,
   settingAiId,
-  settingPasswordsId
+  settingPasswordsId,
+  settingSubscriptionId
 } from '../common/constants'
 
 const e = window.translate
 
 export default () => ([
+  {
+    id: settingSubscriptionId,
+    title: '版本与订阅'
+  },
   {
     id: settingTerminalId,
     title: e('terminal')

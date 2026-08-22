@@ -14,9 +14,9 @@ export default function SerialPathSelector ({
   return (
     <FormItem
       {...formItemLayout}
-      label='path'
+      label={e('path')}
       rules={[{
-        required: true, message: 'path required'
+        required: true, message: '请输入路径'
       }]}
       normalize={props.trim}
     >
@@ -31,7 +31,7 @@ export default function SerialPathSelector ({
       </FormItem>
       <Spin spinning={loaddingSerials}>
         <span onClick={store.handleGetSerials} className='pointer'>
-          <ReloadOutlined /> {e('reload')} serials
+          <ReloadOutlined /> {e('reload')} {e('serials')}
         </span>
       </Spin>
     </FormItem>

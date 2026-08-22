@@ -5,8 +5,6 @@ import defaultSetting from '../../../common/default-setting.js'
 import { createBaseInitValues, getTerminalDefaults, getSshDefaults, getTerminalBackgroundDefaults, getAuthTypeDefault } from '../common/init-values.js'
 import { sshAuthFields, sshSettings, quickCommandsTab, sshTunnelTab, connectionHoppingTab } from './common-fields.js'
 
-const e = window.translate
-
 const sshConfig = {
   key: connectionMap.ssh,
   type: connectionMap.ssh,
@@ -35,12 +33,12 @@ const sshConfig = {
   tabs: () => [
     {
       key: 'auth',
-      label: e('auth'),
+      label: '基础信息',
       fields: sshAuthFields
     },
     {
       key: 'settings',
-      label: e('settings'),
+      label: '高级设置',
       fields: sshSettings
     },
     quickCommandsTab(),

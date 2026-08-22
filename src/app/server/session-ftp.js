@@ -304,3 +304,14 @@ class Ftp extends TerminalBase {
 }
 
 exports.Ftp = commonExtends(Ftp)
+
+exports.test = async function testFtpConnection (options) {
+  const session = new Ftp(options)
+  const client = await session.createConnectedClient(options)
+  try {
+    await client.pwd()
+    return true
+  } finally {
+    await client.close().catch(() => {})
+  }
+}

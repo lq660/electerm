@@ -7,11 +7,11 @@ import { PureComponent } from 'react'
 import { getLocalFileInfo } from '../sftp/file-read'
 
 /**
- * Open a single file select dialog
+ * Open a file select dialog
  * Supports browser upload in web app mode
- * @returns {Promise<Object|null>} - File object with path info or null if cancelled
+ * @returns {Promise<Object|Object[]|null>} - File object(s) with path info or null if cancelled
  */
-const openFileSelect = async () => {
+const openFileSelect = async (multiple = false) => {
   const properties = [
     'openFile',
     'showHiddenFiles',
@@ -19,9 +19,13 @@ const openFileSelect = async () => {
     'treatPackageAsDirectory',
     'dontAddToRecent'
   ]
+  if (multiple) {
+    properties.push('multiSelections')
+  }
+  const title = window.translate(multiple ? 'chooseFiles' : 'chooseFile')
   const files = await window.api.openDialog({
-    title: 'Choose a file',
-    message: 'Choose a file',
+    title,
+    message: title,
     properties
   }).catch(() => false)
   if (!files) {
@@ -29,14 +33,21 @@ const openFileSelect = async () => {
   }
   // Browser upload returns { fileContent, fileName }
   if (files.fileContent !== undefined) {
-    return files
+    return multiple ? [files] : files
+  }
+  if (Array.isArray(files) && files[0]?.fileContent !== undefined) {
+    return multiple ? files : files[0]
   }
   if (!files.length) {
     return null
   }
-  const filePath = files[0]
-  const stat = await getLocalFileInfo(filePath)
-  return { ...stat, filePath, path: filePath }
+  const selectedPaths = multiple ? files : [files[0]]
+  // 2026-07-14 coder(lq): Preserve every native-dialog selection so batch resource imports can parse files together.
+  const selectedFiles = await Promise.all(selectedPaths.map(async filePath => {
+    const stat = await getLocalFileInfo(filePath)
+    return { ...stat, filePath, path: filePath }
+  }))
+  return multiple ? selectedFiles : selectedFiles[0]
 }
 
 /**
@@ -46,16 +57,16 @@ const openFileSelect = async () => {
  */
 export default class Upload extends PureComponent {
   handleClick = async () => {
-    const { beforeUpload, disabled } = this.props
+    const { beforeUpload, disabled, multiple } = this.props
     if (disabled) {
       return
     }
-    const file = await openFileSelect()
+    const file = await openFileSelect(Boolean(multiple))
     if (!file) {
       return
     }
     if (beforeUpload) {
-      beforeUpload(file)
+      await beforeUpload(file)
     }
   }
 

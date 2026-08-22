@@ -4,7 +4,8 @@ import { notification } from '../common/notification'
 import * as ls from '../../common/safe-local-storage'
 import {
   sshConfigKey,
-  sshConfigLoadKey
+  sshConfigLoadKey,
+  newBookmarkIdPrefix
 } from '../../common/constants'
 
 const e = window.translate
@@ -40,23 +41,25 @@ function showNotification () {
 }
 
 export default function SshConfigLoadNotify (props) {
-  const { settingTab, showModal, sshConfigs } = props
+  const { settingTab, settingItem = {}, showModal, sshConfigs } = props
 
   useEffect(() => {
     const ignoreSshConfig = ls.getItem(sshConfigKey)
     const sshConfigLoaded = ls.getItem(sshConfigLoadKey)
+    const isNewConnection = settingItem.id?.startsWith(newBookmarkIdPrefix)
     const shouldShow =
       sshConfigs.length &&
       ignoreSshConfig !== 'yes' &&
       settingTab === 'bookmarks' &&
       showModal &&
+      !isNewConnection &&
       sshConfigLoaded !== 'yes' &&
       window.store.hasNodePty
 
     if (shouldShow) {
       showNotification()
     }
-  }, [settingTab, showModal, sshConfigs.length])
+  }, [settingTab, settingItem.id, showModal, sshConfigs.length])
 
   return null
 }

@@ -7,6 +7,7 @@ module.exports = exports.default = {
   sshReadyTimeout: 50000,
   scrollback: 3000,
   onStartSessions: [],
+  language: 'zh_cn',
   fontSize: 16,
   fontFamily: 'Maple Mono, mono, courier-new, courier, monospace',
   execWindows: 'System32/WindowsPowerShell/v1.0/powershell.exe',
@@ -27,6 +28,7 @@ module.exports = exports.default = {
   rendererType: 'canvas',
   terminalType: 'xterm-256color',
   keepaliveCountMax: 10,
+  enableTerminalLogHighlight: true,
   saveTerminalLogToFile: false,
   checkUpdateOnStart: true,
   cursorBlink: false,
@@ -36,7 +38,7 @@ module.exports = exports.default = {
   defaultEditor: '',
   terminalWordSeparator: './\\()"\'-:,.;<>~!@#$%^&*|+=[]{}`~ ?',
   confirmBeforeExit: false,
-  initDefaultTabOnStart: true,
+  initDefaultTabOnStart: false,
   screenReaderMode: false,
   autoRefreshWhenSwitchToSftp: false,
   addTimeStampToTermLog: false,
@@ -71,5 +73,7 @@ module.exports = exports.default = {
   startDirectoryLocal: '',
   allowMultiInstance: false,
   disableDeveloperTool: false,
-  dragDropBehavior: 'ask'
+  dragDropBehavior: 'ask',
+  licensePlan: 'personal',
+  licenseExpiresAt: ''
 }

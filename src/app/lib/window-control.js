@@ -95,8 +95,8 @@ exports.getWindowSizeDep = async () => {
   const fh = height / screenHeight
   let w = maxWidth * fw
   let h = maxHeight * fh
-  const minW = minWindowWidth
-  const minH = minWindowHeight
+  const minW = Math.min(minWindowWidth, maxWidth)
+  const minH = Math.min(minWindowHeight, maxHeight)
   if (w < minW) {
     w = minW
   }

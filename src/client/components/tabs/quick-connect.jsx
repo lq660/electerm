@@ -56,7 +56,7 @@ export default function QuickConnect ({ batch, inputOnly }) {
 
     const opts = window.store.parseQuickConnect(inputValue)
     if (!opts) {
-      return message.error('Format error, please check the input', 10)
+      return message.error('连接格式不正确，请检查协议、账号、地址和端口', 10)
     }
 
     connectWithOptions(opts, batch)
@@ -72,9 +72,9 @@ export default function QuickConnect ({ batch, inputOnly }) {
       ref: inputRef,
       value: inputValue,
       onChange: handleChange,
-      className: 'width-100 quick-connect-input',
+      className: 'width-100 quick-connect-input cn-quick-connect-input',
       onPressEnter: handleConnect,
-      placeholder: 'ssh|rdp|vnc|spice|serial|http|https://[username]:[password]@host:port?opts={...}',
+      placeholder: '输入 ssh://user@host:22 或直接填写 user@host:22 快速连接',
       prefix: inputOnly ? <HelpIcon link={wiki} /> : undefined
     }
     const iconProps = {
@@ -86,7 +86,7 @@ export default function QuickConnect ({ batch, inputOnly }) {
       icon: <ThunderboltOutlined />
     }
     return (
-      <Space.Compact className='pd1y pd2x width-100'>
+      <Space.Compact className='pd1y pd2x width-100 cn-quick-connect-bar'>
         <Button
           {...iconsProps1}
         />

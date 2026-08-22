@@ -2,11 +2,15 @@
  * tab title create rule
  */
 
-import {
-  terminalLocalType
-} from './constants'
-
 const e = window.translate
+
+function normalizeTitle (title) {
+  // 2026-07-04 coder(lq): Upstream local terminal titles may stay in English; show a clear Chinese tab label in our workbench chrome.
+  if (title === 'New terminal' || title === 'new terminal' || title === e('newTerminal')) {
+    return '本地终端'
+  }
+  return title
+}
 
 function maskHost (hostOrIp = '') {
   if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostOrIp)) {
@@ -29,7 +33,7 @@ export default function createTitle (res, hide = true) {
   const fixTitle = `${username || ''}@${h}:${port}`
   const extra = host || path ? (path || fixTitle) : (url || '')
   let f = title
-    ? `${title}` + (extra ? ` - ${extra}` : '')
+    ? `${normalizeTitle(title)}` + (extra ? ` - ${extra}` : '')
     : extra
   if (connectionHoppings && connectionHoppings.length) {
     f = `[⋙]${f}`
@@ -45,7 +49,16 @@ export default function createTitle (res, hide = true) {
   if (type && type !== 'ssh') {
     f = `[${type}]${f}`
   }
-  return f || e(terminalLocalType)
+  return f || '本地终端'
+}
+
+export function createHeaderTitle (res) {
+  if (!res) {
+    return ''
+  }
+  const { title, host, path, url } = res
+  // 2026-07-29 coder(lq): Keep the top workbench tab focused on the user-defined resource name; full account/host details stay in the tooltip.
+  return normalizeTitle(title) || path || host || url || '本地终端'
 }
 
 export function createTitleTag (obj) {

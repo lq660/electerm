@@ -7,7 +7,9 @@ import { createPortal } from 'react-dom'
 import {
   PlusOutlined
 } from '@ant-design/icons'
-import AddBtnMenu from './add-btn-menu'
+import AddBtnMenu, {
+  getAddPanelWidth
+} from './add-btn-menu'
 import classNames from 'classnames'
 import hasActiveInput from '../../common/has-active-input'
 import './add-btn.styl'
@@ -88,6 +90,10 @@ export default class AddBtn extends Component {
     e.stopPropagation()
   }
 
+  handleCloseMenu = () => {
+    this.setState({ open: false })
+  }
+
   handleTabAdd = () => {
     if (!window.store.hasNodePty) {
       window.store.onNewSsh()
@@ -107,6 +113,7 @@ export default class AddBtn extends Component {
       menuTop,
       menuLeft,
       onMenuScroll: this.handleMenuScroll,
+      onClose: this.handleCloseMenu,
       onTabAdd: this.handleTabAdd,
       batch: this.props.batch,
       addPanelWidth: this.props.addPanelWidth,
@@ -128,21 +135,15 @@ export default class AddBtn extends Component {
       if (this.addBtnRef.current) {
         const rect = this.addBtnRef.current.getBoundingClientRect()
         const windowWidth = window.innerWidth
-        const windowHeight = window.innerHeight
-
-        // Estimate menu width and height
-        const estimatedMenuWidth = Math.min(300, windowWidth - 40) // Responsive width
-        const estimatedMenuHeight = 400 // Rough estimate
+        const estimatedMenuWidth = getAddPanelWidth(
+          this.props.addPanelWidth,
+          windowWidth
+        )
 
         // Calculate fixed position coordinates
-        let menuTop = rect.bottom + 4 // 4px margin
+        const menuTop = rect.bottom + 4 // 4px margin
         let menuLeft = rect.left
         let menuPosition = 'right'
-
-        // Check if menu would overflow bottom of screen
-        if (menuTop + estimatedMenuHeight > windowHeight - 20) {
-          menuTop = rect.top - estimatedMenuHeight - 4 // Show above button
-        }
 
         // If aligning right would cause overflow, align left instead
         if (rect.left + estimatedMenuWidth > windowWidth - 20) {

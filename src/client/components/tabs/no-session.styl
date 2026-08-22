@@ -1,21 +1,1007 @@
+$cn-bg = var(--workbench-bg, #f4f7fb)
+$cn-panel = var(--workbench-panel, #ffffff)
+$cn-panel-soft = var(--workbench-panel-soft, #fbfdff)
+$cn-border = var(--workbench-border, #dbe3ef)
+$cn-border-strong = var(--workbench-border-strong, #d8e0ea)
+$cn-border-soft = var(--workbench-border-soft, #edf1f7)
+$cn-input-border = var(--workbench-input-border, #cfd8e6)
+$cn-text = var(--workbench-text, #1f2937)
+$cn-control-text = var(--workbench-control-text, #344054)
+$cn-muted = var(--workbench-muted, #667085)
+$cn-placeholder = var(--workbench-placeholder, #98a2b3)
+$cn-primary = var(--workbench-primary-strong, #1769e0)
+$cn-primary-base = var(--workbench-primary, #1677ff)
+$cn-primary-hover = var(--workbench-primary-hover, #0958d9)
+$cn-primary-soft = var(--workbench-primary-soft, #eef5ff)
+$cn-primary-tint = var(--workbench-primary-tint, #f5f8ff)
+$cn-primary-border = var(--workbench-primary-border, #b8d8ff)
+$cn-primary-icon-bg = var(--workbench-primary-icon-bg, #e6f1ff)
+$cn-success = var(--workbench-success, #12b76a)
+$cn-warning = var(--workbench-warning, #f79009)
+$cn-sidebar = var(--workbench-sidebar, #101828)
+$cn-sidebar-text = var(--workbench-sidebar-text, #d0d5dd)
+$cn-terminal-accent = var(--workbench-terminal-accent, #32d583)
+$cn-scroll-thumb = var(--workbench-scroll-thumb, #b8c7dc)
+$cn-scroll-thumb-hover = var(--workbench-scroll-thumb-hover, #98a9c0)
+$cn-focus-shadow = var(--workbench-focus-shadow, rgba(22, 119, 255, .08))
+$cn-focus-shadow-soft = var(--workbench-focus-shadow-soft, rgba(22, 119, 255, .06))
+$cn-shadow-card = var(--workbench-shadow-card, rgba(15, 23, 42, .06))
+$cn-on-primary = var(--workbench-on-primary, #ffffff)
+
 .no-sessions
-  background var(--main)
-  text-align center
-  padding 50px 0
+  background $cn-bg
   position absolute
   top 36px
   left 0
   right 0
   bottom 0
   z-index 11
-.no-session-history
-  position absolute
-  top 320px
-  bottom 80px
-  left 0
-  right 0
-  .sidebar-panel-history
-    overflow-y auto
-    .pd2x
-      width 400px
-      margin 0 auto
+  overflow hidden
+
+.cn-workbench-home
+  color $cn-text
+  text-align left
+  min-height calc(100vh - 36px)
+  font-size 11px
+
+.cn-workbench-shell
+  display grid
+  grid-template-columns minmax(680px, 1fr) 260px
+  gap 6px
+  height calc(100vh - 56px)
+  min-height 0
+  padding 6px
+  box-sizing border-box
+
+.cn-workbench-sidebar,
+.cn-history-panel
+  min-width 0
+  border 1px solid $cn-border
+  background $cn-panel
+  border-radius 8px
+  box-shadow 0 6px 18px $cn-shadow-card
+
+.cn-workbench-sidebar
+  display none
+  flex-direction column
+  padding 14px
+  overflow hidden
+
+.cn-brand-block
+  display flex
+  align-items center
+  gap 10px
+  margin-bottom 12px
+
+.cn-brand-mark
+  width 36px
+  height 36px
+  border-radius 8px
+  background $cn-primary
+  color $cn-on-primary
+  display flex
+  align-items center
+  justify-content center
+  font-size 18px
+  font-weight 700
+
+.cn-brand-name
+  font-size 16px
+  font-weight 700
+  line-height 20px
+
+.cn-brand-sub
+  color $cn-muted
+  font-size 12px
+  margin-top 2px
+
+.cn-area-label,
+.cn-page-kicker
+  display flex
+  align-items center
+  justify-content space-between
+  gap 8px
+  min-height 26px
+  margin-bottom 10px
+  padding 0 2px
+  color $cn-muted
+  font-size 12px
+
+  span
+    font-weight 700
+    color $cn-control-text
+
+  b
+    height 22px
+    line-height 20px
+    padding 0 8px
+    border 1px solid $cn-border-strong
+    border-radius 6px
+    background $cn-primary-tint
+    color $cn-primary-base
+    font-size 11px
+    font-weight 700
+
+.cn-page-kicker
+  justify-content flex-start
+  margin 0 0 4px
+  padding 0
+
+  b
+    background $cn-primary-soft
+    border-color $cn-primary-border
+
+.cn-server-search
+  margin-bottom 14px
+  .ant-input-affix-wrapper
+    border-radius 6px
+
+.cn-workbench-home
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-group-addon,
+  .ant-select-selector
+    background $cn-panel !important
+    border-color $cn-border-strong !important
+    color $cn-text !important
+    box-shadow none !important
+
+  .ant-input::placeholder
+    color $cn-placeholder !important
+
+  .ant-input-prefix,
+  .ant-input-suffix
+    color $cn-muted !important
+
+  .ant-input-affix-wrapper-focused,
+  .ant-input:focus
+    border-color $cn-primary-base !important
+    box-shadow 0 0 0 2px $cn-focus-shadow !important
+
+  .ant-input-affix-wrapper .ant-input,
+  .ant-input-affix-wrapper .ant-input:focus
+    border 0 !important
+    box-shadow none !important
+    outline none !important
+    background transparent !important
+
+  .cn-server-search
+    height 34px
+
+    .ant-input
+      height 32px
+      background transparent !important
+
+  .cn-shell-tag
+    min-width 44px
+    height 22px
+    line-height 20px
+    margin 0
+    text-align center
+    border 1px solid $cn-primary-border !important
+    border-radius 5px
+    background $cn-primary-soft !important
+    color $cn-primary-base !important
+    font-weight 700
+
+.cn-nav-section
+  border-top 1px solid $cn-border-soft
+  padding-top 12px
+  margin-top 4px
+
+.remote-section
+  overflow-y auto
+  padding-right 2px
+
+.cn-section-title,
+.cn-group-name
+  display flex
+  align-items center
+  justify-content space-between
+  color $cn-muted
+  font-size 12px
+  margin-bottom 8px
+
+.cn-section-title
+  font-weight 600
+
+.cn-section-title.with-action button
+  width 22px
+  height 22px
+  border 1px solid $cn-border
+  background $cn-panel
+  color $cn-primary
+  border-radius 6px
+  cursor pointer
+
+.cn-nav-item,
+.cn-server-row,
+.cn-command-panel button
+  width 100%
+  border 0
+  background transparent
+  color $cn-text
+  cursor pointer
+  font-size 12px
+
+.cn-nav-item
+  height 34px
+  display grid
+  grid-template-columns 18px 1fr auto
+  align-items center
+  gap 8px
+  padding 0 8px
+  border-radius 6px
+  text-align left
+  margin-bottom 4px
+
+.cn-nav-item.active,
+.cn-nav-item:hover,
+.cn-server-row:hover
+  background $cn-primary-soft
+  color $cn-primary
+
+.cn-nav-item:disabled
+  color $cn-placeholder
+  cursor not-allowed
+
+.cn-server-group
+  margin-bottom 12px
+
+.cn-group-name
+  padding 0 4px
+
+.cn-server-row
+  display grid
+  grid-template-columns 10px 1fr auto
+  align-items center
+  gap 8px
+  padding 8px
+  border-radius 6px
+  text-align left
+
+.cn-server-row span
+  min-width 0
+  display flex
+  flex-direction column
+
+.cn-server-row strong,
+.cn-file-row strong
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+  font-weight 600
+
+.cn-server-row em,
+.cn-file-row em
+  color $cn-muted
+  font-style normal
+  font-size 11px
+  margin-top 2px
+
+.cn-server-row b
+  color $cn-muted
+  font-weight 500
+  font-size 11px
+
+.cn-status-dot
+  width 8px
+  height 8px
+  border-radius 50%
+  background $cn-placeholder
+
+.cn-status-dot.online
+  background $cn-success
+
+.cn-status-dot.warning
+  background $cn-warning
+
+.cn-status-dot.offline
+  background $cn-placeholder
+
+.cn-workbench-main
+  display flex
+  flex-direction column
+  gap 6px
+  min-width 0
+  min-height 0
+  height 100%
+  overflow hidden
+
+.cn-workbench-toolbar
+  display flex
+  align-items center
+  justify-content space-between
+  gap 10px
+  min-height 42px
+  padding 6px 9px
+  border 1px solid $cn-border
+  border-radius 8px
+  background $cn-panel
+  box-shadow 0 6px 18px $cn-shadow-card
+
+.cn-workbench-toolbar h2
+  margin 0
+  font-size 14px
+  line-height 18px
+  font-weight 700
+
+.cn-header-meta
+  display flex
+  flex-wrap wrap
+  gap 4px
+  margin-top 2px
+
+  span
+    height 18px
+    line-height 16px
+    padding 0 5px
+    border 1px solid $cn-border-soft
+    border-radius 6px
+    background $cn-panel-soft
+    color $cn-muted
+    font-size 10px
+    font-weight 700
+
+.cn-workbench-toolbar p
+  margin 2px 0 0
+  color $cn-muted
+  font-size 11px
+
+.cn-toolbar-actions
+  display flex
+  flex-wrap wrap
+  justify-content flex-end
+  gap 6px
+
+.cn-toolbar-actions .ant-btn
+  border-radius 6px
+  height 26px
+  padding 0 8px
+  border-color $cn-border-strong !important
+  background $cn-panel !important
+  color $cn-control-text !important
+  font-size 11px
+  font-weight 600
+
+  .anticon
+    font-size 12px
+
+  &:hover
+    border-color $cn-primary-base !important
+    background $cn-primary-tint !important
+    color $cn-primary-base !important
+
+.cn-toolbar-actions .ant-btn-primary
+  border-color $cn-primary-base !important
+  background $cn-primary-base !important
+  color $cn-on-primary !important
+
+  &:hover
+    border-color $cn-primary-hover !important
+    background $cn-primary-hover !important
+    color $cn-on-primary !important
+
+.cn-quick-connect,
+.cn-saved-connections,
+.cn-workbench-empty-info,
+.cn-panel,
+.cn-transfer-drawer
+  border 1px solid $cn-border
+  border-radius 8px
+  background $cn-panel-soft
+
+.cn-quick-connect
+  display flex
+  align-items center
+  gap 7px
+  padding 5px 8px
+  min-height 34px
+  background $cn-panel
+
+.cn-quick-connect .quick-connect
+  flex 1
+  min-width 0
+
+.cn-workbench-status-row
+  display grid
+  grid-template-columns 1fr
+  gap 8px
+  flex 0 0 auto
+
+.cn-workbench-empty-info
+  display grid
+  grid-template-columns 32px minmax(0, 1fr)
+  align-items center
+  gap 8px
+  padding 8px 10px
+  min-height 58px
+
+  > .anticon
+    width 32px
+    height 32px
+    display flex
+    align-items center
+    justify-content center
+    border-radius 8px
+    background $cn-primary-icon-bg
+    color $cn-primary-base
+    font-size 16px
+
+  div
+    min-width 0
+    display flex
+    flex-direction column
+    gap 3px
+
+  strong
+    color $cn-text
+    font-size 12px
+
+  span
+    color $cn-muted
+    font-size 11px
+    line-height 1.45
+
+.cn-saved-connections
+  padding 8px
+  display flex
+  flex-direction column
+  gap 8px
+  flex 1 1 0
+  min-height 0
+  overflow hidden
+
+.cn-saved-connections-head
+  display flex
+  align-items center
+  justify-content space-between
+  gap 8px
+
+  p
+    margin 2px 0 0
+    color $cn-muted
+    font-size 11px
+
+  .ant-btn
+    height 26px
+    border-radius 6px
+    font-weight 600
+
+.cn-saved-connection-search
+  width 260px
+  max-width 42%
+  height 28px
+
+  .ant-input
+    height 26px
+    background transparent !important
+
+.cn-saved-connection-tools
+  display flex
+  align-items center
+  justify-content flex-end
+  gap 7px
+  min-width 300px
+  max-width 56%
+
+.cn-saved-connection-sort
+  width 108px
+  flex 0 0 108px
+
+  .ant-select-selector
+    height 28px !important
+    border-color $cn-border-strong !important
+    border-radius 8px !important
+    background $cn-panel !important
+    box-shadow none !important
+
+  .ant-select-selection-item
+    color $cn-control-text !important
+    font-size 11px
+    font-weight 600
+
+  .ant-select-arrow
+    color $cn-muted !important
+
+.cn-saved-connection-tools
+  .cn-saved-connection-search
+    width 260px
+    max-width none
+    flex 1 1 220px
+
+.cn-saved-connection-grid
+  display grid
+  grid-template-columns repeat(auto-fill, minmax(420px, 1fr))
+  gap 6px
+  flex 1 1 auto
+  min-height 0
+  padding-right 4px
+  overflow-y auto
+  overscroll-behavior contain
+  align-content start
+  scrollbar-width thin
+  scrollbar-color $cn-scroll-thumb transparent
+
+  &::-webkit-scrollbar
+    width 8px
+
+  &::-webkit-scrollbar-track
+    background transparent
+
+  &::-webkit-scrollbar-thumb
+    border 2px solid transparent
+    border-radius 8px
+    background $cn-scroll-thumb
+    background-clip padding-box
+
+  &::-webkit-scrollbar-thumb:hover
+    background $cn-scroll-thumb-hover
+    background-clip padding-box
+
+.cn-connection-card
+  min-height 38px
+  display grid
+  grid-template-columns 10px minmax(0, 1fr) auto auto
+  align-items center
+  gap 5px
+  padding 4px 7px
+  border 1px solid $cn-border
+  border-radius 8px
+  background $cn-panel
+  cursor pointer
+  outline none
+  overflow hidden
+
+  &:hover,
+  &:focus
+    border-color $cn-primary-base
+    background $cn-primary-tint
+    box-shadow 0 0 0 2px $cn-focus-shadow-soft
+
+.cn-connection-card-main
+  min-width 0
+  display grid
+  grid-template-columns minmax(0, 1fr) auto
+  grid-template-rows 16px 14px
+  column-gap 6px
+  row-gap 1px
+  align-items center
+
+  strong,
+  em
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  strong
+    grid-column 1
+    grid-row 1
+    color $cn-text
+    font-size 11px
+    font-weight 700
+
+  em
+    grid-column 1 / 3
+    grid-row 2
+    color $cn-muted
+    font-style normal
+    font-size 10px
+
+  span
+    grid-column 2
+    grid-row 1
+    align-self center
+    max-width 82px
+    height 16px
+    line-height 14px
+    padding 0 4px
+    border 1px solid $cn-border-strong
+    border-radius 5px
+    background $cn-panel-soft
+    color $cn-muted
+    font-size 10px
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+.cn-connection-type.ant-tag
+  min-width 38px
+  margin 0
+  text-align center
+  border-color $cn-primary-border !important
+  border-radius 5px
+  background $cn-primary-soft !important
+  color $cn-primary-base !important
+  font-size 10px
+  font-weight 700
+
+.cn-connection-open-btn.ant-btn
+  min-width 42px
+  height 22px
+  padding 0 8px
+  border-radius 6px
+  font-size 11px
+  font-weight 700
+
+.cn-empty-connections
+  flex 1
+  min-height 120px
+  display grid
+  grid-template-columns 32px minmax(0, 1fr)
+  align-items center
+  gap 10px
+  padding 14px
+  border 1px dashed $cn-border-strong
+  border-radius 8px
+  background $cn-panel
+
+  > .anticon
+    width 32px
+    height 32px
+    display flex
+    align-items center
+    justify-content center
+    border-radius 8px
+    background $cn-primary-icon-bg
+    color $cn-primary-base
+    font-size 16px
+
+  div
+    min-width 0
+    display flex
+    flex-direction column
+    gap 3px
+
+  strong
+    color $cn-text
+    font-size 12px
+
+  span
+    color $cn-muted
+    font-size 11px
+    line-height 1.45
+
+  .ant-btn
+    border-radius 6px
+    font-weight 700
+
+.cn-empty-actions
+  display flex !important
+  flex-direction row !important
+  gap 6px !important
+  margin-top 8px
+
+.cn-quick-connect-bar
+  padding 0 !important
+  align-items center
+
+  .ant-btn
+    height 26px
+    font-size 11px
+    border-color $cn-border-strong !important
+    background $cn-panel !important
+    color $cn-control-text !important
+
+    &:hover
+      border-color $cn-primary-base !important
+      background $cn-primary-tint !important
+      color $cn-primary-base !important
+
+  .ant-btn:last-child
+    width 34px
+    border-color $cn-primary-base !important
+    background $cn-primary-base !important
+    color $cn-on-primary !important
+
+    &:hover
+      border-color $cn-primary-hover !important
+      background $cn-primary-hover !important
+      color $cn-on-primary !important
+
+  .cn-quick-connect-input
+    height 26px
+    background $cn-panel !important
+    color $cn-text !important
+    border-color $cn-border-strong !important
+
+.cn-panel-title
+  display flex
+  align-items center
+  gap 6px
+  white-space nowrap
+  color $cn-control-text
+  font-weight 600
+  font-size 11px
+
+  .anticon
+    font-size 12px
+
+.cn-quick-connect .cn-panel-title
+  min-width 88px
+
+.cn-workbench-grid
+  min-height 0
+  display grid
+  grid-template-columns minmax(320px, 1.4fr) minmax(220px, .8fr)
+  grid-template-rows minmax(180px, 1fr) minmax(172px, .9fr)
+  gap 8px
+  flex 1
+
+.cn-panel
+  padding 10px
+  overflow hidden
+
+.cn-terminal-preview
+  display flex
+  flex-direction column
+
+.cn-terminal-screen
+  flex 1
+  margin-top 8px
+  border-radius 8px
+  background $cn-sidebar
+  color $cn-sidebar-text
+  padding 12px
+  overflow hidden
+  font-family 'Maple Mono', 'SFMono-Regular', Consolas, monospace
+  font-size 11px
+  line-height 1.55
+
+.cn-terminal-screen p
+  margin 0 0 4px
+  white-space nowrap
+
+.cn-terminal-screen .success
+  color $cn-terminal-accent
+
+.cn-monitor-panel
+  display flex
+  flex-direction column
+  gap 8px
+
+.cn-metric-list
+  display flex
+  flex-direction column
+  gap 8px
+  margin-top 8px
+
+.cn-metric-list span
+  display block
+  margin-bottom 3px
+  color $cn-muted
+  font-size 11px
+
+.cn-network-row
+  display grid
+  grid-template-columns 1fr 1fr 1fr
+  gap 8px
+  color $cn-muted
+  font-size 11px
+  padding-top 8px
+  border-top 1px solid $cn-border-soft
+
+.cn-network-row strong
+  color $cn-text
+  font-weight 600
+
+.cn-file-panel
+  grid-column span 1
+
+.cn-file-columns
+  display grid
+  grid-template-columns 1fr 1fr
+  gap 8px
+  margin-top 8px
+
+.cn-file-columns h3
+  margin 0 0 8px
+  color $cn-muted
+  font-size 11px
+  font-weight 600
+
+.cn-file-row
+  display grid
+  grid-template-columns 18px 1fr
+  gap 6px
+  align-items center
+  min-width 0
+  padding 6px
+  border-radius 6px
+  background $cn-panel
+  border 1px solid $cn-border-soft
+  margin-bottom 6px
+
+.cn-file-row span
+  min-width 0
+  display flex
+  flex-direction column
+
+.cn-command-panel
+  display flex
+  flex-direction column
+  gap 8px
+
+.cn-command-panel .cn-panel-title
+  margin-bottom 2px
+
+.cn-command-panel button
+  height 28px
+  border 1px solid $cn-border
+  border-radius 6px
+  background $cn-panel
+  text-align left
+  padding 0 8px
+
+.cn-command-panel button:hover
+  border-color $cn-primary
+  color $cn-primary
+
+.cn-transfer-drawer
+  display grid
+  grid-template-columns minmax(0, 170px) minmax(180px, 1fr)
+  align-items center
+  gap 10px
+  padding 5px 8px
+  min-height 34px
+
+.cn-transfer-drawer strong
+  display block
+  font-size 12px
+
+.cn-transfer-drawer span
+  color $cn-muted
+  font-size 11px
+
+.cn-history-panel
+  display flex
+  flex-direction column
+  height 100%
+  min-height 0
+  padding 14px
+  overflow hidden
+
+.cn-history-panel .cn-panel-title
+  margin-bottom 10px
+
+.cn-history-panel .sidebar-panel-history
+  position static !important
+  left auto !important
+  right auto !important
+  top auto !important
+  bottom auto !important
+  min-height 0
+  min-width 0
+  width 100%
+  overflow-x hidden
+  overflow-y auto
+  flex 1
+
+.cn-history-panel .sidebar-panel-history .history-body
+  min-width 0
+  overflow-x hidden
+
+.cn-history-panel .sidebar-panel-history .item-list-unit
+  width 100%
+  min-width 0
+  box-sizing border-box
+
+.cn-history-panel .sidebar-panel-history .pd2x
+  padding-left 0
+  padding-right 0
+  min-width 0
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+
+.cn-empty-history
+  flex 0 0 auto
+  display flex
+  flex-direction column
+  align-items center
+  justify-content flex-start
+  gap 8px
+  min-height 0
+  padding 28px 14px
+  border 1px dashed $cn-border-soft
+  border-radius 8px
+  background $cn-panel-soft
+  text-align center
+
+  > .anticon
+    width 36px
+    height 36px
+    display flex
+    align-items center
+    justify-content center
+    border-radius 8px
+    background $cn-primary-icon-bg
+    color $cn-primary-base
+    font-size 18px
+
+  strong
+    color $cn-text
+    font-size 13px
+
+  span
+    color $cn-muted
+    font-size 12px
+
+@media (max-width: 1180px)
+  .cn-workbench-shell
+    grid-template-columns 1fr
+  .cn-history-panel
+    display none
+
+@media (max-width: 900px)
+  .cn-workbench-shell
+    grid-template-columns 1fr
+    overflow auto
+  .cn-workbench-sidebar
+    display none
+  .cn-workbench-grid
+    grid-template-columns 1fr
+    grid-template-rows auto
+  .cn-saved-connection-grid
+    grid-template-columns 1fr
+  .cn-saved-connections-head
+    align-items flex-start
+    flex-direction column
+  .cn-saved-connection-tools
+    width 100%
+    max-width none
+    min-width 0
+  .cn-workbench-status-row
+    grid-template-columns 1fr
+  .cn-file-panel
+    grid-column auto
+  .cn-transfer-drawer
+    grid-template-columns 1fr
+
+// 2026-07-03 coder(lq): Final specificity layer for the home workbench because the global terminal theme uses #container selectors.
+#container .cn-workbench-home
+  .cn-server-search,
+  .cn-quick-connect-input,
+  .quick-connect-input
+    background $cn-panel !important
+    border-color $cn-border-strong !important
+    color $cn-text !important
+
+  .cn-server-search .ant-input,
+  .cn-quick-connect-input.ant-input,
+  .quick-connect-input.ant-input
+    background $cn-panel !important
+    color $cn-text !important
+
+  .cn-server-search .ant-input::placeholder,
+  .cn-quick-connect-input::placeholder,
+  .quick-connect-input::placeholder
+    color $cn-placeholder !important
+
+  .cn-toolbar-actions .ant-btn,
+  .cn-quick-connect-bar .ant-btn
+    border-color $cn-border-strong !important
+    background $cn-panel !important
+    color $cn-control-text !important
+
+    &:hover
+      border-color $cn-primary-base !important
+      background $cn-primary-tint !important
+      color $cn-primary-base !important
+
+  .cn-toolbar-actions .ant-btn-primary,
+  .cn-quick-connect-bar .ant-btn:last-child,
+  .cn-saved-connections .ant-btn-primary
+    border-color $cn-primary-base !important
+    background $cn-primary-base !important
+    color $cn-on-primary !important
+
+    &:hover
+      border-color $cn-primary-hover !important
+      background $cn-primary-hover !important
+      color $cn-on-primary !important
+
+  .cn-shell-tag.ant-tag
+    border-color $cn-primary-border !important
+    background $cn-primary-soft !important
+    color $cn-primary-base !important

@@ -1,9 +1,9 @@
 import Modal from '../common/modal'
 import { auto } from 'manate/react'
 import AIConfigForm from './ai-config'
-import message from '../common/message'
 import { aiConfigsArr } from './ai-config-props'
 import { pick } from 'lodash-es'
+import message from '../common/message'
 
 const e = window.translate
 
@@ -22,10 +22,27 @@ export default auto(function AIConfigModal ({ store }) {
     return res
   }
 
+  async function persistAiConfig (values) {
+    const nextConfig = {
+      ...window.store.config,
+      ...values
+    }
+    try {
+      await window.pre.runGlobalAsync('saveUserConfig', nextConfig)
+      window.store.userConfigSaveLocked = false
+      window.store.userConfigLockedNoticeShown = false
+      window.store.updateConfig(values)
+      message.success(e('saved') || 'Saved')
+      window.store.showAIConfigModal = false
+      return true
+    } catch (error) {
+      window.store.onError(error)
+      return false
+    }
+  }
+
   function handleSubmit (values) {
-    window.store.updateConfig(values)
-    message.success(e('saved') || 'Saved')
-    window.store.showAIConfigModal = false
+    return persistAiConfig(values)
   }
 
   function handleClose () {
@@ -37,7 +54,7 @@ export default auto(function AIConfigModal ({ store }) {
       open={showAIConfigModal}
       onCancel={handleClose}
       footer={null}
-      title='AI Config'
+      title='AI 配置'
       width='80%'
       destroyOnClose
       maskClosable={false}

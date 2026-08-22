@@ -12,7 +12,8 @@
   margin-left 42px
 .not-system-ui.is-mac.not-webapp .layout-item.v1
   .tabs-inner
-    margin-left 72px
+    // 2026-07-04 coder(lq): Keep only the native traffic-light drag clearance; the old wide gap looked like an unnamed, unclickable first tab.
+    margin-left 28px
 .not-system-ui.is-mac.not-webapp.pinned .layout-item.v1
   .tabs-inner
     margin-left 0
@@ -212,10 +213,17 @@
   font-size 14px
 
 .tab-count
-  border-radius 10px 2px 2px 10px
-  padding 0 4px
-  height 20px
-  line-height 21px
+  display inline-flex !important
+  align-items center
+  justify-content center
+  flex 0 0 auto
+  min-width 24px
+  height 24px
+  padding 0 7px
+  border-radius 8px
+  box-sizing border-box
+  line-height 1
+  font-size 13px
 
 .ssh-tunnel-list-wrapper
   max-height 300px
@@ -293,3 +301,229 @@
   .tab-reload
   .tabs-extra
     -webkit-app-region no-drag
+
+// 2026-07-02 coder(lq): Dropdown pages opened from the tab bar use the light workbench menu style; session tabs themselves keep contrast for terminal focus.
+.layout-workspace-dropdown
+  background #fff !important
+  color #1f2937 !important
+  border 1px solid #d8e0ea !important
+  border-radius 8px !important
+  box-shadow 0 16px 40px rgba(15, 23, 42, .14) !important
+
+.layout-menu-item,
+.workspace-item
+  color #344054 !important
+  border-radius 6px !important
+  &:hover,
+  &.active
+    background #eef5ff !important
+    color #1677ff !important
+
+.workspace-delete-icon
+  color #667085 !important
+  &:hover
+    color #f04438 !important
+
+// 2026-07-03 coder(lq): Light outer tab/title frame for the China workbench. Terminal canvases keep their dark theme; the app chrome should not.
+#container
+  .tabs
+    height 31px !important
+    background #eef0f3 !important
+    border-bottom 1px solid #c6cbd3 !important
+    box-shadow none !important
+
+  .tabs-inner,
+  .tabs-wrapper
+    height 31px !important
+    background #eef0f3 !important
+
+  .tab
+    // 2026-07-29 coder(lq): Use a compact FinalShell-like connection tab so ops users can scan many servers quickly.
+    display inline-flex !important
+    align-items center !important
+    justify-content flex-start !important
+    gap 0 !important
+    height 28px !important
+    line-height 1 !important
+    min-width 86px !important
+    max-width 170px !important
+    padding 0 24px 0 9px !important
+    margin 3px 0 0 0 !important
+    border 1px solid #cbd0d8 !important
+    border-left 0 !important
+    border-bottom 0 !important
+    border-radius 0 !important
+    background #f7f8fa !important
+    color #3f4a5a !important
+    font-size 12px !important
+    font-weight 600 !important
+
+    &:hover
+      background #fff !important
+      color #1f6feb !important
+
+    &.active
+      background #fff !important
+      border-color #aeb6c2 !important
+      color #1f6feb !important
+      font-weight 700 !important
+      box-shadow inset 0 2px 0 #1f6feb !important
+
+    &.active-all
+      background #fff !important
+      color #111827 !important
+      box-shadow inset 0 2px 0 #1f6feb !important
+
+    &.home-tab
+      min-width 78px !important
+      max-width 90px !important
+      padding 0 10px !important
+      border-left 1px solid #cbd0d8 !important
+      color #344054 !important
+
+      &:before
+        content '⌂'
+        display inline-flex
+        align-items center
+        justify-content center
+        width 14px
+        height 14px
+        margin 0
+        color #1677ff
+        font-size 13px
+        line-height 1
+
+      &.active
+        background #fff !important
+        border-color #aeb6c2 !important
+        color #1769e0 !important
+
+    > .tab-status
+      display none !important
+
+    .tab-title
+      min-width 0
+      line-height 1
+
+      &.elli
+        display flex
+        align-items center
+        justify-content center
+        max-width 100%
+
+    .tab-title-content
+      display inline-flex
+      align-items center
+      min-width 0
+      max-width 100%
+      line-height 1
+      gap 5px
+
+    .tab-title-dot
+      display inline-block
+      flex 0 0 auto
+      width 7px
+      height 7px
+      border-radius 50%
+      background #9aa4b2
+
+      &.success
+        background #22c55e
+
+      &.error
+        background #ef4444
+
+      &.processing
+        background #f59e0b
+
+    .tab-title-index
+      flex 0 0 auto
+      color #667085
+      font-size 12px
+      font-weight 700
+
+    .tab-title-text
+      display block
+      min-width 0
+      overflow hidden
+      text-overflow ellipsis
+      white-space nowrap
+      line-height 1
+
+  .tab-close
+    display block !important
+    right 5px !important
+    width 14px !important
+    height 14px !important
+    margin-top -7px !important
+    line-height 14px !important
+    border-radius 2px !important
+    background transparent !important
+    color #667085 !important
+    font-size 10px !important
+
+    &:hover
+      background #e8edf3 !important
+      color #111827 !important
+
+  .tabs-add-btn,
+  .tabs-extra,
+  .tab-scroll-icon,
+  .tabs-dd-icon
+    color #667085 !important
+
+    &:hover
+      color #1677ff !important
+
+  .tabs-add-btn
+    display inline-flex !important
+    align-items center !important
+    justify-content center !important
+    width 31px
+    height 31px
+    margin 0 0 0 3px !important
+    line-height 1 !important
+
+    &.empty
+      margin 0 0 0 3px !important
+
+  .tabs-extra
+    display inline-flex !important
+    align-items center !important
+    justify-content center !important
+    height 31px !important
+    line-height 1 !important
+
+  .tab-scroll-icon,
+  .tabs-dd-icon
+    display inline-flex !important
+    align-items center !important
+    justify-content center !important
+    line-height 1 !important
+
+  .window-controls
+    background #fff !important
+    border-left 1px solid #d8e0ea !important
+    border-bottom 1px solid #d8e0ea !important
+    box-shadow none !important
+
+  .window-control-box
+    color #667085 !important
+
+    &:hover
+      background #f5f8ff !important
+      color #1677ff !important
+
+  .window-control-close:hover
+    background #f04438 !important
+    color #fff !important
+
+  .window-control-minimize:hover,
+  .window-control-maximize:hover
+    background #f5f8ff !important
+
+  .icon-maximize
+    border-color #667085 !important
+
+  .window-control-box:hover .icon-maximize
+    border-color #1677ff !important

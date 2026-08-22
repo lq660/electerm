@@ -17,6 +17,15 @@ async function runCmd (body) {
   return txt
 }
 
+async function getTerminalCwd (body) {
+  const { pid } = body
+  const term = terminals(pid)
+  if (term && typeof term.getCwd === 'function') {
+    return term.getCwd()
+  }
+  return ''
+}
+
 async function resize (body) {
   const { pid, cols, rows } = body
   const term = terminals(pid)
@@ -80,6 +89,7 @@ exports.createTerm = createTerm
 exports.testTerm = testTerm
 exports.resize = resize
 exports.runCmd = runCmd
+exports.getTerminalCwd = getTerminalCwd
 exports.toggleTerminalLog = toggleTerminalLog
 exports.toggleTerminalLogTimestamp = toggleTerminalLogTimestamp
 exports.setTerminalLogPath = setTerminalLogPath

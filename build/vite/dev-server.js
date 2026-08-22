@@ -15,7 +15,7 @@ const h = `http://${host}:${devPort}`
 const base = {
   version: pack.version,
   isDev: !isProd,
-  siteName: pack.name
+  siteName: pack.productName || pack.name
 }
 
 function handleIndex (req, res) {

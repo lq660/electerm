@@ -98,3 +98,319 @@
 .custom-modal-cancel-btn
   background var(--main)
   color var(--text)
+
+// 2026-07-02 coder(lq): Keep every reusable modal on the same light China ops palette as the redesigned workbench pages.
+.custom-modal-mask
+  background rgba(15, 23, 42, .16) !important
+
+.custom-modal-content
+  background #fff !important
+  color #1f2937 !important
+  border 1px solid #d8e0ea !important
+  border-radius 8px !important
+  box-shadow 0 18px 48px rgba(15, 23, 42, .18) !important
+
+.custom-modal-header
+  background #fbfdff !important
+  border-bottom 1px solid #d8e0ea !important
+
+.custom-modal-title
+  color #1f2937 !important
+  font-size 15px !important
+
+.custom-modal-close
+  color #667085 !important
+  &:hover
+    color #1677ff !important
+    background #eef5ff !important
+
+.custom-modal-body
+  color #344054 !important
+  background #fff !important
+
+.custom-modal-footer
+  background #fbfdff !important
+  border-top 1px solid #d8e0ea !important
+
+.custom-modal-ok-btn
+  background #1677ff !important
+  color #fff !important
+
+.custom-modal-cancel-btn
+  background #fff !important
+  color #344054 !important
+  border 1px solid #d8e0ea !important
+
+// 2026-07-04 coder(lq): AntD controls inside custom modals need explicit light states because file permission dialogs use dashed buttons.
+.custom-modal-content
+  .ant-btn
+    border-radius 6px !important
+    box-shadow none !important
+
+  .ant-btn-primary
+    background #1677ff !important
+    border-color #1677ff !important
+    color #fff !important
+
+  .ant-btn-dashed,
+  .ant-btn-default
+    background #fff !important
+    border-color #cfd8e6 !important
+    color #344054 !important
+
+    &:hover
+      border-color #1677ff !important
+      color #1677ff !important
+
+  // 2026-07-04 coder(lq): Modal form controls are rendered outside the main workbench skin, so normalize AntD fields here too.
+  .ant-input,
+  textarea.ant-input,
+  .ant-input-affix-wrapper,
+  .ant-select,
+  .ant-select-selector,
+  .ant-input-number,
+  .ant-auto-complete .ant-input
+    background #fff !important
+    border-color #cfd8e6 !important
+    border-radius 6px !important
+    color #1f2937 !important
+    box-shadow none !important
+
+  .ant-input-affix-wrapper .ant-input,
+  .ant-auto-complete .ant-input
+    border 0 !important
+    background transparent !important
+
+  .ant-input::placeholder,
+  textarea.ant-input::placeholder,
+  .ant-select-selection-placeholder
+    color #98a2b3 !important
+
+  .ant-input:focus,
+  textarea.ant-input:focus,
+  .ant-input-affix-wrapper-focused,
+  .ant-select-focused .ant-select-selector,
+  .ant-input-number-focused
+    border-color #1677ff !important
+    box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+
+  .ant-input-affix-wrapper .ant-input,
+  .ant-input-affix-wrapper .ant-input:focus
+    border 0 !important
+    box-shadow none !important
+    background transparent !important
+
+  .ant-form-item-label > label,
+  .ant-form-item,
+  .ant-select-selection-item,
+  .ant-select-arrow,
+  .ant-input-suffix,
+  .ant-input-prefix
+    color #344054 !important
+
+  .cn-sync-migration-scope
+    padding 12px
+    border 1px solid #d8e0ea
+    border-radius 8px
+    background #f8fbff
+
+  .cn-sync-migration-scope-head
+    display flex
+    align-items center
+    justify-content space-between
+    gap 12px
+    margin-bottom 10px
+
+    strong
+      color #1f2937
+      font-size 13px
+      line-height 18px
+
+  .cn-sync-migration-scope-list
+    display grid
+    grid-template-columns repeat(auto-fit, minmax(150px, 1fr))
+    gap 8px
+
+  .cn-sync-migration-password
+    display flex
+    flex-direction column
+    gap 10px
+    padding 12px
+    border 1px solid #d8e0ea
+    border-radius 8px
+    background #f8fbff
+
+  .cn-sync-migration-password-title
+    color #1f2937
+    font-size 13px
+    font-weight 600
+    line-height 18px
+
+  .cn-sync-migration-password-mode
+    display flex
+    flex-wrap wrap
+    gap 8px 16px
+
+  .cn-sync-data-option
+    display flex
+    align-items center
+    min-height 34px
+    margin 0 !important
+    padding 6px 8px
+    border 1px solid #d8e0ea
+    border-radius 8px
+    background #fff
+    color #344054
+
+    &:hover
+      border-color #1677ff
+      background #eef5ff
+
+  .cn-sync-migration-preview
+    padding 12px
+    border 1px solid #d8e0ea
+    border-radius 8px
+    background #fbfdff
+
+  .cn-sync-migration-preview-title
+    margin-bottom 8px
+    color #1f2937
+    font-size 13px
+    font-weight 700
+
+  .cn-sync-migration-preview-list
+    display grid
+    grid-template-columns repeat(auto-fit, minmax(130px, 1fr))
+    gap 8px
+
+    span
+      display flex
+      align-items center
+      justify-content space-between
+      gap 8px
+      min-height 32px
+      padding 0 8px
+      border 1px solid #edf1f7
+      border-radius 6px
+      background #fff
+
+    b
+      overflow hidden
+      color #344054
+      font-size 12px
+      font-weight 600
+      text-overflow ellipsis
+      white-space nowrap
+
+    em
+      min-width 24px
+      height 20px
+      line-height 20px
+      border-radius 5px
+      background #eef5ff
+      color #1677ff
+      font-size 12px
+      font-style normal
+      font-weight 700
+      text-align center
+
+  .cn-sync-migration-conflicts
+    display grid
+    grid-template-columns 1fr
+    gap 6px
+
+    div
+      display flex
+      align-items center
+      justify-content space-between
+      gap 12px
+      min-height 30px
+      padding 0 8px
+      border 1px solid #edf1f7
+      border-radius 6px
+      background #fff
+
+    strong
+      color #344054
+      font-size 12px
+
+    span
+      color #667085
+      font-size 12px
+
+  .cn-sync-migration-preview-empty
+    color #667085
+    font-size 12px
+
+  .cn-sync-migration-mode
+    display grid
+    grid-template-columns 1fr
+    gap 8px
+
+    .ant-radio-wrapper
+      min-height 32px
+      margin 0
+      padding 6px 8px
+      border 1px solid #d8e0ea
+      border-radius 6px
+      background #fff
+      color #344054
+
+      &:hover
+        border-color #1677ff
+        background #eef5ff
+
+  .ant-radio-inner
+    background #fff !important
+    border-color #cfd8e6 !important
+
+  .ant-radio-checked .ant-radio-inner
+    border-color #1677ff !important
+    background #1677ff !important
+
+  // 2026-07-20 coder(lq): Password prompt options should follow the light blue ops palette instead of inheriting dark checkbox colors.
+  .ant-checkbox-wrapper
+    color #344054 !important
+
+    &:hover
+      color #1677ff !important
+
+      .ant-checkbox-inner
+        border-color #1677ff !important
+
+  .ant-checkbox-inner
+    background #fff !important
+    border-color #cfd8e6 !important
+
+  .ant-checkbox-checked .ant-checkbox-inner
+    background #1677ff !important
+    border-color #1677ff !important
+
+  .ant-checkbox-disabled .ant-checkbox-inner
+    background #f3f7fc !important
+    border-color #d8e0ea !important
+
+  .ant-checkbox-disabled + span
+    color #667085 !important
+
+  .ant-alert
+    border-color #b8d8ff !important
+    border-radius 8px !important
+    background #f5f8ff !important
+    color #344054 !important
+
+  .ant-alert-message,
+  .ant-alert-description
+    color #344054 !important
+
+  .ant-segmented
+    background #f1f5f9 !important
+    color #667085 !important
+
+  .ant-segmented-item
+    color #667085 !important
+
+  .ant-segmented-item-selected
+    background #fff !important
+    color #1677ff !important
+    box-shadow 0 1px 3px rgba(15, 23, 42, .10) !important

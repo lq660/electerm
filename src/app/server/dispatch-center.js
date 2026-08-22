@@ -8,11 +8,13 @@ const log = require('../common/log')
 const { Upgrade } = require('./download-upgrade')
 const fetch = require('./fetch')
 const sync = require('./sync')
+const testWebConnection = require('./test-web-connection')
 const {
   createTerm,
   testTerm,
   resize,
   runCmd,
+  getTerminalCwd,
   toggleTerminalLog,
   toggleTerminalLogTimestamp,
   setTerminalLogPath,
@@ -92,8 +94,19 @@ const initWs = function (app) {
           setTerminalLogPath(ws, msg)
         } else if (action === 'start-terminal-log-file') {
           startTerminalLogFile(ws, msg)
+        } else if (action === 'get-terminal-cwd') {
+          getTerminalCwd(ws, msg)
         } else if (action === 'run-cmd') {
           runCmd(ws, msg)
+        } else if (action === 'test-web-connection') {
+          testWebConnection(msg.body)
+            .then(data => ws.s({ id: msg.id, data }))
+            .catch(error => ws.s({
+              id: msg.id,
+              error: {
+                message: error.message || 'Web 连接测试失败'
+              }
+            }))
         }
       } catch (err) {
         log.error('common ws error', err)

@@ -2,7 +2,7 @@
  * terminal interactive UI - renders a single interactive event modal
  */
 
-import { Form, Button } from 'antd'
+import { Form, Button, Checkbox } from 'antd'
 import Modal from '../common/modal'
 import InputAutoFocus from '../common/input-auto-focus'
 
@@ -15,6 +15,7 @@ export default function TermInteractiveUI ({
   onClose
 }) {
   const [form] = Form.useForm()
+  const savePasswordTarget = `${opts.username ? `${opts.username}@` : ''}${opts.host || opts.title || ''}${opts.port ? `:${opts.port}` : ''}`
 
   function onCancel () {
     onSend({
@@ -41,9 +42,18 @@ export default function TermInteractiveUI ({
     onClose()
   }
   function onFinish (res) {
+    const prompts = opts.options.prompts || []
+    const results = prompts.map((_, i) => res['item' + i])
     onSend({
       id: opts.id,
-      results: Object.values(res)
+      results,
+      savePassword: res.savePassword && opts.savePasswordCandidate
+        ? {
+            password: results[0],
+            bookmarkId: opts.srcId,
+            tabId: opts.tabId
+          }
+        : null
     })
     onClose()
   }
@@ -59,9 +69,9 @@ export default function TermInteractiveUI ({
     return (
       <FormItem
         key={prompt + i}
-        label={prompt}
+        label={type === 'password' ? e('password') : prompt}
         rules={[{
-          required: true, message: 'required'
+          required: true, message: e('requiredField')
         }]}
       >
         <div>
@@ -73,6 +83,23 @@ export default function TermInteractiveUI ({
             placeholder={note}
           />
         </FormItem>
+      </FormItem>
+    )
+  }
+  function renderSavePasswordOption () {
+    if (!opts.savePasswordCandidate) {
+      return null
+    }
+    return (
+      <FormItem
+        name='savePassword'
+        valuePropName='checked'
+        className='mg1b'
+      >
+        <Checkbox>
+          {e('savePasswordToBookmark')}
+          {savePasswordTarget ? <span className='color-gray font12'>（{savePasswordTarget}）</span> : null}
+        </Checkbox>
       </FormItem>
     )
   }
@@ -109,7 +136,9 @@ export default function TermInteractiveUI ({
     onOk,
     closable: false,
     open: true,
-    title: opts.options?.name || '?',
+    title: opts.savePasswordCandidate
+      ? e('enterPasswordFor').replace('{target}', savePasswordTarget || opts.options?.name || '?')
+      : (opts.options?.name || '?'),
     footer: null
   }
   return (
@@ -128,6 +157,7 @@ export default function TermInteractiveUI ({
               {
                 opts.options.prompts.map(renderFormItem)
               }
+              {renderSavePasswordOption()}
               <FormItem>
                 <Button
                   type='primary'

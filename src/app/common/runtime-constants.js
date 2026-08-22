@@ -18,7 +18,7 @@ const iconPath = resolve(
   __dirname,
   (
     isDev
-      ? '../../../node_modules/@electerm/electerm-resource/res/imgs/electerm-round-128x128.png'
+      ? '../../../build/icons/yunduo-128.png'
       : '../assets/images/electerm-round-128x128.png'
   )
 )
@@ -47,9 +47,10 @@ module.exports = {
   trayIconPath,
   extIconPath,
   defaultUserName,
-  minWindowWidth: 590,
-  minWindowHeight: 400,
-  defaultLang: 'en_us',
+  // Keep the redesigned workbench from restoring into the old electerm narrow layout.
+  minWindowWidth: 960,
+  minWindowHeight: 640,
+  defaultLang: 'zh_cn',
   tempDir: require('os').tmpdir(),
   homeOrTmp: os.homedir() || os.tmpdir(),
   packInfo: require(isDev ? '../../../package.json' : '../package.json')

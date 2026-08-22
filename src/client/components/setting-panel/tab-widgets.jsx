@@ -19,9 +19,15 @@ export default function TabWidgets (props) {
   } = props
   return (
     <div
-      className='setting-tabs-profile'
+      className='setting-tabs-profile setting-tabs-widgets'
     >
-      <SettingCol>
+      <SettingCol
+        className='cn-tools-template'
+        leftTitle='工具列表'
+        leftDesc='管理工作台辅助面板'
+        rightTitle='工具配置'
+        rightDesc='设置展示方式和启用状态'
+      >
         <WidgetList
           {...listProps}
         />

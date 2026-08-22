@@ -68,14 +68,14 @@ export default class ShortcutEdit extends PureComponent {
 
   warnCtrolKey = throttle(() => {
     message.info(
-      'Must have one of Ctrl or Shift or Alt or Meta key',
+      '快捷键必须包含 Ctrl、Shift、Alt 或 Meta 中的任意一个',
       undefined
     )
   }, 3000)
 
   warnExist = throttle(() => {
     message.info(
-      'Shortcut already exists',
+      '这个快捷键已被占用',
       undefined
     )
   }, 3000)

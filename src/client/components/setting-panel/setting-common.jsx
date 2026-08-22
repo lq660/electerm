@@ -32,6 +32,7 @@ import StartSession from './start-session-select'
 import HelpIcon from '../common/help-icon'
 import delay from '../../common/wait.js'
 import isColorDark from '../../common/is-color-dark'
+import getThemeDisplayName from '../../common/get-theme-display-name'
 import DeepLinkControl from './deep-link-control'
 import HotkeySetting from './hotkey'
 import './setting.styl'
@@ -84,7 +85,7 @@ export default class SettingCommon extends Component {
       }, () => {
         this.submitting = false
       })
-      message.success('OK')
+      message.success('已保存')
     } else {
       this.setState({
         submittingPass: false
@@ -188,16 +189,52 @@ export default class SettingCommon extends Component {
     this.props.store.setConfig(ext)
   }
 
+  renderSection = (title, desc, children, cls = '') => {
+    return (
+      <section className={`cn-settings-section ${cls}`}>
+        <div className='cn-settings-section-title'>
+          <strong>{title}</strong>
+          {
+            desc
+              ? <span>{desc}</span>
+              : null
+          }
+        </div>
+        <div className='cn-settings-section-body'>
+          {children}
+        </div>
+      </section>
+    )
+  }
+
+  renderField = (label, children, desc = '') => {
+    return (
+      <div className='cn-settings-field'>
+        <div className='cn-settings-label'>
+          <strong>{label}</strong>
+          {
+            desc
+              ? <span>{desc}</span>
+              : null
+          }
+        </div>
+        <div className='cn-settings-control'>
+          {children}
+        </div>
+      </div>
+    )
+  }
+
   renderToggle = (name, extra = null) => {
     const checked = !!this.props.config[name]
+    const txt = e(name)
     return (
-      <div className='pd2b' key={'rt' + name}>
+      <div className='pd2b cn-settings-toggle' key={'rt' + name}>
         <Switch
           checked={checked}
-          checkedChildren={e(name)}
-          unCheckedChildren={e(name)}
           onChange={v => this.onChangeValue(v, name)}
         />
+        <span className='cn-settings-toggle-label'>{txt}</span>
         {isNumber(extra) ? null : extra}
       </div>
     )
@@ -284,7 +321,7 @@ export default class SettingCommon extends Component {
           />
           <Select
             {...styleArg}
-            placeholder='args'
+            placeholder={e('args')}
             onChange={onChangeArgs}
             value={args}
             mode='tags'
@@ -363,15 +400,15 @@ export default class SettingCommon extends Component {
       width: '500px'
     }
     return (
-      <div className='pd1b'>
-        <div className='pd1b'>
-          <span className='pd1r'>
+      <div className='cn-settings-proxy'>
+        <div className='cn-settings-inline-head'>
+          <strong>
             {e('global')} {e('proxy')}
-            <HelpIcon
-              title={table}
-              style={{ body: { style } }}
-            />
-          </span>
+          </strong>
+          <HelpIcon
+            title={table}
+            style={{ body: { style } }}
+          />
           <Switch
             checked={enableGlobalProxy}
             onChange={v => {
@@ -470,146 +507,196 @@ export default class SettingCommon extends Component {
     }
     return (
       <div className='form-wrap pd1y pd2x'>
-        <h2>{e('settings')}</h2>
-        <HotkeySetting
-          {...hotkeyProps}
-        />
-        <div className='pd1b'>{e('onStartBookmarks')}</div>
-        <div className='pd2b'>
-          <StartSession
-            {...pops}
-          />
+        <div className='cn-setting-card-title'>
+          <strong>{e('settings')}</strong>
+          <span>常用偏好、网络连接和安全行为</span>
         </div>
-        {this.renderProxy()}
         {
-          this.renderNumber('sshReadyTimeout', {
-            step: 200,
-            min: 100,
-            cls: 'timeout-desc'
-          }, e('timeoutDesc'))
-        }
-        {
-          this.renderNumber('keepaliveInterval', {
-            step: 1000,
-            min: 0,
-            max: 20000000,
-            cls: 'keepalive-interval-desc',
-            extraDesc: '(ms)'
-          }, e('keepaliveIntervalDesc'))
-        }
-        {
-          this.renderNumber('opacity', {
-            step: 0.05,
-            min: 0,
-            max: 1,
-            cls: 'opacity'
-          }, e('opacity'))
-        }
-
-        <div className='pd2b'>
-          <span className='inline-title mg1r'>{e('uiThemes')}</span>
-          <Select
-            onChange={this.handleChangeTerminalTheme}
-            popupMatchSelectWidth={false}
-            value={theme}
-          >
-            {
-              terminalThemes
-                .filter(d => d.id && d.name && d.uiThemeConfig)
-                .map(l => {
-                  const { id, name, uiThemeConfig } = l
-                  const { main, text } = uiThemeConfig
-                  const isDark = isColorDark(main)
-                  const txt = isDark ? <MoonOutlined /> : <SunOutlined />
-                  const tag = (
-                    <Tag
-                      color={main}
-                      className='mg1l'
-                      variant='solid'
-                      style={
-                        {
-                          color: text
-                        }
-                      }
-                    >
-                      {txt}
-                    </Tag>
-                  )
-                  return (
-                    <Option key={id} value={id}>
-                      {tag} {name}
-                    </Option>
-                  )
-                })
-            }
-          </Select>
-        </div>
-
-        <div className='pd2b'>
-          <span className='inline-title mg1r'>{e('customCss')}</span>
-          <TextareaConfirm
-            onChange={this.handleCustomCss}
-            value={customCss}
-            rows={3}
-          />
-        </div>
-
-        <div className='pd2b'>
-          <span className='inline-title mg1r'>{e('language')}</span>
-          <Select
-            onChange={this.handleChangeLang}
-            value={language}
-            popupMatchSelectWidth={false}
-          >
-            {
-              langs.map(l => {
-                const { id, name } = l
-                return (
-                  <Option key={id} value={id}>{name}</Option>
+          this.renderSection(
+            '基础行为',
+            '启动、语言、主题和外观',
+            <>
+              <HotkeySetting
+                {...hotkeyProps}
+              />
+              {
+                this.renderField(
+                  e('onStartBookmarks'),
+                  <StartSession {...pops} />,
+                  '打开应用后自动进入常用连接或工作区'
                 )
-              })
-            }
-          </Select>
-          <Link className='mg1l' to={createEditLangLink(language)}>{e('edit')}</Link>
-        </div>
-        <div className='pd1b'>{e('default')} {e('execWindows')}</div>
-        {
-          this.renderTextExec('execWindows')
+              }
+              {
+                this.renderField(
+                  e('uiThemes'),
+                  <Select
+                    onChange={this.handleChangeTerminalTheme}
+                    popupMatchSelectWidth={false}
+                    value={theme}
+                  >
+                    {
+                      terminalThemes
+                        .filter(d => d.id && d.name && d.uiThemeConfig)
+                        .map(l => {
+                          const { id, uiThemeConfig } = l
+                          const displayName = getThemeDisplayName(l)
+                          const { main, text } = uiThemeConfig
+                          const isDark = isColorDark(main)
+                          const txt = isDark ? <MoonOutlined /> : <SunOutlined />
+                          const tag = (
+                            <Tag
+                              color={main}
+                              className='mg1l'
+                              variant='solid'
+                              style={
+                                {
+                                  color: text
+                                }
+                              }
+                            >
+                              {txt}
+                            </Tag>
+                          )
+                          return (
+                            <Option key={id} value={id}>
+                              {tag} {displayName}
+                            </Option>
+                          )
+                        })
+                    }
+                  </Select>
+                )
+              }
+              {
+                this.renderField(
+                  e('language'),
+                  <>
+                    <Select
+                      onChange={this.handleChangeLang}
+                      value={language}
+                      popupMatchSelectWidth={false}
+                    >
+                      {
+                        langs.map(l => {
+                          const { id, name } = l
+                          return (
+                            <Option key={id} value={id}>{name}</Option>
+                          )
+                        })
+                      }
+                    </Select>
+                    <Link className='mg1l' to={createEditLangLink(language)}>{e('edit')}</Link>
+                  </>
+                )
+              }
+              {
+                this.renderField(
+                  e('opacity'),
+                  this.renderNumber('opacity', {
+                    step: 0.05,
+                    min: 0,
+                    max: 1,
+                    cls: 'opacity'
+                  }, e('opacity')),
+                  '窗口透明度'
+                )
+              }
+              {
+                this.renderField(
+                  e('customCss'),
+                  <TextareaConfirm
+                    onChange={this.handleCustomCss}
+                    value={customCss}
+                    rows={3}
+                  />,
+                  '仅用于本机界面微调'
+                )
+              }
+            </>
+          )
         }
-        <div className='pd1b'>{e('default')} {e('execMac')}</div>
         {
-          this.renderTextExec('execMac')
+          this.renderSection(
+            '网络与连接',
+            '代理、超时和保活策略',
+            <>
+              {this.renderProxy()}
+              {
+                this.renderField(
+                  e('timeoutDesc'),
+                  this.renderNumber('sshReadyTimeout', {
+                    step: 200,
+                    min: 100,
+                    cls: 'timeout-desc'
+                  }, e('timeoutDesc'))
+                )
+              }
+              {
+                this.renderField(
+                  e('keepaliveIntervalDesc'),
+                  this.renderNumber('keepaliveInterval', {
+                    step: 1000,
+                    min: 0,
+                    max: 20000000,
+                    cls: 'keepalive-interval-desc',
+                    extraDesc: '(ms)'
+                  }, e('keepaliveIntervalDesc')),
+                  '单位 ms，设置为 0 表示关闭'
+                )
+              }
+            </>
+          )
         }
-        <div className='pd1b'>{e('default')} {e('execLinux')}</div>
         {
-          this.renderTextExec('execLinux')
-        }
-        <div className='pd1b'>{e('keyword2FA')}</div>
-        {
-          this.renderText('keyword2FA')
-        }
-        {
-          [
-            'autoRefreshWhenSwitchToSftp',
-            'showHiddenFilesOnSftpStart',
-            'screenReaderMode',
-            'initDefaultTabOnStart',
-            'disableConnectionHistory',
-            'disableTransferHistory',
-            'checkUpdateOnStart',
-            'useSystemTitleBar',
-            'confirmBeforeExit',
-            'hideIP',
-            'allowMultiInstance',
-            'disableDeveloperTool',
-            'debug'
-          ].map(this.renderToggle)
+          this.renderSection(
+            '默认终端命令',
+            '按系统指定本地终端启动命令',
+            <>
+              {this.renderField('Windows 默认命令', this.renderTextExec('execWindows'))}
+              {this.renderField('macOS 默认命令', this.renderTextExec('execMac'))}
+              {this.renderField('Linux 默认命令', this.renderTextExec('execLinux'))}
+              {this.renderField(e('keyword2FA'), this.renderText('keyword2FA'))}
+            </>
+          )
         }
         {
-          window.et.isWebApp ? null : <DeepLinkControl />
+          this.renderSection(
+            '系统行为',
+            '文件、历史、更新和窗口行为',
+            <div className='cn-settings-toggle-grid'>
+              {
+                [
+                  'autoRefreshWhenSwitchToSftp',
+                  'showHiddenFilesOnSftpStart',
+                  'screenReaderMode',
+                  'initDefaultTabOnStart',
+                  'disableConnectionHistory',
+                  'disableTransferHistory',
+                  'checkUpdateOnStart',
+                  'useSystemTitleBar',
+                  'confirmBeforeExit',
+                  'hideIP',
+                  'allowMultiInstance',
+                  'disableDeveloperTool',
+                  'debug'
+                ].map(this.renderToggle)
+              }
+            </div>
+          )
         }
-        {this.renderLoginPass()}
-        {this.renderReset()}
+        {
+          this.renderSection(
+            '安全与重置',
+            '登录密码、系统唤起和恢复默认',
+            <>
+              {
+                window.et.isWebApp ? null : <DeepLinkControl />
+              }
+              {this.renderLoginPass()}
+              {this.renderReset()}
+            </>
+          )
+        }
       </div>
     )
   }

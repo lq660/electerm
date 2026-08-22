@@ -345,7 +345,7 @@ build_deb() {
     cp -r "$output_dir"/* "$deb_dir/opt/electerm/"
 
     # Install icon
-    local icon_src="$PROJECT_ROOT/node_modules/@electerm/electerm-resource/res/imgs/electerm-round-128x128.png"
+    local icon_src="$PROJECT_ROOT/build/icons/yunduo-128.png"
     if [ -f "$icon_src" ]; then
         cp "$icon_src" "$deb_dir/usr/share/icons/hicolor/128x128/apps/electerm.png"
     fi

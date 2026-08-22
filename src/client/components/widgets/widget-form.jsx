@@ -7,6 +7,12 @@ import { formItemLayout, tailFormItemLayout } from '../../common/form-layout'
 import HelpIcon from '../common/help-icon'
 import { nanoid } from 'nanoid'
 import BatchOpEditor from '../batch-op/batch-op-editor'
+import {
+  getWidgetConfigDescription,
+  getWidgetConfigLabel,
+  getWidgetDescription,
+  getWidgetTitle
+} from './widget-i18n'
 
 export default function WidgetForm ({ widget, onSubmit, loading, hasRunningInstance }) {
   const [form] = Form.useForm()
@@ -36,7 +42,7 @@ export default function WidgetForm ({ widget, onSubmit, loading, hasRunningInsta
   const { configs, type, singleInstance } = info
   const isInstanceWidget = type === 'instance'
   const isFrontendWidget = type === 'frontend'
-  const txt = isInstanceWidget ? 'Start widget' : 'Run widget'
+  const txt = isInstanceWidget ? '启动工具' : '运行工具'
   const isDisabled = loading || (singleInstance && hasRunningInstance)
 
   const handleSubmit = async (values) => {
@@ -44,31 +50,33 @@ export default function WidgetForm ({ widget, onSubmit, loading, hasRunningInsta
   }
 
   const renderFormItem = (config) => {
-    const { name, type, description, choices, showGenerator } = config
+    const { name, type, choices, showGenerator } = config
+    const label = getWidgetConfigLabel(config)
+    const desc = getWidgetConfigDescription(config)
     let control = null
 
     switch (type) {
       case 'string':
-        control = <Input placeholder={description} />
+        control = <Input placeholder={desc} />
         if (showGenerator) {
           return (
             <Form.Item
               key={name}
               {...formItemLayout}
-              label={name}
-              tooltip={description}
+              label={label}
+              tooltip={desc}
             >
               <Space.Compact style={{ width: '100%' }}>
                 <Form.Item
                   noStyle
                   name={name}
                 >
-                  <Input placeholder={description} />
+                  <Input placeholder={desc} />
                 </Form.Item>
                 <Button
                   onClick={() => form.setFieldValue(name, 'ett_' + nanoid())}
                 >
-                  Generate
+                  生成
                 </Button>
               </Space.Compact>
             </Form.Item>
@@ -76,31 +84,31 @@ export default function WidgetForm ({ widget, onSubmit, loading, hasRunningInsta
         }
         break
       case 'textarea':
-        control = <Input.TextArea autoSize={{ minRows: 3 }} placeholder={description} />
+        control = <Input.TextArea autoSize={{ minRows: 3 }} placeholder={desc} />
         break
       case 'number':
-        control = <InputNumber style={{ width: '100%' }} placeholder={description} />
+        control = <InputNumber style={{ width: '100%' }} placeholder={desc} />
         break
       case 'boolean':
         return (
           <Form.Item
             key={name}
             {...formItemLayout}
-            label={name}
+            label={label}
             name={name}
             valuePropName='checked'
-            tooltip={description}
+            tooltip={desc}
           >
             <Switch />
           </Form.Item>
         )
       default:
-        control = <Input placeholder={description} />
+        control = <Input placeholder={desc} />
     }
 
     if (choices && choices.length > 0) {
       control = (
-        <Select placeholder={description}>
+        <Select placeholder={desc}>
           {choices.map(choice => (
             <Select.Option key={choice} value={choice}>
               {choice}
@@ -114,9 +122,9 @@ export default function WidgetForm ({ widget, onSubmit, loading, hasRunningInsta
       <Form.Item
         key={name}
         {...formItemLayout}
-        label={name}
+        label={label}
         name={name}
-        tooltip={description}
+        tooltip={desc}
       >
         {control}
       </Form.Item>
@@ -129,7 +137,7 @@ export default function WidgetForm ({ widget, onSubmit, loading, hasRunningInsta
     }
     return (
       <Alert
-        title='Downloading package may take some time on first use...'
+        title='首次使用需要下载工具依赖，请稍候...'
         type='warning'
         showIcon
         className='mg1t'
@@ -150,12 +158,12 @@ export default function WidgetForm ({ widget, onSubmit, loading, hasRunningInsta
     <div className='widget-form'>
       <div className='pd1b alignright'>
         <h4>
-          {info.name}
+          {getWidgetTitle(widget)}
           {info.name === 'MCP Server' && (
             <HelpIcon link='https://github.com/electerm/electerm/wiki/MCP-Widget-Usage-Guide' />
           )}
         </h4>
-        <p>{info.description}</p>
+        <p>{getWidgetDescription(widget)}</p>
       </div>
 
       <Form
@@ -168,7 +176,7 @@ export default function WidgetForm ({ widget, onSubmit, loading, hasRunningInsta
         <Form.Item
           {...tailFormItemLayout}
         >
-          <Tooltip title={isDisabled && singleInstance && hasRunningInstance ? 'Already running, only one instance allowed' : ''}>
+          <Tooltip title={isDisabled && singleInstance && hasRunningInstance ? '该工具已在运行，只允许启动一个实例' : ''}>
             <Button
               type='primary'
               htmlType='submit'

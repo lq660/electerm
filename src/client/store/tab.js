@@ -2,8 +2,9 @@
  * tabs related functions
  */
 
-import { debounce, isEqual } from 'lodash-es'
+import { debounce } from 'lodash-es'
 import {
+  splitMap,
   splitConfig,
   statusMap,
   paneMap,
@@ -17,6 +18,22 @@ import generate from '../common/id-with-stamp'
 import uid from '../common/uid'
 import newTerm, { updateCount } from '../common/new-terminal.js'
 import { action } from 'manate'
+import {
+  findRecentHistoryIndex,
+  normalizeRecentHistory
+} from '../common/recent-history'
+
+function collapseToSingleBatch (store, activeTabId) {
+  for (let i = 0; i < store.tabs.length; i++) {
+    if (store.tabs[i].batch !== 0) {
+      store.tabs[i].batch = 0
+    }
+  }
+  store.currentLayoutBatch = 0
+  if (activeTabId) {
+    store.activeTabId0 = activeTabId
+  }
+}
 
 export default Store => {
   Store.prototype.nextTabCount = function () {
@@ -434,7 +451,6 @@ export default Store => {
     }
     const { store } = window
     const defaultStatus = statusMap.processing
-    const { layout, currentLayoutBatch } = store
     const ntb = deepCopy(tab)
     Object.assign(ntb, {
       id: generate(),
@@ -442,24 +458,21 @@ export default Store => {
       isTransporting: undefined,
       pane: paneMap.terminal
     })
-    let maxBatch = splitConfig[layout].children
-    if (maxBatch < 2) {
-      maxBatch = 2
-    }
-    ntb.batch = (currentLayoutBatch + 1) % maxBatch
-    if (layout === 'c1') {
-      store.setLayout('c2')
-    }
+    ntb.batch = 0
     store.addTab(ntb)
   }
 
   Store.prototype.setLayout = function (layout) {
     const { store } = window
+    layout = splitMap.c1
     const prevLayout = store.layout
     const { activeTabId } = store
+    collapseToSingleBatch(store, activeTabId)
 
     // If layout hasn't changed, do nothing
     if (prevLayout === layout) {
+      ls.setItem('layout', layout)
+      store.layout = layout
       return store.focus()
     }
 
@@ -532,28 +545,24 @@ export default Store => {
       'autoReConnect'
     ]
     const { history } = store
-    const index = history.filter(d => d.id && d.tab).findIndex(d => {
-      for (const key in tab) {
-        if (tabPropertiesExcludes.includes(key)) {
-          continue
-        }
-        if (!isEqual(d.tab[key], tab[key])) {
-          return false
-        }
-      }
-      return true
-    })
+    const cleanHistory = () => {
+      history.splice(0, history.length, ...normalizeRecentHistory(history, maxHistory))
+    }
+    const index = findRecentHistoryIndex(history, tab)
     if (index === -1) {
       const copiedTab = deepCopy(tab)
       tabPropertiesExcludes.forEach(d => {
         delete copiedTab[d]
       })
-      return history.unshift({
-        tab: copiedTab,
-        time: Date.now(),
-        count: 1,
-        id: uid()
-      })
+      return action(function () {
+        history.unshift({
+          tab: copiedTab,
+          time: Date.now(),
+          count: 1,
+          id: uid()
+        })
+        cleanHistory()
+      })()
     }
     const match = history[index]
     match.count = (match.count || 0) + 1
@@ -561,9 +570,7 @@ export default Store => {
     action(function () {
       const [m] = history.splice(index, 1)
       history.unshift(m)
-      if (history.length > maxHistory) {
-        history.pop()
-      }
+      cleanHistory()
     })()
   }
 

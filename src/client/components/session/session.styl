@@ -19,7 +19,7 @@
   display inline-block
   vertical-align middle
   line-height 30px
-  padding 0 20px 0 0
+  padding 0 14px 0 0
   margin-right 0px
   font-size 14px
   cursor pointer
@@ -59,6 +59,1337 @@
 
 .term-sftp-box
   height 100%
+
+.cn-terminal-session-tabs,
+.cn-file-session-tabs
+  height 36px
+  display flex
+  align-items center
+  gap 6px
+  flex 0 1 auto
+  min-width 0
+  overflow-x auto
+  overflow-y hidden
+  padding 4px 4px
+  background transparent
+  box-sizing border-box
+
+  button
+    position relative
+    height 26px
+    flex 0 0 auto
+    display inline-flex
+    align-items center
+    gap 4px
+    padding 0 10px
+    border 1px solid #dbe3ef
+    border-radius 6px
+    background #fff
+    color #344054
+    cursor pointer
+    font-size 12px
+
+    &:not(.add)
+      border-color #bfd3f2
+      background #f3f7ff
+      color #5b78a5
+
+    &:hover
+      border-color #1677ff
+      color #1677ff
+      background #f5f8ff
+
+    &.active
+      border-color #1677ff
+      background #1677ff
+      color #fff
+      font-weight 600
+
+    &.add
+      margin-left 2px
+
+    &.fixed
+      cursor pointer
+
+    &.dragging
+      opacity .55
+
+    &.drag-over-before::before,
+    &.drag-over-after::after
+      content ''
+      position absolute
+      top 4px
+      bottom 4px
+      width 2px
+      border-radius 2px
+      background #1677ff
+
+    &.drag-over-before::before
+      left -5px
+
+    &.drag-over-after::after
+      right -5px
+
+.cn-terminal-session-close
+  width 14px
+  height 14px
+  display inline-flex
+  align-items center
+  justify-content center
+  border-radius 4px
+  color #98a2b3
+  font-size 10px
+
+  &:hover
+    background #e5edf8
+    color #1677ff
+
+.cn-session-toolbar-actions
+  margin-left auto
+  flex 0 0 auto
+  display inline-flex
+  align-items center
+  gap 4px
+  height 36px
+  padding-left 8px
+  border-left 1px solid #e5ebf3
+
+  .term-controls
+    display inline-flex
+    align-items center
+    gap 4px
+    margin-left 0
+
+.sftp-follow-ssh-icon
+  min-width 78px
+  height 28px
+  display inline-flex !important
+  align-items center
+  justify-content center
+  gap 5px
+  padding 0 9px
+  border 1px solid #dbe3ef
+  border-radius 6px
+  background #fff
+  color #667085
+  font-size 12px
+  line-height 1
+
+  &:hover
+    color #1677ff
+    border-color #b8d8ff
+    background #f5f9ff
+
+  &.active
+    color #fff !important
+    border-color #1677ff
+    background #1677ff
+
+  &.auto
+    border-color #13c2c2
+    background #13c2c2
+
+  .sftp-follow-ssh-label
+    white-space nowrap
+
+.cn-terminal-session-body,
+.cn-file-session-body
+  position relative
+  width 100%
+  height 100%
+  min-height 0
+
+.cn-terminal-session-pane,
+.cn-file-session-pane
+  position absolute
+  inset 0
+  visibility hidden
+  pointer-events none
+
+  &.active
+    visibility visible
+    pointer-events auto
+
+.cn-terminal-empty
+  position absolute
+  inset 0
+  display flex
+  flex-direction column
+  align-items center
+  justify-content center
+  gap 12px
+  color #7b8493
+  background #111317
+  font-size 13px
+
+  button
+    height 30px
+    display inline-flex
+    align-items center
+    gap 6px
+    padding 0 12px
+    border 1px solid #2f6feb
+    border-radius 6px
+    background #1677ff
+    color #fff
+    cursor pointer
+
+    &:hover
+      background #4096ff
+
+.cn-session-workspace
+  position relative
+  display flex
+  height calc(100% - 30px)
+  min-height 0
+  background var(--main)
+
+.cn-session-main
+  min-width 0
+  flex 1
+  overflow hidden
+  display flex
+  flex-direction column
+
+.cn-session-splitter-wrap
+  min-height 0
+  flex 1
+  overflow hidden
+
+.cn-session-transfer-bottom
+  flex 0 0 230px
+  min-height 0
+  overflow hidden
+  border-top 1px solid #dbe3ef
+  background #fff
+  color #1f2937
+
+  .cn-transfer-center
+    height calc(100% - 44px)
+    overflow auto
+    padding 8px 10px !important
+
+  .ant-tabs-nav
+    margin-bottom 6px !important
+
+  .ant-empty
+    margin-block 12px
+
+.cn-session-transfer-bottom-head
+  height 44px
+  display flex
+  align-items center
+  justify-content space-between
+  gap 12px
+  padding 0 12px
+  border-bottom 1px solid #eef2f7
+
+  div
+    display flex
+    flex-direction column
+    gap 2px
+
+  strong
+    color #1f2937
+    font-size 13px
+
+  span
+    color #667085
+    font-size 12px
+
+  .anticon
+    color #667085
+
+    &:hover
+      color #1677ff
+
+.cn-session-aside
+  position relative
+  width 360px
+  flex 0 0 360px
+  height 100%
+  overflow hidden
+  box-sizing border-box
+  padding 8px
+  border-left 1px solid #dbe3ef
+  background #fbfdff
+  color #1f2937
+  display flex
+  flex-direction column
+
+.cn-session-aside-resize-handle
+  position absolute
+  z-index 4
+  top 0
+  bottom 0
+  left -4px
+  width 8px
+  cursor col-resize
+  touch-action none
+
+  &::after
+    content ''
+    position absolute
+    top 0
+    bottom 0
+    left 3px
+    width 2px
+    background transparent
+
+  &:hover::after,
+  .cn-session-aside.is-resizing &::after
+    background #1677ff
+
+.cn-session-aside-head
+  display grid
+  grid-template-columns 30px minmax(0, 1fr)
+  gap 8px
+  align-items center
+  padding 8px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+  margin-bottom 8px
+
+  > .anticon
+    width 30px
+    height 30px
+    display flex
+    align-items center
+    justify-content center
+    border-radius 8px
+    background #e6f1ff
+    color #1677ff
+    font-size 18px
+
+  div
+    min-width 0
+    display flex
+    flex-direction column
+    gap 3px
+
+  strong,
+  span
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  strong
+    color #1f2937
+    font-size 13px
+
+  span
+    color #667085
+    font-size 12px
+
+.cn-session-aside-tabs
+  // 2026-07-24 coder(lq): Separate AI, reusable records, and session details so the sidebar has a clear primary context.
+  display grid
+  grid-template-columns repeat(4, minmax(0, 1fr))
+  gap 6px
+  flex 0 0 auto
+  margin-bottom 8px
+
+  button
+    min-width 0
+    height 32px
+    display inline-flex
+    align-items center
+    justify-content center
+    gap 6px
+    border 1px solid #dbe3ef
+    border-radius 7px
+    background #fff
+    color #667085
+    cursor pointer
+    font-size 12px
+    font-weight 600
+
+    span
+      min-width 0
+      overflow hidden
+      text-overflow ellipsis
+      white-space nowrap
+
+    &:hover
+      border-color #b8d8ff
+      background #f5f9ff
+      color #1677ff
+
+    &.active
+      border-color #1677ff
+      background #1677ff
+      color #fff
+
+.cn-session-aside-body
+  min-height 0
+  flex 1
+  overflow auto
+
+.cn-session-aside-panel
+  min-height 0
+
+.cn-session-aside-panel-ai
+  display flex
+  flex-direction column
+  gap 8px
+
+.cn-session-aside-panel-history
+  height 100%
+  min-height 0
+
+.cn-command-history-panel
+  height 100%
+  min-height 0
+  display flex
+  flex-direction column
+  gap 8px
+  color #1f2937
+
+.cn-command-history-head
+  display grid
+  grid-template-columns 30px minmax(0, 1fr)
+  gap 8px
+  align-items center
+  padding 8px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+
+  > .anticon
+    width 30px
+    height 30px
+    display flex
+    align-items center
+    justify-content center
+    border-radius 8px
+    background #e6f1ff
+    color #1677ff
+    font-size 18px
+
+  div
+    min-width 0
+
+  strong,
+  span
+    display block
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  strong
+    color #1f2937
+    font-size 13px
+
+  span
+    margin-top 2px
+    color #667085
+    font-size 12px
+
+.cn-command-history-filter
+  padding 8px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+
+  .ant-input-affix-wrapper
+    height 32px
+    border-color #dbe3ef
+    border-radius 6px
+    background #fff
+    color #1f2937
+
+    &:hover,
+    &:focus,
+    &.ant-input-affix-wrapper-focused
+      border-color #1677ff
+      box-shadow 0 0 0 2px rgba(22, 119, 255, .1)
+
+  .ant-input
+    background #fff !important
+    color #1f2937 !important
+
+    &::placeholder
+      color #98a2b3 !important
+
+.cn-command-history-segments
+  display grid
+  grid-template-columns 1fr 1fr
+  gap 6px
+  margin-top 8px
+
+  button
+    height 28px
+    border 1px solid #dbe3ef
+    border-radius 6px
+    background #fff
+    color #667085
+    cursor pointer
+    font-size 12px
+
+    &:hover,
+    &.active
+      border-color #1677ff
+      background #eef5ff
+      color #1677ff
+
+.cn-command-history-list
+  min-height 0
+  flex 1
+  display flex
+  flex-direction column
+  gap 6px
+  overflow-y auto
+  padding-right 2px
+
+  .ant-empty
+    margin-top 42px
+    color #98a2b3
+
+.cn-command-history-item
+  display grid
+  grid-template-columns minmax(0, 1fr) auto
+  gap 6px
+  align-items stretch
+  padding 7px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+
+  &:hover
+    border-color #b8d8ff
+    background #f8fbff
+
+.cn-command-history-command
+  min-width 0
+  display flex
+  flex-direction column
+  gap 5px
+  border 0
+  background transparent
+  color #344054
+  cursor pointer
+  padding 0
+  text-align left
+
+  code
+    max-height 44px
+    overflow hidden
+    color #1f2937
+    font-family var(--font-mono), "SFMono-Regular", Consolas, monospace
+    font-size 12px
+    line-height 18px
+    word-break break-all
+
+  span
+    display flex
+    align-items center
+    gap 8px
+    color #98a2b3
+    font-size 11px
+
+  em,
+  b
+    font-style normal
+    font-weight 400
+    white-space nowrap
+
+  b
+    color #667085
+
+.cn-command-history-actions
+  display grid
+  grid-template-columns repeat(2, 26px)
+  grid-auto-rows 26px
+  gap 4px
+
+  button
+    width 26px
+    height 26px
+    display inline-flex
+    align-items center
+    justify-content center
+    border 1px solid #dbe3ef
+    border-radius 6px
+    background #fff
+    color #667085
+    cursor pointer
+
+    &:hover
+      border-color #1677ff
+      background #eef5ff
+      color #1677ff
+
+.cn-command-history-footer
+  flex 0 0 auto
+  display flex
+  align-items center
+  justify-content space-between
+  gap 8px
+  padding 7px 8px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #f8fafc
+  color #667085
+  font-size 12px
+
+  span
+    min-width 0
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  button
+    height 26px
+    flex 0 0 auto
+    padding 0 9px
+    border 1px solid #dbe3ef
+    border-radius 6px
+    background #fff
+    color #667085
+    cursor pointer
+
+    &:hover
+      border-color #ff7875
+      color #d4380d
+
+.cn-session-aside-section
+  padding 8px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+  margin-bottom 8px
+
+  button
+    width 100%
+    height 28px
+    display flex
+    align-items center
+    gap 8px
+    border 1px solid #dbe3ef
+    border-radius 6px
+    background #fff
+    color #344054
+    cursor pointer
+    margin-top 6px
+    padding 0 8px
+    text-align left
+
+    &:hover
+      border-color #1677ff
+      background #f5f8ff
+      color #1677ff
+
+.cn-session-batch-input
+  margin-top 6px
+  padding 8px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #f8fafc
+
+  .batch-input-outer
+    display block
+
+    .bi-compact
+      display none
+
+    .bi-full
+      display block
+
+  .batch-input-wrap
+    width 100%
+
+  .batch-input-multiline
+    display block
+
+  .batch-input-multiline-actions
+    display flex
+    align-items center
+    justify-content space-between
+    gap 8px
+    margin-top 6px
+    color #667085
+    font-size 12px
+
+    span
+      min-width 0
+      overflow hidden
+      text-overflow ellipsis
+      white-space nowrap
+
+    button.ant-btn
+      width auto
+      min-width 58px
+      height 26px
+      margin-top 0
+      justify-content center
+      padding 0 10px
+      text-align center
+
+      & + button.ant-btn
+        margin-left 0
+
+  .ant-select-selector
+    background #fff !important
+    border-color #dbe3ef !important
+    border-radius 6px !important
+    box-shadow none !important
+
+  .ant-input
+    background #fff !important
+    color #1f2937 !important
+
+    &::placeholder
+      color #98a2b3 !important
+
+  textarea.ant-input
+    min-height 88px
+    resize none
+    border-color #dbe3ef
+    border-radius 6px
+    color #1f2937
+    line-height 18px
+
+    &:focus
+      border-color #1677ff
+      box-shadow 0 0 0 2px rgba(22, 119, 255, .1)
+
+.cn-session-tool-row
+  min-height 42px
+
+  > .anticon:last-child
+    margin-left auto
+    color #98a2b3
+
+  > span
+    min-width 0
+    display flex
+    flex-direction column
+    gap 2px
+
+  b,
+  em
+    display block
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  b
+    color #344054
+    font-size 13px
+    font-weight 600
+
+  em
+    color #667085
+    font-size 12px
+    font-style normal
+
+  &:hover,
+  &.is-active
+    b
+      color #1677ff
+
+.cn-session-ai-section
+  margin-bottom 0
+  padding 8px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+
+  &.is-open
+    min-height 0
+
+.cn-session-ai-head
+  display grid
+  grid-template-columns 28px minmax(0, 1fr) auto
+  gap 8px
+  align-items center
+
+  > .anticon
+    display flex
+    align-items center
+    justify-content center
+    width 28px
+    height 28px
+    border-radius 6px
+    background #e6f1ff
+    color #1677ff
+
+  div
+    min-width 0
+
+  strong,
+  span
+    display block
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  strong
+    color #1f2937
+    font-size 13px
+
+  span
+    margin-top 2px
+    color #667085
+    font-size 12px
+
+  b
+    padding 2px 6px
+    border-radius 999px
+    font-size 12px
+    font-weight 600
+
+    &.ready
+      background #ecfdf3
+      color #039855
+
+    &.missing
+      background #fff4e5
+      color #b54708
+
+.cn-session-ai-description
+  margin 6px 0 0
+  color #667085
+  font-size 12px
+  line-height 18px
+
+.cn-session-ai-actions
+  display grid
+  grid-template-columns 1fr 1fr
+  gap 6px
+  margin-top 8px
+
+  &.single
+    grid-template-columns 1fr
+
+  button
+    width 100%
+    height 30px
+    display flex
+    align-items center
+    justify-content center
+    gap 6px
+    margin-top 0
+    padding 0 8px
+    border 1px solid #dbe3ef
+    border-radius 6px
+    background #fff
+    color #344054
+    cursor pointer
+
+    &:hover
+      border-color #1677ff
+      background #f5f8ff
+      color #1677ff
+
+.cn-session-ai-chat
+  height clamp(520px, 68vh, 820px)
+  min-height 0
+  margin-top 8px
+  overflow hidden
+
+  .ai-chat-container
+    min-height 0
+
+.cn-solution-record-heading
+  display flex
+  align-items center
+  justify-content space-between
+  gap 8px
+
+  > div
+    min-width 0
+    display flex
+    flex-direction column
+    gap 2px
+
+  span,
+  em
+    display block
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  span
+    color #344054
+    font-size 12px
+    font-weight 700
+
+  em
+    color #667085
+    font-size 11px
+    font-style normal
+
+  > button
+    width 28px
+    height 28px
+    flex 0 0 28px
+    justify-content center
+    margin-top 0
+    padding 0
+    text-align center
+
+.cn-solution-record-list
+  display flex
+  flex-direction column
+  gap 6px
+  margin-top 8px
+
+.cn-solution-record-item
+  width 100%
+  min-height 50px !important
+  display grid !important
+  grid-template-columns 18px minmax(0, 1fr) auto
+  align-items start !important
+  gap 7px !important
+  margin-top 0 !important
+  padding 7px 8px !important
+
+  > .anticon
+    margin-top 2px
+    color #1677ff
+
+  > span
+    min-width 0
+    display flex
+    flex-direction column
+    gap 2px
+
+  b,
+  em
+    display block
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  b
+    color #344054
+    font-size 12px
+
+  em
+    color #667085
+    font-size 11px
+    font-style normal
+
+  i
+    margin-top 2px
+    color #98a2b3
+    font-size 11px
+    font-style normal
+    white-space nowrap
+
+.cn-solution-record-empty
+  margin-top 8px
+  padding 7px 8px
+  border 1px dashed #c8d8ef
+  border-radius 6px
+  background #f8fbff
+  color #667085
+  font-size 12px
+  line-height 18px
+
+.cn-solution-record-library-button
+  justify-content center !important
+  margin-top 8px !important
+
+.solution-record-modal
+  .custom-modal-body
+    padding 16px
+
+  button
+    cursor pointer
+
+.solution-record-composer-head
+  display flex
+  align-items center
+  justify-content space-between
+  gap 12px
+  margin-bottom 14px
+  padding: 9px 10px
+  border 1px solid #d8e0ea
+  border-radius 7px
+  background #f8fafc
+
+  > div
+    min-width 0
+    display flex
+    flex-direction column
+    gap 2px
+
+  strong,
+  span
+    display block
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  strong
+    color #344054
+    font-size 13px
+
+  span
+    color #667085
+    font-size 12px
+
+.solution-record-ai-button
+  height 30px
+  flex 0 0 auto
+  display inline-flex
+  align-items center
+  justify-content center
+  gap 6px
+  padding 0 10px
+  border 1px solid #b8d2ff
+  border-radius 6px
+  background #eef5ff
+  color #1677ff
+
+  &:hover:not(:disabled)
+    border-color #1677ff
+    background #e2efff
+
+  &:disabled
+    cursor default
+    opacity .7
+
+.solution-record-field
+  display block
+  margin-top 12px
+
+  > span
+    display block
+    margin-bottom 5px
+    color #344054
+    font-size 12px
+    font-weight 600
+
+  small
+    display block
+    margin-top 5px
+    color #667085
+    font-size 12px
+    line-height 18px
+
+  textarea
+    resize vertical
+
+.solution-record-library-head
+  display grid
+  grid-template-columns minmax(0, 1fr) auto
+  gap 8px
+  margin-bottom 12px
+
+  > button
+    height 32px
+    padding 0 10px
+    border 1px solid #d8e0ea
+    border-radius 6px
+    background #fff
+    color #667085
+
+    &:hover,
+    &.active
+      border-color #1677ff
+      background #eef5ff
+      color #1677ff
+
+.solution-record-library
+  min-height 430px
+  display grid
+  grid-template-columns 250px minmax(0, 1fr)
+  overflow hidden
+  border 1px solid #d8e0ea
+  border-radius 8px
+
+.solution-record-library-list
+  overflow-y auto
+  padding 6px
+  border-right 1px solid #d8e0ea
+  background #f8fafc
+
+  > button
+    width 100%
+    display flex
+    flex-direction column
+    gap 3px
+    margin-bottom 4px
+    padding 8px
+    border 1px solid transparent
+    border-radius 6px
+    background transparent
+    color #344054
+    text-align left
+
+    &:hover,
+    &.active
+      border-color #b8d2ff
+      background #eef5ff
+
+    strong,
+    span,
+    em
+      display block
+      overflow hidden
+      text-overflow ellipsis
+      white-space nowrap
+
+    strong
+      font-size 13px
+
+    span
+      color #667085
+      font-size 11px
+
+    em
+      color #667085
+      font-size 12px
+      font-style normal
+
+.solution-record-library-empty
+  padding 40px 12px
+  color #98a2b3
+  font-size 12px
+  text-align center
+
+.solution-record-detail
+  min-width 0
+  overflow-y auto
+  padding 16px
+  background #fff
+
+  section
+    margin-top 14px
+
+    > b
+      display block
+      margin-bottom 5px
+      color #344054
+      font-size 12px
+
+    p
+      margin 0
+      color #667085
+      font-size 13px
+      line-height 20px
+      white-space pre-wrap
+
+.solution-record-detail-head
+  display flex
+  align-items flex-start
+  justify-content space-between
+  gap 10px
+
+  > div:first-child
+    min-width 0
+
+  strong,
+  span
+    display block
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  strong
+    color #1f2937
+    font-size 16px
+    line-height 22px
+
+  span
+    margin-top 3px
+    color #667085
+    font-size 12px
+
+.solution-record-detail-actions
+  display flex
+  gap 6px
+
+  button
+    height 28px
+    display inline-flex
+    align-items center
+    justify-content center
+    padding 0 8px
+    border 1px solid #d8e0ea
+    border-radius 6px
+    background #fff
+    color #667085
+
+    &:hover
+      border-color #1677ff
+      color #1677ff
+
+.solution-record-command-title
+  display flex
+  align-items center
+  justify-content space-between
+  gap 8px
+  margin-bottom 6px
+
+  span
+    color #98a2b3
+    font-size 12px
+
+.solution-record-command
+  display grid
+  grid-template-columns minmax(0, 1fr) 28px
+  gap 6px
+  align-items center
+  margin-top 6px
+  padding 6px 8px
+  border 1px solid #d8e0ea
+  border-radius 6px
+  background #f8fafc
+
+  code
+    min-width 0
+    overflow hidden
+    color #344054
+    font-size 12px
+    text-overflow ellipsis
+    white-space nowrap
+
+  button
+    width 28px
+    height 28px
+    display flex
+    align-items center
+    justify-content center
+    padding 0
+    border 0
+    border-radius 5px
+    background transparent
+    color #667085
+
+    &:hover
+      background #e6f1ff
+      color #1677ff
+
+.solution-record-tags
+  display flex
+  flex-wrap wrap
+  gap 5px
+  margin-top 14px
+
+  span
+    padding 2px 6px
+    border-radius 5px
+    background #eef5ff
+    color #1677ff
+    font-size 12px
+
+.solution-record-run-actions
+  display flex
+  gap 8px
+  margin-top 16px
+
+  button
+    height 32px
+    display inline-flex
+    align-items center
+    justify-content center
+    gap 6px
+    padding 0 10px
+    border 1px solid #d8e0ea
+    border-radius 6px
+    background #fff
+    color #344054
+
+    &:hover
+      border-color #1677ff
+      color #1677ff
+
+    &.primary
+      border-color #1677ff
+      background #1677ff
+      color #fff
+
+      &:hover
+        background #0958d9
+        color #fff
+
+@media (max-width: 760px)
+  .solution-record-modal .custom-modal-content
+    width calc(100vw - 24px) !important
+
+  .solution-record-library
+    grid-template-columns 1fr
+
+  .solution-record-library-list
+    max-height 180px
+    border-right 0
+    border-bottom 1px solid #d8e0ea
+
+.cn-session-aside-title
+  color #344054
+  font-size 12px
+  font-weight 700
+  margin-bottom 6px
+
+.cn-session-info-row
+  display flex
+  align-items center
+  justify-content space-between
+  gap 8px
+  min-height 22px
+  color #667085
+  font-size 12px
+
+  b
+    min-width 0
+    color #1f2937
+    font-weight 600
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+.cn-session-empty-metrics
+  display flex
+  flex-direction column
+  gap 4px
+  padding 8px
+  border 1px dashed #b8d8ff
+  border-radius 8px
+  background #f5f8ff
+  color #667085
+  font-size 12px
+  line-height 1.5
+
+.cn-session-metrics
+  display grid
+  grid-template-columns repeat(3, minmax(0, 1fr))
+  gap 6px 8px
+
+  > div
+    min-width 0
+    display flex
+    flex-direction column
+    gap 2px
+
+    &.wide
+      grid-column 1 / -1
+
+  span
+    color #667085
+    font-size 11px
+
+  b
+    color #1f2937
+    font-size 12px
+    font-weight 600
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+.cn-session-metrics-loading
+  color #667085
+  font-size 12px
+  line-height 24px
+
+@media (max-width: 980px)
+  .cn-session-aside
+    display none
+
 .web-session-wrap
   height 100%
   background var(--main)
@@ -95,6 +1426,26 @@
   margin-right 10px
   &.active
     color var(--warn)
+
+.session-aside-toolbar-toggle
+  color #667085
+
+  &:hover
+    color #1677ff
+
+.cn-transfer-toolbar-toggle
+  position relative
+
+  &.has-transfer::after
+    content ''
+    position absolute
+    top 3px
+    right 3px
+    width 6px
+    height 6px
+    border-radius 50%
+    background #fa8c16
+    box-shadow 0 0 0 2px #fff
 
 .split-view-toggle
   &.active

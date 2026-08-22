@@ -13,6 +13,7 @@ import download from '../common/download'
 import { fixBookmarks } from '../common/db-fix'
 import dayjs from 'dayjs'
 import parseJsonSafe from '../common/parse-json-safe'
+import message from '../components/common/message'
 
 const {
   version: packVer
@@ -640,7 +641,14 @@ export default (Store) => {
     update('lastDataUpdateTime', store.lastDataUpdateTime)
   }, 1000)
 
-  Store.prototype.handleExportAllData = async function () {
+  Store.prototype.handleExportAllData = async function (password, options = {}) {
+    if (!window.et.isWebApp) {
+      const res = await window.pre.runGlobalAsync('exportConfigMigration', password, options)
+      if (res && !res.canceled) {
+        message.success('配置迁移包已导出')
+      }
+      return res
+    }
     const { store } = window
     const objs = {}
     const { names } = store.getDataSyncNames(true)
@@ -657,11 +665,37 @@ export default (Store) => {
     }
     objs.config = store.config
     const text = JSON.stringify(objs)
-    const name = dayjs().format('YYYY-MM-DD-HH-mm-ss') + '-electerm-all-data.json'
+    const name = dayjs().format('YYYY-MM-DD-HH-mm-ss') + '-yunduo-all-data.json'
     download(name, text)
   }
 
-  Store.prototype.importAll = async function (file) {
+  Store.prototype.previewImportAll = async function (file, password) {
+    if (!window.et.isWebApp) {
+      const filePath = file.filePath || file.path
+      return window.pre.runGlobalAsync('previewConfigMigration', filePath, password)
+    }
+    const txt = file.fileContent !== undefined
+      ? file.fileContent
+      : await window.fs.readFile(file.filePath)
+    const objs = JSON.parse(txt)
+    const summary = Object.keys(objs).reduce((prev, key) => {
+      prev[key] = Array.isArray(objs[key]) ? objs[key].length : 1
+      return prev
+    }, {})
+    return {
+      summary,
+      warnings: ['Web 版导入预览仅显示基础 JSON 内容。'],
+      conflicts: {}
+    }
+  }
+
+  Store.prototype.importAll = async function (file, password, options = {}) {
+    if (!window.et.isWebApp) {
+      const filePath = file.filePath || file.path
+      const res = await window.pre.runGlobalAsync('importConfigMigration', filePath, password, options)
+      message.success('配置迁移包已导入')
+      return res
+    }
     const txt = file.fileContent !== undefined
       ? file.fileContent
       : await window.fs.readFile(file.filePath)
@@ -670,15 +704,22 @@ export default (Store) => {
     const { names } = store.getDataSyncNames(true)
     for (const n of names) {
       let arr = objs[n]
+      if (!Array.isArray(arr)) {
+        continue
+      }
       if (n === settingMap.terminalThemes) {
         arr = store.fixThemes(arr)
       } else if (n === settingMap.bookmarks) {
         arr = fixBookmarks(arr)
       }
-      store.setItems(n, objs[n])
+      store.setItems(n, arr)
     }
-    store.updateConfig(objs.config)
-    store.setTheme(objs.config.theme)
+    if (objs.config) {
+      store.updateConfig(objs.config)
+      if (objs.config.theme) {
+        store.setTheme(objs.config.theme)
+      }
+    }
   }
 
   Store.prototype.handleAutoSync = function (v) {
@@ -744,6 +785,7 @@ export default (Store) => {
       'disableTransferHistory',
       'terminalType',
       'keepaliveCountMax',
+      'enableTerminalLogHighlight',
       'saveTerminalLogToFile',
       'checkUpdateOnStart',
       'cursorBlink',

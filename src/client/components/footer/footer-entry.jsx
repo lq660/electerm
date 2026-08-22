@@ -1,41 +1,12 @@
 import { auto } from 'manate/react'
-import {
-  Select
-} from 'antd'
 import { InfoCircleOutlined } from '@ant-design/icons'
 import './footer.styl'
 import { statusMap } from '../../common/constants'
-import BatchInput from './batch-input'
-import encodes from '../bookmark-form/common/encodes'
-import { refs } from '../common/ref'
-import Qm from '../quick-commands/quick-commands-select'
-import AIIcon from '../icons/ai-icon'
 import CmdHistory from './cmd-history'
-
-const {
-  Option
-} = Select
-
-const e = window.translate
 
 export default auto(function FooterEntry (props) {
   function handleInfoPanel () {
     window.store.openInfoPanel()
-  }
-
-  function batchInput (cmd, selectedTabIds) {
-    selectedTabIds.map(id => {
-      return refs.get('term-' + id)
-    }).forEach(term => {
-      term?.batchInput(cmd)
-    })
-  }
-
-  function handleSwitchEncoding (encode) {
-    const term = refs.get('term-' + props.store.activeTabId)
-    if (term) {
-      term.switchEncoding(encode)
-    }
   }
 
   function isLoading () {
@@ -47,74 +18,6 @@ export default auto(function FooterEntry (props) {
       status
     } = currentTab
     return status !== statusMap.success
-  }
-
-  function renderBatchInputs () {
-    const { store } = props
-    const batchProps = {
-      input: batchInput,
-      tabs: store.tabs,
-      batchInputs: store.batchInputs,
-      batchInputSelectedTabIds: store.batchInputSelectedTabIds,
-      activeTabId: store.activeTabId
-    }
-    return (
-      <div className='terminal-footer-unit terminal-footer-center'>
-        <BatchInput
-          {...batchProps}
-        />
-      </div>
-    )
-  }
-
-  function renderQuickCommands () {
-    return (
-      <div className='terminal-footer-unit terminal-footer-qm'>
-        <Qm />
-      </div>
-    )
-  }
-
-  function renderAIIcon () {
-    return (
-      <div className='terminal-footer-unit terminal-footer-ai'>
-        <AIIcon
-          onClick={window.store.handleOpenAIPanel}
-        />
-      </div>
-    )
-  }
-
-  function renderEncodingInfo () {
-    const selectProps = {
-      style: {
-        minWidth: 30
-      },
-      placeholder: e('encode'),
-      defaultValue: props.store.currentTab?.encode,
-      onSelect: handleSwitchEncoding,
-      size: 'small',
-      popupMatchSelectWidth: false
-    }
-    return (
-      <div className='terminal-footer-unit terminal-footer-info'>
-        <div className='fleft relative'>
-          <Select
-            {...selectProps}
-          >
-            {
-              encodes.map(k => {
-                return (
-                  <Option key={k} value={k}>
-                    {k.toUpperCase()}
-                  </Option>
-                )
-              })
-            }
-          </Select>
-        </div>
-      </div>
-    )
   }
 
   function renderInfoIcon () {
@@ -157,20 +60,14 @@ export default auto(function FooterEntry (props) {
         className: 'main-footer'
       }
   if (
-    !inActiveTerminal
+    inActiveTerminal
   ) {
-    return (
-      <div className='main-footer' {...sideProps} />
-    )
+    return null
   }
   return (
     <div {...sideProps}>
       <div className='terminal-footer-flex'>
-        {renderAIIcon()}
         {renderCmdHistory()}
-        {renderQuickCommands()}
-        {renderBatchInputs()}
-        {renderEncodingInfo()}
         {renderInfoIcon()}
       </div>
     </div>

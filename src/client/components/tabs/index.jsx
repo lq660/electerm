@@ -14,7 +14,6 @@ import {
 } from '@ant-design/icons'
 import { Dropdown } from 'antd'
 import Tab from './tab'
-import LayoutMenu from './layout-menu'
 import './tabs.styl'
 import {
   tabWidth,
@@ -119,6 +118,18 @@ export default class Tabs extends Component {
     )
   }
 
+  getHomeTabId = () => {
+    return `home-${this.props.batch}`
+  }
+
+  handleHomeClick = () => {
+    const { batch } = this.props
+    const homeId = this.getHomeTabId()
+    window.store.currentLayoutBatch = batch
+    window.store[`activeTabId${batch}`] = homeId
+    window.store.activeTabId = homeId
+  }
+
   adjustScroll = () => {
     const { tabs, currentBatchTabId, batch } = this.props
     const index = tabs.findIndex(t => t.id === currentBatchTabId)
@@ -189,11 +200,7 @@ export default class Tabs extends Component {
   }
 
   renderNoExtra () {
-    return (
-      <div className='tabs-extra pd1x'>
-        {this.renderLayoutMenu()}
-      </div>
-    )
+    return null
   }
 
   renderExtra () {
@@ -229,9 +236,6 @@ export default class Tabs extends Component {
         >
           <DownOutlined className='tabs-dd-icon' />
         </Dropdown>
-        {
-          this.renderLayoutMenu()
-        }
       </div>
     )
   }
@@ -280,6 +284,7 @@ export default class Tabs extends Component {
           }}
           onDoubleClick={this.handleAdd}
         >
+          {this.renderHomeTab()}
           {
             tabs.map((tab, i) => {
               const isLast = i === len - 1
@@ -308,12 +313,22 @@ export default class Tabs extends Component {
     )
   }
 
-  renderLayoutMenu = () => {
+  renderHomeTab () {
+    const active = !this.props.tabs?.length || this.props.currentBatchTabId === this.getHomeTabId()
+    const cls = classNames(
+      'tab',
+      'home-tab',
+      { active },
+      { 'active-all': active }
+    )
     return (
-      <LayoutMenu
-        layout={this.props.layout}
-        visible={this.shouldRenderWindowControl()}
-      />
+      <div
+        className={cls}
+        onClick={this.handleHomeClick}
+        title='工作台首页'
+      >
+        <span className='tab-title elli'>工作台</span>
+      </div>
     )
   }
 
@@ -333,7 +348,7 @@ export default class Tabs extends Component {
   }
 
   getExtraTabWidth = () => {
-    return this.shouldRenderWindowControl()
+    return !isMacJs && this.shouldRenderWindowControl()
       ? windowControlWidth
       : 0
   }
@@ -379,8 +394,10 @@ export default class Tabs extends Component {
 
   render () {
     const {
-      tabs
+      tabs,
+      currentBatchTabId
     } = this.props
+    const showHome = currentBatchTabId === this.getHomeTabId()
     if (!tabs || !tabs.length) {
       return (
         <div className='tabs-outer'>
@@ -389,6 +406,11 @@ export default class Tabs extends Component {
         </div>
       )
     }
-    return this.renderTabs()
+    return (
+      <div className='tabs-outer'>
+        {this.renderTabs()}
+        {showHome ? this.renderNoSession() : null}
+      </div>
+    )
   }
 }

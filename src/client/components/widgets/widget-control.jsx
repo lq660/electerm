@@ -4,6 +4,7 @@
 import React, { useState } from 'react'
 import WidgetForm from './widget-form'
 import { showMsg } from './widget-notification-with-details'
+import { getWidgetTitle } from './widget-i18n'
 
 export default function WidgetControl ({ formData, widgetInstancesLength }) {
   const [loading, setLoading] = useState(false)
@@ -11,7 +12,7 @@ export default function WidgetControl ({ formData, widgetInstancesLength }) {
   if (!widget.id) {
     return (
       <div className='widget-control-empty aligncenter pd3'>
-        <p>Select a widget to configure</p>
+        <p>请选择左侧工具进行配置</p>
       </div>
     )
   }
@@ -34,7 +35,7 @@ export default function WidgetControl ({ formData, widgetInstancesLength }) {
       } = result
       if (!instanceId) {
         if (success === false) {
-          showMsg('Failed to run widget', 'error', null, 10, error || '')
+          showMsg('工具运行失败', 'error', null, 10, error || '')
         } else {
           showMsg(msg, 'success', null, 10)
         }
@@ -43,7 +44,7 @@ export default function WidgetControl ({ formData, widgetInstancesLength }) {
       // Add instance to the store
       const instance = {
         id: result.instanceId,
-        title: `${widget.info.name} (${result.instanceId})`,
+        title: `${getWidgetTitle(widget)} (${result.instanceId})`,
         widgetId: result.widgetId,
         serverInfo: result.serverInfo,
         config
@@ -55,7 +56,7 @@ export default function WidgetControl ({ formData, widgetInstancesLength }) {
       showMsg(msg, 'success', result.serverInfo, 10)
     } catch (err) {
       console.error('Failed to run widget:', err)
-      showMsg(`Failed to run widget: ${err.message}`, 'error', null, 10)
+      showMsg(`工具运行失败：${err.message}`, 'error', null, 10)
     } finally {
       setLoading(false)
     }

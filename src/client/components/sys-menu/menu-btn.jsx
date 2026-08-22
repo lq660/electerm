@@ -6,12 +6,10 @@ import { PureComponent } from 'react'
 import {
   Popover
 } from 'antd'
-import logoSvg from '@electerm/electerm-resource/res/imgs/electerm.svg?raw'
 import { shortcutDescExtend } from '../shortcuts/shortcut-handler.js'
 import MenuRender from './sys-menu.jsx'
 import { refsStatic } from '../common/ref.js'
-
-const e = window.translate
+import YunduoLogo from '../icons/yunduo-logo.jsx'
 
 class MenuBtn extends PureComponent {
   componentDidMount () {
@@ -51,7 +49,7 @@ class MenuBtn extends PureComponent {
   }
 
   onCheckUpdate = () => {
-    window.store.onCheckUpdate()
+    window.store.onCheckUpdate(true)
   }
 
   restart = () => {
@@ -65,9 +63,13 @@ class MenuBtn extends PureComponent {
   renderContext = () => {
     const items = [
       {
+        type: 'group',
+        text: '常用操作'
+      },
+      {
         func: 'onNewSsh',
         icon: 'CodeFilled',
-        text: e('newBookmark'),
+        text: '新建连接',
         subText: this.getShortcut('app_newBookmark')
       }
     ]
@@ -75,96 +77,99 @@ class MenuBtn extends PureComponent {
       items.push({
         func: 'addTab',
         icon: 'RightSquareFilled',
-        text: e('newTab'),
+        text: '新建本地终端',
         subText: this.getShortcut('app_newTab')
       })
     }
-    // {
-    //   type: 'hr'
-    // },
+    items.push({
+      type: 'group',
+      text: '资源与窗口'
+    })
     items.push({
       noCloseMenu: true,
       icon: 'BookOutlined',
-      text: e('bookmarks'),
+      text: '服务器资源',
       submenu: 'Bookmark'
     })
     items.push(
       {
         noCloseMenu: true,
         icon: 'ClockCircleOutlined',
-        text: e('history'),
+        text: '最近连接',
         submenu: 'History'
       },
       {
         noCloseMenu: true,
         icon: 'BarsOutlined',
-        text: e('sessions'),
+        text: '已打开会话',
         submenu: 'Tabs'
       },
       {
         icon: 'AppstoreOutlined',
-        text: e('layout'),
+        text: '窗口布局',
         submenu: 'Layout'
       },
-      // {
-      //   type: 'hr'
-      // },
+      {
+        type: 'group',
+        text: '应用设置'
+      },
       {
         func: 'openAbout',
         icon: 'InfoCircleOutlined',
-        text: e('about')
+        text: '关于云舵'
       },
       {
         func: 'openSetting',
         icon: 'SettingOutlined',
-        text: e('settings')
+        text: '设置中心'
       },
       {
         func: 'openDevTools',
         icon: 'LeftSquareFilled',
-        text: e('toggledevtools')
+        text: '开发者工具',
+        className: 'context-item-secondary'
       },
-      // {
-      //   type: 'hr'
-      // },
+      {
+        type: 'group',
+        text: '显示与窗口'
+      },
       {
         module: 'Zoom'
       },
       {
         func: 'minimize',
         icon: 'SwitcherFilled',
-        text: e('minimize')
+        text: '最小化'
       },
       {
         func: 'maximize',
         icon: 'LayoutFilled',
-        text: e('maximize')
+        text: '最大化'
       },
       {
         func: 'reload',
         icon: 'ReloadOutlined',
-        text: e('reload')
+        text: '重新加载'
       },
-      // {
-      //   type: 'hr'
-      // },
+      {
+        type: 'group',
+        text: '维护'
+      },
       {
         func: 'onCheckUpdate',
         icon: 'UpCircleOutlined',
-        text: e('checkForUpdate')
+        text: '检查更新'
       },
-      // {
-      //   type: 'hr'
-      // },
       {
         func: 'restart',
         icon: 'RedoOutlined',
-        text: e('restart')
+        text: '重启应用'
       },
       {
         func: 'close',
         icon: 'CloseOutlined',
-        text: e('close')
+        text: '退出应用',
+        className: 'context-item-danger'
       }
     )
     return items
@@ -188,13 +193,22 @@ class MenuBtn extends PureComponent {
       className: 'menu-control',
       onMouseDown: evt => evt.preventDefault(),
       onClick: this.openMenu,
-      title: e('menu')
+      title: '菜单'
     }
     const popProps = {
       content: this.renderMenu(),
       // open: this.state.opened,
       placement: 'right',
-      trigger: ['click']
+      trigger: ['click'],
+      overlayClassName: 'cn-app-menu-popover',
+      rootClassName: 'cn-app-menu-popover',
+      styles: {
+        body: {
+          padding: 0,
+          background: 'transparent',
+          boxShadow: 'none'
+        }
+      }
     }
     return (
       <Popover {...popProps}>
@@ -202,9 +216,11 @@ class MenuBtn extends PureComponent {
           {...pops}
         >
           <span
-            className='menu-logo'
-            dangerouslySetInnerHTML={{ __html: logoSvg }}
-          />
+            className='menu-logo cn-menu-logo-mark'
+            aria-hidden='true'
+          >
+            <YunduoLogo className='cn-yunduo-logo-mark-icon' />
+          </span>
         </div>
       </Popover>
     )

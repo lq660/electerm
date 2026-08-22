@@ -19,6 +19,13 @@ export function runCmd (pid, cmd) {
   })
 }
 
+export function getTerminalCwd (pid) {
+  return fetch({
+    pid,
+    action: 'get-terminal-cwd'
+  })
+}
+
 export function resizeTerm (pid, cols, rows) {
   return fetch({
     pid,

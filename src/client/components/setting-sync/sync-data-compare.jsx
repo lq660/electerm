@@ -41,19 +41,19 @@ export default function SyncDataCompare (props) {
   if (diffs.length === 0) {
     return (
       <p className='mg1t sync-diff-text'>
-        {e('dataInSync') || 'Data in sync'}
+        {e('dataInSync') || '本地和远端数据一致'}
       </p>
     )
   }
 
   const nameMap = {
-    bookmarks: e('bookmarks') || 'Bookmarks',
-    bookmarkGroups: 'Bookmark Groups',
-    terminalThemes: e('terminalThemes') || 'Terminal Themes',
-    quickCommands: e('quickCommands') || 'Quick Commands',
-    profiles: e('profiles') || 'Profiles',
-    addressBookmarks: e('addressBookmarks') || 'Address Bookmarks',
-    workspaces: e('workspaces') || 'Workspaces'
+    bookmarks: e('bookmarks') || '服务器',
+    bookmarkGroups: '服务器分组',
+    terminalThemes: e('terminalThemes') || '终端主题',
+    quickCommands: e('quickCommands') || '快捷命令',
+    profiles: e('profiles') || '连接模板',
+    addressBookmarks: e('addressBookmarks') || '地址收藏',
+    workspaces: e('workspaces') || '工作区'
   }
 
   const lines = diffs.map(item => {
@@ -63,12 +63,12 @@ export default function SyncDataCompare (props) {
     const diff = serverCount - localCount
     let action = ''
     if (diff > 0) {
-      action = e('download') || 'download'
+      action = e('download') || '下载'
     } else if (diff < 0) {
-      action = e('upload') || 'upload'
+      action = e('upload') || '上传'
     }
     return {
-      text: `${e('remote') || 'remote'}: ${serverCount} ${displayName}, ${e('local') || 'local'}: ${localCount} ${displayName}`,
+      text: `${e('remote') || '远端'}: ${serverCount} ${displayName}, ${e('local') || '本地'}: ${localCount} ${displayName}`,
       action
     }
   })
@@ -81,7 +81,7 @@ export default function SyncDataCompare (props) {
             <p key={i} className='mg0'>
               {line.text}
               {line.action && (
-                <span className='sync-suggest-action'> {'->'} {line.action} ?</span>
+                <span className='sync-suggest-action'>，建议{line.action}</span>
               )}
             </p>
           ))}

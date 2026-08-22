@@ -105,10 +105,10 @@ export default memo(function TransferHistoryModal (props) {
     rowKey: 'id'
   }
   return (
-    <div className='pd2'>
-      <div>
+    <div className='pd2 cn-transfer-history'>
+      <div className='cn-transfer-history-actions'>
         <span
-          className='iblock pointer'
+          className='iblock pointer cn-transfer-clear'
           onClick={clearTransferHistory}
         >
           <CloseOutlined className='mg1r' />

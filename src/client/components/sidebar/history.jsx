@@ -8,6 +8,7 @@ import { Switch } from 'antd'
 import { UnorderedListOutlined } from '@ant-design/icons'
 import HistoryItem from './history-item'
 import { getItemJSON, setItemJSON } from '../../common/safe-local-storage.js'
+import { dedupeRecentHistory } from '../../common/recent-history'
 import '../setting-panel/list.styl'
 
 const SORT_BY_FREQ_KEY = 'electerm-history-sort-by-frequency'
@@ -25,7 +26,7 @@ export default auto(function HistoryPanel (props) {
   const {
     history
   } = store
-  let arr = store.config.disableConnectionHistory ? [] : history
+  let arr = store.config.disableConnectionHistory ? [] : dedupeRecentHistory(history)
   if (sortByFrequency) {
     arr = [...arr].sort((a, b) => { return b.count - a.count })
   }

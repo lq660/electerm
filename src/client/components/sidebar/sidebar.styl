@@ -70,6 +70,7 @@
 .not-system-ui.is-mac
   .sidebar-bar
     margin-top 20px
+    height calc(100% - 20px)
 .type-bookmarks
   .bookmarks-panel
     width 100%
@@ -129,3 +130,387 @@
   filter invert(80%)
 .sidebar-inner
   padding-right 8px
+
+// 2026-07-02 coder(lq): Sidebar panels are user-facing resource pages, so keep panels light while the narrow app rail remains dark for contrast.
+.sidebar-panel
+  background #fff !important
+  color #1f2937 !important
+  border-right 1px solid #d8e0ea !important
+  box-shadow 10px 0 24px rgba(15, 23, 42, .08) !important
+
+.sidebar-pin-top,
+.sidebar-panel-bookmarks .history-header,
+.sidebar-panel-history .history-header
+  background #fbfdff !important
+  border-bottom 1px solid #d8e0ea !important
+  color #1f2937 !important
+
+.sidebar-panel
+  .item-list,
+  .bookmarks-panel,
+  .history-panel,
+  .sidebar-inner
+    background #fff !important
+    color #1f2937 !important
+
+  .item-list-unit,
+  .tree-item
+    color #344054 !important
+    border-radius 6px !important
+    &:hover,
+    &.active,
+    &.selected
+      background #eef5ff !important
+      color #1677ff !important
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-select-selector
+    background #fff !important
+    border-color #cfd8e6 !important
+    color #1f2937 !important
+
+  .ant-input-affix-wrapper .ant-input,
+  .ant-input-affix-wrapper .ant-input:focus
+    border 0 !important
+    box-shadow none !important
+    outline none !important
+    background transparent !important
+
+  // 2026-07-04 coder(lq): Sidebar search uses AntD input-group buttons that bypass normal button rules.
+  .ant-input-search,
+  .ant-input-group-wrapper,
+  .ant-input-group,
+  .ant-input-group-addon
+    background transparent !important
+
+  .ant-input-group-addon .ant-btn,
+  .ant-input-search-btn,
+  .ant-input-search-button
+    background #fff !important
+    border-color #cfd8e6 !important
+    color #344054 !important
+    box-shadow none !important
+
+    &:hover
+      border-color #1677ff !important
+      color #1677ff !important
+
+.control-icon-text
+  color #667085 !important
+  &:hover
+    color #1677ff !important
+
+.close-info-modal:hover
+  color #1677ff !important
+
+// 2026-07-04 coder(lq): Transfer center is a temporary drawer, so the close action must be visible and visually separate from pinning.
+.cn-transfer-side-panel
+  .cn-side-panel-heading
+    display flex !important
+    align-items flex-start
+    justify-content space-between
+    gap 12px
+    padding 18px 18px 14px !important
+    box-sizing border-box
+
+    strong
+      display block
+      color #1f2937
+      font-size 16px
+      line-height 24px
+
+    span
+      display block
+      margin-top 4px
+      color #667085
+      font-size 12px
+      line-height 18px
+
+  .cn-side-panel-actions
+    display flex
+    align-items center
+    gap 6px
+    flex-shrink 0
+
+    .control-icon
+      margin 0 !important
+      width 28px
+      height 28px
+      line-height 28px
+      text-align center
+      border-radius 6px
+      color #667085 !important
+
+      &:hover
+        background #eef5ff
+        color #1677ff !important
+
+    .cn-side-panel-close:hover
+      background #fff1f0
+      color #f04438 !important
+
+// 2026-07-03 coder(lq): The China workbench uses a light outer frame; keep the narrow app rail consistent instead of the old black terminal shell.
+#container
+  .sidebar
+    background #fff !important
+    border-right 1px solid #d8e0ea !important
+    box-shadow 4px 0 14px rgba(15, 23, 42, .04) !important
+
+  .sidebar-bar.btns,
+  .btns
+    background #fff !important
+    border-color #d8e0ea !important
+
+  // 2026-07-12 coder(lq): Separate daily work actions from low-frequency management actions and keep the latter anchored at the bottom.
+  .sidebar-bar.btns
+    height 100%
+    padding 6px 0 8px
+    box-sizing border-box
+    display flex
+    flex-direction column
+    overflow visible
+
+  .cn-sidebar-primary,
+  .cn-sidebar-secondary
+    width 100%
+    display flex
+    flex-direction column
+    align-items center
+
+  .cn-sidebar-secondary
+    margin-top auto
+
+  .cn-sidebar-divider
+    width 24px
+    height 1px
+    margin 3px auto
+    flex 0 0 auto
+    background #e4e7ec
+
+  .control-icon-wrap
+    width 34px !important
+    height 34px !important
+    margin 8px auto !important
+    padding 0 !important
+    display flex !important
+    align-items center !important
+    justify-content center !important
+    border-radius 10px !important
+    color #667085 !important
+
+    .menu-control,
+    .menu-logo,
+    .cn-menu-logo-mark
+      width 100% !important
+      height 100% !important
+      display flex !important
+      align-items center !important
+      justify-content center !important
+      line-height 1 !important
+
+    &.active
+      background #eef5ff !important
+      box-shadow inset 0 0 0 1px #b8d8ff !important
+
+      .control-icon,
+      .control-icon-text
+        color #1677ff !important
+
+    .control-icon,
+    .open-about-icon
+      width 22px !important
+      height 22px !important
+      display inline-flex !important
+      align-items center !important
+      justify-content center !important
+      color #667085 !important
+      font-size 18px !important
+      line-height 1 !important
+
+      svg
+        display block
+        width 1em
+        height 1em
+
+      &:hover
+        color #1677ff !important
+
+    &:hover
+      background #f5f8ff !important
+
+      .control-icon,
+      .open-about-icon
+        color #1677ff !important
+
+  .btns .open-about-icon
+    color #667085 !important
+
+    &:hover
+      color #1677ff !important
+
+  .btns .upgrade-icon
+    color #12b76a !important
+
+  .logo-filter
+    filter none !important
+
+// 2026-07-04 coder(lq): Color-code the global rail actions so users can recognize frequent operations faster without relying only on icon shapes.
+#container .sidebar
+  .control-icon-wrap.cn-side-icon-new
+    background #eef5ff !important
+    .control-icon
+      color #1677ff !important
+
+  .control-icon-wrap.cn-side-icon-server
+    background #e6f7fb !important
+    .control-icon
+      color #0891b2 !important
+
+  .control-icon-wrap.cn-side-icon-transfer
+    background #fff7e6 !important
+    .control-icon
+      color #f79009 !important
+
+  .control-icon-wrap.cn-side-icon-manage
+    background #eef2ff !important
+    .control-icon
+      color #4f46e5 !important
+
+  .control-icon-wrap.cn-side-icon-about
+    background #f2f4f7 !important
+    .control-icon,
+    .open-about-icon
+      color #667085 !important
+
+  .control-icon-wrap.cn-side-icon-new:hover,
+  .control-icon-wrap.cn-side-icon-new.active
+    background #dbeafe !important
+
+  .control-icon-wrap.cn-side-icon-server:hover,
+  .control-icon-wrap.cn-side-icon-server.active
+    background #cffafe !important
+
+  .control-icon-wrap.cn-side-icon-transfer:hover,
+  .control-icon-wrap.cn-side-icon-transfer.active
+    background #ffedd5 !important
+
+  .control-icon-wrap.cn-side-icon-manage:hover,
+  .control-icon-wrap.cn-side-icon-manage.active
+    background #e0e7ff !important
+
+  .control-icon-wrap.cn-side-icon-about:hover,
+  .control-icon-wrap.cn-side-icon-about.active
+    background #e4e7ec !important
+
+// 2026-07-12 coder(lq): The consolidated management menu keeps theme, sync, and extensions accessible without adding more rail icons.
+.cn-sidebar-manage-menu
+  .ant-dropdown-menu
+    min-width 168px
+    padding 6px
+    border 1px solid #d8e0ea
+    border-radius 8px
+    background #fff
+    box-shadow 0 12px 30px rgba(15, 23, 42, .14)
+
+  .ant-dropdown-menu-item,
+  .ant-dropdown-menu-submenu-title
+    min-height 36px
+    padding 7px 10px !important
+    border-radius 6px
+    color #344054
+    font-size 13px
+
+    .anticon
+      color #667085
+
+    &:hover
+      background #eef5ff !important
+      color #1677ff !important
+
+      .anticon
+        color #1677ff
+
+  .ant-dropdown-menu-item-group-title
+    padding 6px 10px 3px
+    color #98a2b3
+    font-size 11px
+    line-height 18px
+
+.not-system-ui.is-mac #container
+  .sidebar-bar.btns
+    height calc(100% - 20px)
+
+// 2026-07-05 coder(lq): Empty server resource side panel needs an actionable first-run state instead of a blank content area.
+#container .sidebar .cn-bookmark-empty-panel
+  padding 18px 16px
+  background #f6f8fc
+
+  .cn-bookmark-empty-card
+    min-height 260px
+    border 1px solid #d8e0ea
+    border-radius 8px
+    background #fff
+    display flex
+    flex-direction column
+    align-items center
+    justify-content center
+    gap 10px
+    padding 24px 18px
+    color #667085
+    text-align center
+
+    > .anticon
+      width 44px
+      height 44px
+      border-radius 12px
+      display flex
+      align-items center
+      justify-content center
+      background #eef5ff
+      color #1677ff
+      font-size 22px
+
+    strong
+      color #1f2937
+      font-size 15px
+      font-weight 700
+
+    span
+      max-width 260px
+      line-height 1.7
+      font-size 12px
+
+  .cn-bookmark-empty-actions
+    display flex
+    gap 8px
+    margin-top 6px
+
+    button
+      height 30px
+      border 1px solid #d8e0ea
+      border-radius 6px
+      background #fff
+      color #344054
+      padding 0 10px
+      display inline-flex
+      align-items center
+      justify-content center
+      gap 6px
+      cursor pointer
+      font-size 12px
+
+      &:hover
+        border-color #9ec5fe
+        color #1677ff
+        background #f5f8ff
+
+      &.primary
+        background #1677ff
+        border-color #1677ff
+        color #fff
+
+        &:hover
+          background #0958d9
+          border-color #0958d9
+          color #fff

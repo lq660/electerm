@@ -1,4 +1,23 @@
 
+$cn-panel = var(--workbench-panel, #ffffff)
+$cn-panel-soft = var(--workbench-panel-soft, #fbfdff)
+$cn-border-strong = var(--workbench-border-strong, #d8e0ea)
+$cn-border-soft = var(--workbench-border-soft, #edf1f7)
+$cn-input-border = var(--workbench-input-border, #cfd8e6)
+$cn-text = var(--workbench-text, #1f2937)
+$cn-control-text = var(--workbench-control-text, #344054)
+$cn-muted = var(--workbench-muted, #667085)
+$cn-placeholder = var(--workbench-placeholder, #98a2b3)
+$cn-primary-base = var(--workbench-primary, #1677ff)
+$cn-primary-soft = var(--workbench-primary-soft, #eef5ff)
+$cn-focus-shadow = var(--workbench-focus-shadow, rgba(22, 119, 255, .08))
+$cn-panel-muted = var(--workbench-panel-muted, #f8fafc)
+$cn-info-bg = var(--workbench-info-bg, #f7faff)
+$cn-info-border = var(--workbench-info-border, #cfe0f6)
+$cn-shadow-card = var(--workbench-shadow-card, rgba(15, 23, 42, .06))
+$cn-shadow-lg = var(--workbench-shadow-lg, rgba(15, 23, 42, .14))
+$cn-on-primary = var(--workbench-on-primary, #ffffff)
+
 
 .close-setting-wrap
   position absolute
@@ -80,3 +99,650 @@
       width auto
     .setting-row-right
       left auto
+
+// 2026-07-02 coder(lq): Final settings-dialog overrides live here because component styles load after the global workbench skin.
+.setting-wrap
+  font-size 12px
+
+  .ant-btn
+    height 32px !important
+    padding 0 12px !important
+    font-size 13px !important
+    line-height 30px !important
+    border-radius 6px !important
+
+    &.ant-btn-sm
+      height 28px !important
+      padding 0 8px !important
+      font-size 12px !important
+      line-height 26px !important
+
+  .ant-tabs-tab-btn,
+  .ant-form-item-label > label,
+  .ant-radio-button-wrapper,
+  .ant-select-selection-item,
+  .ant-select-selection-placeholder,
+  .ant-input,
+  .ant-input-number-input,
+  textarea.ant-input
+    font-size 13px !important
+
+  .ant-form-item
+    margin-bottom 14px !important
+
+  .ant-form-item-label > label
+    height 32px !important
+    line-height 32px !important
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-number
+    min-height 32px !important
+
+  textarea.ant-input
+    line-height 20px !important
+
+  .ant-select-single
+    min-height 32px !important
+
+  .ant-select:not(.ant-select-customize-input) .ant-select-selector,
+  .ant-select-selector,
+  .ant-auto-complete .ant-input,
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-number
+    background $cn-panel !important
+    border-color $cn-input-border !important
+    color $cn-text !important
+    box-shadow none !important
+    border-radius 6px !important
+
+  .ant-select-single .ant-select-selector,
+  .ant-select-multiple .ant-select-selector
+    min-height 32px !important
+    height auto !important
+
+  .ant-select-selection-item,
+  .ant-select-selection-placeholder,
+  .ant-select-selection-search-input,
+  .ant-input-number-input,
+  .ant-input-affix-wrapper .ant-input
+    background transparent !important
+    color $cn-text !important
+
+  .ant-input-affix-wrapper .ant-input,
+  .ant-input-affix-wrapper .ant-input:focus,
+  .ant-input-affix-wrapper .ant-input-focused
+    border none !important
+    box-shadow none !important
+    outline none !important
+
+  .ant-select-selection-placeholder,
+  .ant-input::placeholder,
+  textarea.ant-input::placeholder
+    color $cn-placeholder !important
+
+  .ant-select-arrow,
+  .ant-input-prefix,
+  .ant-input-suffix
+    color $cn-muted !important
+
+  .ant-select-focused .ant-select-selector,
+  .ant-input:focus,
+  .ant-input-affix-wrapper-focused,
+  .ant-input-number-focused
+    border-color $cn-primary-base !important
+    box-shadow 0 0 0 2px $cn-focus-shadow !important
+
+  .ant-space-compact
+    .ant-select-selector,
+    .ant-input,
+    .ant-input-affix-wrapper
+      background $cn-panel !important
+      color $cn-text !important
+      border-color $cn-input-border !important
+
+  .ant-select-disabled .ant-select-selector,
+  .ant-input-disabled,
+  .ant-input[disabled]
+    background $cn-panel-soft !important
+    color $cn-placeholder !important
+
+.ant-select-dropdown
+  background $cn-panel !important
+  border 1px solid $cn-border-strong !important
+  border-radius 8px !important
+  box-shadow 0 12px 30px $cn-shadow-lg !important
+
+  .ant-select-item
+    color $cn-control-text !important
+    border-radius 6px !important
+
+  .ant-select-item-option-active,
+  .ant-select-item-option-selected
+    background $cn-primary-soft !important
+    color $cn-primary-base !important
+
+// 2026-07-03 coder(lq): Shared section layout for all deep settings pages so drilled-in tabs keep the same China ops workbench structure.
+.setting-wrap
+  .cn-setting-status
+    padding-right 34px
+
+  .close-setting-wrap
+    top 26px !important
+    right 20px !important
+
+  .form-wrap,
+  .cn-setting-detail-form
+    background $cn-panel !important
+    color $cn-text !important
+
+  .cn-setting-card-title
+    display flex
+    align-items center
+    justify-content space-between
+    gap 12px
+    min-height 48px
+    margin -18px -22px 18px !important
+    padding 14px 22px !important
+    border-bottom 1px solid $cn-border-strong
+    background $cn-panel-soft
+
+    strong
+      display flex
+      align-items center
+      color $cn-text
+      font-size 15px
+      line-height 22px
+      font-weight 700
+
+    span
+      color $cn-muted
+      font-size 12px
+      line-height 18px
+      font-weight 400
+
+  .cn-settings-section
+    margin 0 0 16px
+    border 1px solid $cn-border-strong
+    border-radius 8px
+    background $cn-panel
+    overflow hidden
+
+  .cn-settings-section-title
+    display flex
+    align-items center
+    justify-content space-between
+    gap 12px
+    min-height 42px
+    padding 11px 16px
+    border-bottom 1px solid $cn-border-soft
+    background $cn-panel-soft
+
+    strong
+      color $cn-text
+      font-size 14px
+      line-height 20px
+      font-weight 700
+
+    span
+      color $cn-muted
+      font-size 12px
+      line-height 18px
+
+  .cn-settings-section-body
+    padding 16px 16px 4px
+
+  .cn-settings-field
+    display grid
+    grid-template-columns 160px minmax(0, 1fr)
+    gap 16px
+    align-items flex-start
+    padding 0 0 14px
+
+  .cn-settings-label
+    padding-top 7px
+
+    strong
+      display block
+      color $cn-control-text
+      font-size 13px
+      line-height 18px
+      font-weight 600
+
+    span
+      display block
+      margin-top 2px
+      color $cn-muted
+      font-size 12px
+      line-height 18px
+
+  .cn-settings-control
+    min-width 0
+
+    > .pd2b,
+    > .pd1b
+      padding-bottom 0 !important
+
+  .cn-settings-toggle-grid
+    display grid
+    grid-template-columns repeat(auto-fill, minmax(220px, 1fr))
+    gap 10px 12px
+    padding 0 0 12px
+
+  .cn-settings-toggle
+    display flex
+    align-items center
+    gap 8px
+    min-height 34px
+    padding 0 !important
+
+    .ant-switch
+      flex 0 0 auto
+      min-width 44px
+      height 28px
+      background $cn-input-border !important
+
+      &.ant-switch-checked
+        background $cn-primary-base !important
+
+    .ant-switch-inner
+      color $cn-on-primary !important
+      font-size 12px
+      font-weight 500
+
+  .cn-settings-toggle-label
+    min-width 0
+    color $cn-control-text
+    font-size 13px
+    font-weight 500
+    line-height 18px
+
+  .cn-settings-inline-head
+    display flex
+    align-items center
+    gap 8px
+    min-height 34px
+    margin 0 0 12px
+    color $cn-control-text
+
+    strong
+      color $cn-control-text
+      font-size 13px
+      font-weight 700
+
+  .cn-settings-proxy
+    padding 0 0 8px
+
+  .cn-settings-action-row
+    margin 0 !important
+    padding 14px 0 0
+    border-top 1px solid $cn-border-soft
+
+    .ant-form-item-control-input-content > div,
+    > div,
+    p
+      display flex
+      align-items center
+      flex-wrap wrap
+      gap 8px
+      margin 0 !important
+
+    .ant-btn
+      margin 0 !important
+
+  .cn-settings-help-line,
+  .cn-sync-status-line
+    color $cn-muted
+    font-size 12px
+    line-height 18px
+
+  .cn-sync-transport
+    display flex
+    align-items flex-start
+    justify-content space-between
+    flex-wrap wrap
+    gap 12px 16px
+    padding 4px 0 8px
+
+  .cn-sync-migration-actions,
+  .cn-sync-auto-controls
+    display flex
+    align-items center
+    flex-wrap wrap
+    gap 8px
+    min-width 0
+
+    .ant-btn
+      margin 0 !important
+
+  .cn-sync-auto-controls
+    justify-content flex-end
+
+  .cn-sync-auto-toggle
+    flex 0 0 auto
+
+  .cn-sync-auto-options
+    flex 0 1 auto
+    min-width 0
+
+  .cn-sync-data-select
+    display grid
+    grid-template-columns repeat(auto-fill, minmax(180px, 1fr))
+    gap 10px 12px
+    padding 4px 0 8px
+
+  .cn-sync-data-option
+    display flex
+    align-items center
+    min-height 34px
+    margin 0 !important
+    padding 6px 8px
+    border 1px solid $cn-border-soft
+    border-radius 8px
+    background $cn-surface-soft
+    color $cn-control-text
+
+  .cn-sync-provider-form
+    border none !important
+    box-shadow none !important
+    max-width 860px
+    margin 0 auto
+    padding 4px 16px 14px !important
+
+    .ant-form-item
+      display block !important
+      max-width none
+      margin-bottom 14px !important
+
+    .ant-form-item-row
+      display grid !important
+      grid-template-columns 150px minmax(0, 1fr) !important
+      gap 14px !important
+      align-items start !important
+      width 100% !important
+
+    .ant-form-item-label
+      grid-column 1 !important
+      width 150px !important
+      text-align right !important
+      padding 0 !important
+
+      > label
+        height 34px
+        line-height 34px
+
+    .ant-form-item-control
+      grid-column 2 !important
+      width 100% !important
+      min-width 0 !important
+
+    .cn-settings-action-row
+      max-width none
+      padding-top 12px
+
+      .ant-form-item-row
+        display block !important
+
+      .ant-form-item-control
+        width 100% !important
+
+  .cn-sync-action-buttons
+    display flex
+    flex-wrap wrap
+    gap 8px
+    margin-bottom 10px
+
+    .ant-btn
+      margin 0 !important
+
+  .cn-theme-toolbar
+    display flex
+    justify-content flex-start
+    padding 0 0 4px
+
+    .mg1b
+      margin-bottom 0 !important
+
+  .cn-theme-editor-section
+    .ant-form-item-label
+      display none
+
+  // 2026-07-13 coder(lq): Keep theme actions visible while the long color-variable list scrolls.
+  .cn-theme-action-row
+    position sticky
+    top 0
+    z-index 20
+    margin 0 0 16px !important
+    padding 10px 12px !important
+    border 1px solid $cn-info-border
+    border-radius 8px
+    background $cn-info-bg !important
+    box-shadow 0 6px 16px $cn-shadow-card
+
+    .ant-form-item-control-input-content > div
+      justify-content flex-end
+
+  .cn-theme-save-hint
+    flex 1 1 260px
+    color $cn-muted
+    font-size 12px
+    line-height 18px
+
+  .cn-qm-command-list
+    margin-bottom 0 !important
+
+  .cn-qm-command-row
+    display grid !important
+    grid-template-columns 24px auto 110px minmax(260px, 1fr) 34px
+    gap 8px
+    align-items center
+    padding 10px
+    border 1px solid $cn-border-soft
+    border-radius 8px
+    background $cn-panel-soft
+
+    .drag
+      color $cn-placeholder
+
+    .ant-space-compact-item
+      border-radius 6px !important
+
+    .qm-input
+      min-height 34px !important
+
+    .ant-btn
+      width 32px
+      padding 0 !important
+
+  .cn-shortcuts-form
+    .ant-table-wrapper
+      border 1px solid $cn-border-strong
+      border-radius 8px
+      overflow hidden
+
+@media (max-width: 900px)
+  .setting-wrap
+    .cn-settings-field
+      grid-template-columns 1fr
+      gap 6px
+
+    .cn-settings-label
+      padding-top 0
+
+    .cn-qm-command-row
+      grid-template-columns 24px 90px minmax(160px, 1fr) 34px
+
+      .ant-space-addon:first-of-type
+        display none
+
+// 2026-08-02 coder(lq): Settings center density pass. Keep the page on a compact two-column rhythm.
+#container .setting-wrap.cn-area-settings
+  .setting-tabs-setting
+    .setting-row-left
+      width 282px !important
+      padding 8px 0 10px 14px !important
+
+    .setting-row-right
+      left 298px !important
+      padding 8px 14px 10px 0 !important
+
+  .cn-setting-column-head
+    min-height 40px !important
+    margin 0 0 8px !important
+    padding 8px 12px !important
+    border-radius 7px !important
+
+    strong
+      font-size 13px !important
+      line-height 18px !important
+
+    span
+      margin-top 1px !important
+      font-size 11px !important
+      line-height 16px !important
+
+  .item-list
+    padding 10px !important
+    border-radius 7px !important
+
+    .pd1y,
+    .pd1b
+      padding 0 0 8px !important
+
+  .item-list-wrap
+    padding 0 !important
+
+  .item-list-unit
+    min-height 32px !important
+    margin 0 0 3px !important
+    padding 0 6px !important
+    border-radius 6px !important
+    font-size 12px !important
+    line-height 18px !important
+
+    > div:first-child
+      padding 7px 38px 7px 8px !important
+
+  .list-item-edit,
+  .list-item-remove,
+  .list-item-duplicate,
+  .list-item-apply
+    top 6px !important
+
+  .setting-row-right > .form-wrap,
+  .setting-row-right > .cn-setting-detail-form
+    padding 14px 16px !important
+    border-radius 7px !important
+
+  .cn-setting-card-title,
+  .form-wrap > h2,
+  .form-wrap > .font16.bold
+    min-height 40px !important
+    margin -14px -16px 14px !important
+    padding 10px 16px !important
+    font-size 14px !important
+    line-height 20px !important
+
+    strong,
+    h3,
+    h4
+      font-size 14px !important
+      line-height 20px !important
+
+  .cn-settings-section
+    margin 0 0 12px !important
+    border-radius 7px !important
+
+  .cn-settings-section-title
+    min-height 36px !important
+    padding 8px 12px !important
+
+    strong
+      font-size 13px !important
+      line-height 18px !important
+
+    span
+      font-size 11px !important
+      line-height 16px !important
+
+  .cn-settings-section-body
+    padding 12px 12px 2px !important
+
+  .cn-settings-field
+    grid-template-columns 132px minmax(0, 1fr) !important
+    gap 10px 12px !important
+    padding 0 0 10px !important
+
+  .cn-settings-label
+    padding-top 6px !important
+
+    strong
+      font-size 12px !important
+      line-height 18px !important
+
+    span
+      margin-top 1px !important
+      font-size 11px !important
+      line-height 16px !important
+
+  .cn-settings-toggle-grid
+    grid-template-columns repeat(auto-fill, minmax(190px, 1fr)) !important
+    gap 8px 10px !important
+    padding 0 0 8px !important
+
+  .cn-settings-toggle
+    min-height 30px !important
+
+  .cn-settings-toggle-label
+    font-size 12px !important
+    line-height 18px !important
+
+  .ant-form-item
+    margin-bottom 12px !important
+
+  .ant-form-item-label > label
+    height 32px !important
+    line-height 32px !important
+    font-size 12px !important
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-number,
+  .ant-select-selector,
+  .ant-auto-complete .ant-input,
+  textarea.ant-input,
+  input.form-control,
+  .shortcut-input
+    min-height 32px !important
+
+  .cn-sync-provider-form
+    max-width none !important
+    margin 0 !important
+    padding 0 12px 12px !important
+
+    .ant-form-item
+      margin-bottom 12px !important
+
+    .ant-form-item-row
+      grid-template-columns 128px minmax(0, 1fr) !important
+      gap 10px 12px !important
+
+    .ant-form-item-label
+      width 128px !important
+
+  @media (max-width: 1100px)
+    .setting-tabs-setting
+      .setting-row-left,
+      .setting-row-right
+        width auto !important
+        left auto !important
+        padding 10px 12px !important
+
+    .cn-settings-field,
+    .cn-sync-provider-form .ant-form-item-row
+      grid-template-columns 1fr !important
+
+    .cn-sync-provider-form .ant-form-item-label
+      width auto !important
+      text-align left !important

@@ -77,7 +77,10 @@ export default class Sessions extends Component {
           'leftSidebarWidth',
           'pinned',
           'openedSideBar',
-          'fullscreen'
+          'fullscreen',
+          'fileTransfers',
+          'transferHistory',
+          'transferTab'
         ]),
         config,
         ...pick(this, [

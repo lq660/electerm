@@ -22,6 +22,29 @@ import newTerm from '../../common/new-terminal'
 import { isValidIP } from '../../common/is-ip'
 import { action as manateAction } from 'manate'
 
+const formSectionMeta = {
+  auth: {
+    title: '基础信息',
+    desc: '填写服务器地址、账号和登录认证方式'
+  },
+  settings: {
+    title: '高级设置',
+    desc: '配置 SSH/SFTP 开关、终端环境、启动目录和登录脚本'
+  },
+  quickCommands: {
+    title: '快捷命令',
+    desc: '为该服务器绑定常用巡检、部署和排障命令'
+  },
+  tunnel: {
+    title: 'SSH 隧道',
+    desc: '配置端口转发和内网服务访问规则'
+  },
+  connectionHopping: {
+    title: '连接跳板',
+    desc: '配置多级跳板机链路'
+  }
+}
+
 export default function FormRenderer ({ config, props }) {
   const initialValues = config.initValues(props)
   const [form] = Form.useForm()
@@ -67,7 +90,7 @@ export default function FormRenderer ({ config, props }) {
       )
       return bg
     })
-    message.success('OK', 3)
+    message.success('已更新分组', 3)
   })
 
   const setNewItem = (settingItem = getInitItem([], settingMap.bookmarks)) => {
@@ -131,9 +154,10 @@ export default function FormRenderer ({ config, props }) {
       })
     setTesting(false)
     if (res) {
-      message.success('connection ok')
+      const status = res.status ? `（HTTP ${res.status}）` : ''
+      message.success(`连接测试通过${status}`)
     } else {
-      const err = 'connection fails' +
+      const err = '连接测试失败' +
         (msg ? `: ${msg}` : '')
       message.error(err)
     }
@@ -152,7 +176,7 @@ export default function FormRenderer ({ config, props }) {
 
   const handleSubmit = async (evt, res, isTest = false) => {
     if (res.enableSsh === false && res.enableSftp === false) {
-      return message.warning('SSH and SFTP all disabled')
+      return message.warning('SSH 和 SFTP 至少需要开启一项')
     }
     const obj = {
       ...props.formData,
@@ -289,25 +313,35 @@ export default function FormRenderer ({ config, props }) {
   const tabs = typeof config.tabs === 'function' ? (config.tabs() || []) : (config.tabs || [])
   let content = null
 
+  function renderSection (key, label, fields) {
+    const meta = formSectionMeta[key] || {
+      title: label || '连接信息',
+      desc: '维护连接所需的基础配置'
+    }
+    return (
+      <div className='pd1x cn-connection-form-body'>
+        <div className='cn-form-section-title'>
+          <strong>{meta.title}</strong>
+          <span>{meta.desc}</span>
+        </div>
+        <div className='cn-form-fields'>
+          {fields.map((f, index) => renderFormItem(f, config.layout, form, ctxProps, index))}
+        </div>
+      </div>
+    )
+  }
+
   if (tabs.length <= 1) {
     const fields = tabs.length === 1
       ? (tabs[0].fields || [])
       : (config.fields || [])
-    content = (
-      <div className='pd1x'>
-        {fields.map((f, index) => renderFormItem(f, config.layout, form, ctxProps, index))}
-      </div>
-    )
+    content = renderSection(tabs[0]?.key || config.key, tabs[0]?.label, fields)
   } else {
     const items = (tabs || []).map(tab => ({
       key: tab.key,
       label: tab.label,
       forceRender: true,
-      children: (
-        <div className='pd1x'>
-          {(tab.fields || []).map((f, index) => renderFormItem(f, config.layout, form, ctxProps, index))}
-        </div>
-      )
+      children: renderSection(tab.key, tab.label, tab.fields || [])
     }))
     content = <Tabs items={items} />
   }
@@ -318,6 +352,7 @@ export default function FormRenderer ({ config, props }) {
       onFinish={handleFinish}
       initialValues={initialValues}
       name={formName}
+      className='cn-connection-form'
     >
       {content}
       <SubmitButtons

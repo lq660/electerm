@@ -37,6 +37,7 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
   // Create two database instances
   const mainDb = new DatabaseSync(mainDbPath)
   const dataDb = new DatabaseSync(dataDbPath)
+  const lockedRows = new Map()
 
   const tables = [
     'bookmarks',
@@ -98,21 +99,45 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
   function toDoc (row, dbName) {
     if (!row) return null
     const shouldDec = dec && shouldEncForRow(dbName, row._id)
-    const raw = shouldDec ? decryptData(row.data) : row.data
-    let r = {}
     try {
-      r = JSON.parse(raw || '{}')
+      const raw = shouldDec ? decryptData(row.data) : row.data
+      const result = JSON.parse(raw || '{}')
+      lockedRows.delete(`${dbName}:${row._id}`)
+      return {
+        ...result,
+        _id: row._id
+      }
     } catch (e) {
+      if (shouldDec && row.data.startsWith(ENC_PREFIX)) {
+        if (e.code === 'SAFE_STORAGE_DISABLED') {
+          // 2026-08-04 coder(lq): Treat legacy OS-keychain ciphertext as absent so startup never enters a keychain recovery flow.
+          lockedRows.delete(`${dbName}:${row._id}`)
+          console.error(`Encrypted row ${dbName}:${row._id} uses disabled legacy keychain storage and will be ignored.`)
+          return null
+        }
+        // 2026-07-12 coder(lq): Keep unreadable ciphertext untouched and lock its ID so a default/empty object cannot overwrite it later.
+        lockedRows.set(`${dbName}:${row._id}`, {
+          dbName,
+          id: row._id,
+          code: e.code || 'DECRYPT_FAILED'
+        })
+        console.error(`Encrypted row ${dbName}:${row._id} is locked:`, e.message)
+        return null
+      }
       console.error(`Error parsing JSON for row ${row._id}:`, e.message)
-    }
-    return {
-      ...r,
-      _id: row._id
+      return null
     }
   }
 
-  function toRow (doc, dbName) {
+  function assertRowWritable (dbName, id, options = {}) {
+    if (!options.force && lockedRows.has(`${dbName}:${id}`)) {
+      throw new Error('该记录仍是锁定的旧版加密数据，请先恢复后再修改')
+    }
+  }
+
+  function toRow (doc, dbName, options = {}) {
     const _id = doc._id || doc.id || uid()
+    assertRowWritable(dbName, _id, options)
     const copy = { ...doc }
     delete copy._id
     delete copy.id
@@ -158,6 +183,13 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
       return Array.isArray(args[0]) ? inserted : inserted[0]
     } else if (op === 'remove') {
       const query = args[0] || {}
+      const options = args[1] || {}
+      if (!query._id && options.multi) {
+        const stmt = db.prepare(`DELETE FROM \`${dbName}\``)
+        const res = stmt.run()
+        return res.changes
+      }
+      assertRowWritable(dbName, query._id, options)
       const sql = `DELETE FROM \`${dbName}\` WHERE _id = ?`
       const params = [query._id]
       const stmt = db.prepare(sql)
@@ -173,7 +205,7 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
       const { _id, data } = toRow({
         _id: qid,
         ...newData
-      }, dbName)
+      }, dbName, options)
       let stmt
       let res
       if (upsert) {
@@ -183,13 +215,29 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
         stmt = db.prepare(`UPDATE \`${dbName}\` SET data = ? WHERE _id = ?`)
         res = stmt.run(data, qid)
       }
+      lockedRows.delete(`${dbName}:${_id}`)
       return res.changes
+    }
+  }
+
+  function getStorageStatus () {
+    const tables = {}
+    let legacySafeStorageDisabled = false
+    for (const row of lockedRows.values()) {
+      tables[row.dbName] = (tables[row.dbName] || 0) + 1
+      legacySafeStorageDisabled = legacySafeStorageDisabled || row.code === 'SAFE_STORAGE_DISABLED'
+    }
+    return {
+      lockedCount: lockedRows.size,
+      tables,
+      legacySafeStorageDisabled
     }
   }
 
   return {
     dbAction,
-    tables
+    tables,
+    getStorageStatus
   }
 }
 

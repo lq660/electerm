@@ -18,6 +18,11 @@ import { action } from 'manate'
 import uid from '../common/uid'
 import deepCopy from 'json-deep-copy'
 import { aiConfigsArr } from '../components/ai/ai-config-props'
+import { resolveTerminalId } from '../common/active-terminal'
+import {
+  normalizeTerminalCommandForHistory,
+  shouldMergeCommandSignal
+} from '../common/terminal-command-history.mjs'
 
 const e = window.translate
 const { assign } = Object
@@ -45,7 +50,7 @@ export default Store => {
   Store.prototype.openInfoPanelAction = function () {
     const { store } = window
     setTimeout(() => {
-      const term = refs.get('term-' + store.activeTabId)
+      const term = refs.get('term-' + resolveTerminalId(store.activeTabId))
       term && term.handleShowInfo()
     }, 300)
   }
@@ -243,7 +248,7 @@ export default Store => {
 
   Store.prototype.runCommandInTerminal = function (cmd) {
     window.store.batchInputSelectedTabIds.forEach(id => {
-      refs.get('term-' + id)?.runQuickCommand(cmd)
+      refs.get('term-' + resolveTerminalId(id))?.runQuickCommand(cmd)
     })
   }
 
@@ -257,7 +262,7 @@ export default Store => {
   }
 
   Store.prototype.getLangName = function (
-    lang = window.store?.config.language || 'en_us'
+    lang = window.store?.config.language || 'zh_cn'
   ) {
     return get(window.langMap, `[${lang}].name`)
   }
@@ -305,21 +310,64 @@ export default Store => {
     window.store.history = []
   }
 
-  Store.prototype.addCmdHistory = action(function (cmd) {
-    if (!cmd || !cmd.trim()) {
+  Store.prototype.addCmdHistory = action(function (cmd, source = 'terminal', sessionId = '', options = {}) {
+    const normalizedCmd = normalizeTerminalCommandForHistory(cmd)
+    if (!normalizedCmd) {
       return
     }
     const { terminalCommandHistory } = window.store
-    const existing = terminalCommandHistory.find(item => item.cmd === cmd)
+    const existing = terminalCommandHistory.find(item => normalizeTerminalCommandForHistory(item.cmd) === normalizedCmd)
+    const signal = options.signal || ''
     if (existing) {
-      existing.count = existing.count + 1
-      existing.lastUseTime = new Date().toISOString()
+      const duplicates = terminalCommandHistory.filter(item => {
+        return item !== existing && normalizeTerminalCommandForHistory(item.cmd) === normalizedCmd
+      })
+      const previousLastUseTime = existing.lastUseTime
+      const lastUseTime = new Date().toISOString()
+      const mergeSignal = shouldMergeCommandSignal(existing, sessionId, signal)
+      if (duplicates.length) {
+        existing.count = existing.count + duplicates.reduce((total, item) => total + (item.count || 1), 0)
+        existing.sessionUsages = duplicates.reduce((sessionUsages, item) => {
+          return {
+            ...sessionUsages,
+            ...(item.sessionUsages || {})
+          }
+        }, existing.sessionUsages || {})
+        duplicates.forEach(item => {
+          const index = terminalCommandHistory.indexOf(item)
+          if (index !== -1) {
+            terminalCommandHistory.splice(index, 1)
+          }
+        })
+      }
+      if (!mergeSignal) {
+        existing.count = existing.count + 1
+      }
+      existing.cmd = normalizedCmd
+      existing.lastUseTime = lastUseTime
+      existing.lastSource = source || existing.lastSource
+      existing.lastCommandSignal = signal || existing.lastCommandSignal
+      if (sessionId) {
+        // 2026-07-20 coder(lq): Keep per-session recency because one global command can be used on several SSH servers.
+        existing.sessionUsages = {
+          ...(existing.sessionUsages || (existing.lastSessionId
+            ? { [existing.lastSessionId]: previousLastUseTime }
+            : {})),
+          [sessionId]: lastUseTime
+        }
+        existing.lastSessionId = sessionId
+      }
     } else {
+      const lastUseTime = new Date().toISOString()
       terminalCommandHistory.push({
         id: uid(),
-        cmd,
+        cmd: normalizedCmd,
         count: 1,
-        lastUseTime: new Date().toISOString()
+        lastUseTime,
+        lastSource: source,
+        lastCommandSignal: signal,
+        lastSessionId: sessionId,
+        sessionUsages: sessionId ? { [sessionId]: lastUseTime } : {}
       })
     }
     if (terminalCommandHistory.length > 200) {
@@ -331,9 +379,14 @@ export default Store => {
 
   Store.prototype.deleteCmdHistory = function (cmd) {
     const { terminalCommandHistory } = window.store
-    const idx = terminalCommandHistory.findIndex(item => item.cmd === cmd)
-    if (idx !== -1) {
-      terminalCommandHistory.splice(idx, 1)
+    const normalizedCmd = normalizeTerminalCommandForHistory(cmd)
+    if (!normalizedCmd) {
+      return
+    }
+    for (let i = terminalCommandHistory.length - 1; i >= 0; i--) {
+      if (normalizeTerminalCommandForHistory(terminalCommandHistory[i].cmd) === normalizedCmd) {
+        terminalCommandHistory.splice(i, 1)
+      }
     }
   }
 

@@ -8,6 +8,7 @@ import {
   settingMap,
   settingCommonId,
   settingSyncId,
+  settingSubscriptionId,
   modals
 } from '../common/constants'
 import { buildNewTheme } from '../common/terminal-theme'
@@ -69,8 +70,14 @@ export default Store => {
     if (!item) {
       return
     }
+    // 2026-07-20 coder(lq): Track saved resource usage at the common open entry so the home page can sort by recent use consistently.
+    const lastUseTime = new Date().toISOString()
+    store.editItem(id, {
+      lastUseTime
+    }, settingMap.bookmarks)
     store.addTab({
       ...item,
+      lastUseTime,
       from: 'bookmarks',
       srcId: item.id,
       ...newTerm(true, true),
@@ -110,11 +117,22 @@ export default Store => {
     store.openSettingModal()
   }
 
+  Store.prototype.openSubscriptionSetting = function () {
+    const { store } = window
+    store.storeAssign({
+      settingTab: settingMap.setting
+    })
+    store.setSettingItem(settingList().find(d => d.id === settingSubscriptionId))
+    store.openSettingModal()
+  }
+
   Store.prototype.openTerminalThemes = function () {
     const { store } = window
+    // 2026-07-13 coder(lq): Only toggle an already visible theme panel; a remembered tab must not swallow the next open action.
     if (
       store.settingTab === settingMap.terminalThemes &&
-      store.settingItem.id === ''
+      store.settingItem.id === '' &&
+      store.showModal === modals.setting
     ) {
       return store.hideSettingModal()
     }

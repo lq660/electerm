@@ -9,6 +9,7 @@ const {
 const defaults = require('../common/default-setting')
 const {
   getWindowSize,
+  getScreenSize,
   setWindowPos
 } = require('./window-control')
 const { onClose } = require('./on-close')
@@ -32,10 +33,11 @@ exports.createWindow = async function (userConfig) {
     fullscreenable: true,
     minWidth: minWindowWidth,
     minHeight: minWindowHeight,
-    title: packInfo.name,
+    title: packInfo.productName || packInfo.name,
     frame: useSystemTitleBar,
     transparent: !useSystemTitleBar,
-    backgroundColor: '#333333',
+    // 2026-07-04 coder(lq): Match the light China workbench shell so uncovered window edges never show dark borders.
+    backgroundColor: '#f4f7fb',
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -58,6 +60,21 @@ exports.createWindow = async function (userConfig) {
   webviewHandler.init(win)
 
   globalState.set('win', win)
+  const maximizeWorkbenchWindow = () => {
+    if (win.isDestroyed()) {
+      return
+    }
+    const bounds = getScreenSize()
+    if (bounds.width >= minWindowWidth && bounds.height >= minWindowHeight) {
+      win.setBounds(bounds)
+    }
+    if (!win.isMaximized()) {
+      win.maximize()
+    }
+  }
+  // Cloud workbench is a desktop workspace; start maximized instead of restoring a cramped session size.
+  maximizeWorkbenchWindow()
+  win.once('ready-to-show', maximizeWorkbenchWindow)
 
   await initAppServer()
   initIpc()
@@ -65,6 +82,8 @@ exports.createWindow = async function (userConfig) {
     ? process.env.devPort || 5570
     : await getPort()
   const opts = `http://127.0.0.1:${port}/index.html?v=${packInfo.version}`
+  // 2026-07-06 coder(lq): Local preview rebuilds keep the same asset version, so clear Electron HTTP cache before loading the app.
+  await win.webContents.session.clearCache()
   // If loading the URL fails (e.g. proxy/firewall interference), show error page
   win.webContents.once('did-fail-load', (event, errorCode, errorDescription) => {
     console.error('Failed to load app URL:', errorCode, errorDescription)
@@ -74,7 +93,8 @@ exports.createWindow = async function (userConfig) {
   })
   win.loadURL(opts)
   win.webContents.once('dom-ready', () => {
-    if (isDev && !userConfig.disableDeveloperTool) {
+    maximizeWorkbenchWindow()
+    if (isDev && process.env.ELECTERM_OPEN_DEVTOOLS === '1' && !userConfig.disableDeveloperTool) {
       win.webContents.openDevTools()
     }
     win.on('unmaximize', () => {

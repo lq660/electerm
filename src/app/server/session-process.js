@@ -211,6 +211,13 @@ exports.terminals = function (pid) {
         body: { cmd, pid }
       })
     },
+    getCwd: async (id) => {
+      return sendMsgToChildProcess(pid, {
+        id,
+        action: 'get-terminal-cwd',
+        body: { pid }
+      })
+    },
     resize: (cols, rows, id) => {
       sendMsgToChildProcess(pid, {
         id,

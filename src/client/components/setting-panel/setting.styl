@@ -11,3 +11,401 @@
   height 60px
   right 0
   z-index 888
+
+// 2026-07-03 coder(lq): Setting pages can load after the global skin and inherit dark terminal theme variables, so force ordinary form selectors back to the light workbench palette.
+.setting-wrap
+  .ant-select,
+  .ant-select-single,
+  .ant-select-multiple,
+  .ant-auto-complete
+    color #1f2937 !important
+
+  .ant-select-selector,
+  .ant-select:not(.ant-select-customize-input) .ant-select-selector,
+  .ant-select-single:not(.ant-select-customize-input) .ant-select-selector,
+  .ant-select-multiple .ant-select-selector
+    min-height 34px !important
+    background #fff !important
+    border 1px solid #cfd8e6 !important
+    border-radius 6px !important
+    color #1f2937 !important
+    box-shadow none !important
+
+  .ant-select-selection-item,
+  .ant-select-selection-placeholder,
+  .ant-select-selection-search,
+  .ant-select-selection-search-input,
+  .ant-select-selection-overflow,
+  .ant-select-selection-overflow-item,
+  .ant-select-selection-item-content
+    background transparent !important
+    color #1f2937 !important
+
+  .ant-select-selection-placeholder
+    color #98a2b3 !important
+
+  .ant-select-arrow,
+  .ant-select-clear,
+  .ant-select-selection-item-remove
+    color #667085 !important
+
+  .ant-select-focused .ant-select-selector,
+  .ant-select-open .ant-select-selector
+    border-color #1677ff !important
+    box-shadow 0 0 0 2px rgba(22, 119, 255, .08) !important
+
+.subscription-settings
+  display flex
+  flex-direction column
+  gap 8px
+
+.subscription-hero
+  display grid
+  grid-template-columns minmax(220px, .9fr) minmax(420px, 1.4fr)
+  gap 10px
+  padding 10px 12px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)
+
+.subscription-hero-main
+  display flex
+  flex-direction column
+  justify-content center
+  min-width 0
+  gap 2px
+
+  span
+    color #667085
+    font-size 12px
+    font-weight 600
+
+  strong
+    color #1f2937
+    font-size 19px
+    line-height 24px
+
+  em
+    color #667085
+    font-style normal
+    font-size 12px
+    line-height 18px
+
+.subscription-hero-meta
+  display grid
+  grid-template-columns repeat(3, minmax(0, 1fr))
+  gap 6px
+
+  div
+    min-width 0
+    padding 8px 10px
+    border 1px solid #edf1f7
+    border-radius 8px
+    background #fff
+
+  span
+    display block
+    margin-bottom 3px
+    color #667085
+    font-size 12px
+    line-height 18px
+
+  strong
+    display block
+    overflow hidden
+    color #1f2937
+    font-size 13px
+    line-height 19px
+    white-space nowrap
+    text-overflow ellipsis
+
+.subscription-current-card
+  display flex
+  align-items center
+  justify-content space-between
+  gap 12px
+  padding 10px 12px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #f8fbff
+
+  div
+    display flex
+    flex-direction column
+    gap 4px
+
+  span
+    color #667085
+    font-size 12px
+
+  strong
+    color #1f2937
+    font-size 19px
+
+  em
+    color #667085
+    font-style normal
+    font-size 12px
+
+.subscription-plan-grid
+  display grid
+  grid-template-columns repeat(3, minmax(0, 1fr))
+  gap 8px
+  padding 10px
+
+.subscription-plan-card
+  display flex
+  flex-direction column
+  min-height 0
+  padding 10px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+
+  &.active
+    border-color #1677ff
+    box-shadow 0 8px 24px rgba(22, 119, 255, .1)
+
+  p
+    margin 0
+
+  ul
+    flex 1
+    margin 8px 0
+    padding 0
+    list-style none
+
+  li
+    display flex
+    align-items flex-start
+    gap 8px
+    margin-bottom 6px
+    color #344054
+    font-size 12px
+    line-height 1.5
+
+    .anticon
+      color #1677ff
+      margin-top 3px
+
+    > span
+      flex 1 1 auto
+      min-width 0
+
+    .subscription-status-tag
+      flex 0 0 auto
+      margin 0
+      margin-top -1px
+
+.subscription-plan-head
+  display flex
+  justify-content space-between
+  gap 8px
+
+  div
+    display flex
+    flex-direction column
+    gap 5px
+
+  strong
+    color #1f2937
+    font-size 16px
+    line-height 22px
+
+  span
+    color #667085
+    font-size 12px
+
+.subscription-plan-highlight
+  margin-top 8px !important
+  color #1f2937
+  font-weight 600
+  font-size 13px
+  line-height 1.4
+
+.subscription-plan-target
+  min-height 32px
+  margin-top 4px !important
+  color #667085
+  font-size 12px
+  line-height 18px
+
+.subscription-feature-more
+  color #667085 !important
+
+.subscription-status-tag
+  border-radius 999px
+  font-size 11px
+  line-height 18px
+
+  &.done
+    color #1677ff
+    border-color #bfd7ff
+    background #eef5ff
+
+  &.partial
+    color #b45309
+    border-color #fed7aa
+    background #fff7ed
+
+  &.planned
+    color #667085
+    border-color #dbe3ef
+    background #f8fafc
+
+.subscription-plan-limits
+  display flex
+  flex-wrap wrap
+  gap 6px
+  margin 0 0 8px
+  padding-top 7px
+  border-top 1px solid #edf1f7
+
+  span
+    display inline-flex
+    align-items center
+    min-height 24px
+    padding 2px 8px
+    border 1px solid #edf1f7
+    border-radius 999px
+    background #f8fafc
+    color #667085
+    font-size 12px
+    line-height 18px
+
+.subscription-note
+  padding 10px 14px
+
+  div
+    display flex
+    align-items center
+    gap 12px
+
+  strong
+    flex 0 0 auto
+    color #1f2937
+    font-size 13px
+    line-height 20px
+
+  span
+    color #667085
+    font-size 12px
+    line-height 18px
+
+.subscription-compare
+  overflow hidden
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+
+.subscription-compare-section
+  .subscription-compare
+    border 0
+    border-radius 0
+
+.subscription-compare-head,
+.subscription-compare-row
+  display grid
+  grid-template-columns minmax(260px, 1.8fr) repeat(3, minmax(90px, .7fr))
+  align-items center
+  min-width 720px
+
+.subscription-compare-head
+  background #f6f9ff
+  border-bottom 1px solid #dbe3ef
+
+  span,
+  strong
+    padding 10px 14px
+    color #1f2937
+    font-size 13px
+
+.subscription-compare-group + .subscription-compare-group
+  border-top 1px solid #dbe3ef
+
+.subscription-compare-title
+  padding 8px 14px
+  background #fbfcff
+  color #475467
+  font-size 12px
+  font-weight 600
+
+.subscription-compare-row
+  border-top 1px solid #edf1f7
+
+  > span
+    display flex
+    align-items center
+    gap 8px
+    padding 9px 14px
+    color #344054
+    font-size 12px
+    line-height 1.45
+
+    &:not(:first-child)
+      display block
+      text-align center
+
+    em
+      flex 1 1 auto
+      min-width 0
+      font-style normal
+
+.subscription-compare-cell
+  display inline-flex
+  align-items center
+  justify-content center
+  min-width 20px
+  color #98a2b3
+
+  &.included
+    color #1677ff
+
+  .anticon
+    font-size 15px
+
+@media (max-width 1180px)
+  .subscription-plan-grid
+    grid-template-columns 1fr
+
+  .subscription-compare
+    overflow-x auto
+
+  .subscription-hero
+    grid-template-columns 1fr
+
+@media (max-width 640px)
+  .subscription-settings
+    .cn-settings-section-title
+      align-items flex-start
+      flex-direction column
+      gap 4px
+
+      span
+        max-width none
+
+  .subscription-current-card
+    align-items flex-start
+    flex-direction column
+
+    .ant-tag
+      align-self flex-start
+
+  .subscription-plan-card
+    min-height auto
+    padding 12px
+
+  .subscription-hero-meta
+    grid-template-columns 1fr
+
+  .subscription-note
+    div
+      align-items flex-start
+      flex-direction column
+      gap 4px
+
+  .subscription-plan-head
+    align-items flex-start
+
+    .ant-tag
+      flex-shrink 0

@@ -33,6 +33,7 @@ import { readClipboard, copy as copyToClipboard, hasFileInClipboardText } from '
 import { getDropFileList } from '../../common/file-drop-utils'
 import time from '../../common/time'
 import { filesize } from 'filesize'
+import { resolveTerminalId } from '../../common/active-terminal'
 import { createTransferProps } from './transfer-common'
 import generate from '../../common/uid'
 import sanitizeFilename from '../../common/sanitize-filename'
@@ -672,7 +673,8 @@ export default class FileSection extends React.Component {
       rp = this.convertSftpPathToTerminalPath(rp)
     }
     this.props.tab.pane = paneMap.terminal
-    refs.get('term-' + this.props.tab.id)?.cd(rp)
+    const ownerTabId = this.props.activeOwnerTabId || this.props.tab.id
+    refs.get('term-' + resolveTerminalId(ownerTabId))?.cd(rp)
   }
 
   convertSftpPathToTerminalPath = (p) => {

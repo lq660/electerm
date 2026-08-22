@@ -7,6 +7,7 @@ import SettingAi from '../ai/ai-config'
 import SyncSetting from '../setting-sync/setting-sync'
 import Shortcuts from '../shortcuts/shortcuts'
 import SettingPasswords from './setting-passwords'
+import SubscriptionSettings from './subscription'
 import List from './list'
 import {
   settingMap,
@@ -14,7 +15,8 @@ import {
   settingTerminalId,
   settingAiId,
   settingShortcutsId,
-  settingPasswordsId
+  settingPasswordsId,
+  settingSubscriptionId
 } from '../../common/constants'
 import { aiConfigsArr } from '../ai/ai-config-props'
 import { pick } from 'lodash-es'
@@ -43,7 +45,7 @@ export default auto(function TabSettings (props) {
 
   function handleConfigSubmit (values) {
     window.store.updateConfig(values)
-    message.success('Saved')
+    message.success('已保存')
   }
 
   const aiConfProps = {
@@ -80,6 +82,8 @@ export default auto(function TabSettings (props) {
       copyToClipboard: window.copyToClipboard
     }
     elem = <SettingPasswords {...passwordsProps} />
+  } else if (sid === settingSubscriptionId) {
+    elem = <SubscriptionSettings config={store.config} store={store} />
   } else {
     elem = (
       <SettingCommon
@@ -90,12 +94,19 @@ export default auto(function TabSettings (props) {
       />
     )
   }
+  const isSubscription = sid === settingSubscriptionId
 
   return (
     <div
       className='setting-tabs-setting'
     >
-      <SettingCol>
+      <SettingCol
+        className={`cn-settings-template ${isSubscription ? 'cn-subscription-template' : ''}`}
+        leftTitle={isSubscription ? '版本入口' : '设置分类'}
+        leftDesc={isSubscription ? '订阅与基础配置' : '按功能域切换配置'}
+        rightTitle={isSubscription ? '版本方案' : '参数配置'}
+        rightDesc={isSubscription ? '本地验证能力分层，后续接入授权' : '保存后立即应用到工作台'}
+      >
         <List
           {...listProps}
         />

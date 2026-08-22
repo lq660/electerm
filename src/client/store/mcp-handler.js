@@ -17,6 +17,7 @@ import {
   validateBookmarkData
 } from '../components/bookmark-form/fix-bookmark-default'
 import newTerm from '../common/new-terminal'
+import { resolveTerminalTarget } from '../common/active-terminal'
 
 export default Store => {
   // Initialize MCP handler - called when MCP widget is started
@@ -519,7 +520,7 @@ export default Store => {
 
   Store.prototype.mcpSendTerminalCommand = function (args) {
     const { store } = window
-    const tabId = args.tabId || store.activeTabId
+    const { terminalId: tabId } = resolveTerminalTarget(args.tabId || store.activeTabId)
     const command = args.command
 
     if (!tabId) {
@@ -540,7 +541,7 @@ export default Store => {
 
   Store.prototype.mcpGetTerminalSelection = function (args) {
     const { store } = window
-    const tabId = args.tabId || store.activeTabId
+    const { terminalId: tabId } = resolveTerminalTarget(args.tabId || store.activeTabId)
 
     if (!tabId) {
       throw new Error('No active terminal')
@@ -561,7 +562,7 @@ export default Store => {
 
   Store.prototype.mcpGetTerminalOutput = function (args) {
     const { store } = window
-    const tabId = args.tabId || store.activeTabId
+    const { terminalId: tabId } = resolveTerminalTarget(args.tabId || store.activeTabId)
     const lineCount = args.lines || 50
 
     if (!tabId) {
@@ -608,7 +609,10 @@ export default Store => {
 
   Store.prototype.mcpWaitForTerminalIdle = async function (args) {
     const { store } = window
-    const tabId = args.tabId || store.activeTabId
+    const {
+      ownerTabId,
+      terminalId: tabId
+    } = resolveTerminalTarget(args.tabId || store.activeTabId)
     const timeout = Math.min(args.timeout || 30000, 120000)
     const pollInterval = 500
     const minWait = args.minWait !== undefined ? args.minWait : 1000
@@ -646,7 +650,7 @@ export default Store => {
 
     // Poll until onData becomes false (4s idle debounce in tab.jsx)
     while (Date.now() - start < timeout) {
-      const tabRef = refsTabs.get('tab-' + tabId)
+      const tabRef = refsTabs.get('tab-' + ownerTabId)
       const onData = tabRef?.state.terminalOnData
       if (!onData) {
         const { output, lineCount } = collectOutput()
@@ -677,12 +681,15 @@ export default Store => {
 
   Store.prototype.mcpGetTerminalStatus = function (args) {
     const { store } = window
-    const tabId = args.tabId || store.activeTabId
+    const {
+      ownerTabId,
+      terminalId: tabId
+    } = resolveTerminalTarget(args.tabId || store.activeTabId)
     if (!tabId) {
       throw new Error('No active terminal')
     }
 
-    const tabRef = refsTabs.get('tab-' + tabId)
+    const tabRef = refsTabs.get('tab-' + ownerTabId)
     const onData = tabRef?.state.terminalOnData || ''
     const term = refs.get('term-' + tabId)
 
@@ -720,7 +727,7 @@ export default Store => {
 
   Store.prototype.mcpCancelTerminalCommand = function (args) {
     const { store } = window
-    const tabId = args.tabId || store.activeTabId
+    const { terminalId: tabId } = resolveTerminalTarget(args.tabId || store.activeTabId)
     if (!tabId) {
       throw new Error('No active terminal')
     }
@@ -760,7 +767,7 @@ export default Store => {
 
   Store.prototype.mcpRunBackgroundCommand = function (args) {
     const { store } = window
-    const tabId = args.tabId || store.activeTabId
+    const { terminalId: tabId } = resolveTerminalTarget(args.tabId || store.activeTabId)
     if (!tabId) {
       throw new Error('No active terminal')
     }
@@ -1070,11 +1077,14 @@ export default Store => {
 
   Store.prototype.mcpZmodemUpload = function (args) {
     const { store } = window
-    const tabId = args.tabId || store.activeTabId
+    const {
+      ownerTabId,
+      terminalId: tabId
+    } = resolveTerminalTarget(args.tabId || store.activeTabId)
     if (!tabId) {
       throw new Error('No active tab')
     }
-    const tab = store.tabs.find(t => t.id === tabId)
+    const tab = store.tabs.find(t => t.id === ownerTabId)
     if (!tab) {
       throw new Error(`Tab not found: ${tabId}`)
     }
@@ -1108,11 +1118,14 @@ export default Store => {
 
   Store.prototype.mcpZmodemDownload = function (args) {
     const { store } = window
-    const tabId = args.tabId || store.activeTabId
+    const {
+      ownerTabId,
+      terminalId: tabId
+    } = resolveTerminalTarget(args.tabId || store.activeTabId)
     if (!tabId) {
       throw new Error('No active tab')
     }
-    const tab = store.tabs.find(t => t.id === tabId)
+    const tab = store.tabs.find(t => t.id === ownerTabId)
     if (!tab) {
       throw new Error(`Tab not found: ${tabId}`)
     }

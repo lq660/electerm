@@ -3,15 +3,144 @@
   display flex
   flex-direction column
 
+  &.ai-chat-embedded
+    .cn-ai-chat-intro
+      margin-bottom 8px
+      padding 10px
+
+      > .anticon
+        display none
+
+    .cn-ai-config-notice
+      margin 0 0 8px
+
+    .cn-ai-empty-state
+      padding 8px 0
+
+    .ai-chat-input
+      margin-top 8px
+
+    .ai-chat-terminals
+      gap 6px
+
+      .cn-ai-control-row
+        gap 6px
+
+.cn-ai-chat-intro
+  display flex
+  align-items center
+  justify-content space-between
+  gap 12px
+  margin 0 0 10px
+  padding 12px
+  border 1px solid #d8e0ea
+  border-radius 8px
+  background #f8fafc
+  color #344054
+
+  strong,
+  span
+    display block
+
+  strong
+    color #1f2937
+    font-size 14px
+
+  span
+    margin-top 4px
+    color #667085
+    font-size 12px
+    line-height 18px
+
+  > .anticon
+    color #1677ff
+    font-size 18px
+
+  b
+    flex 0 0 auto
+    padding 2px 8px
+    border-radius 999px
+    font-size 12px
+
+    &.ready
+      background #ecfdf3
+      color #039855
+
+    &.missing
+      background #fff4e5
+      color #b54708
+
 .ai-chat-history
   flex-grow 1
   min-height 0
-  &::-webkit-scrollbar
-    width 0
-.ai-history-wrap
-  width 100%
+  flex-direction column
   overflow-y auto
   overflow-x hidden
+  &::-webkit-scrollbar
+    width 6px
+  &::-webkit-scrollbar-thumb
+    background #cbd5e1
+    border-radius 999px
+  &::-webkit-scrollbar-track
+    background transparent
+.ai-history-wrap
+  width 100%
+  min-height 0
+  overflow visible
+  overflow-x hidden
+
+.cn-ai-empty-state
+  width 100%
+  padding 8px 2px
+  color #344054
+
+  > span
+    display block
+
+  > span
+    color #667085
+    font-size 12px
+
+.cn-ai-config-notice
+  display flex
+  align-items center
+  justify-content space-between
+  gap 12px
+  margin 0 12px 8px
+  padding 10px
+  border 1px solid #fedf89
+  border-radius 8px
+  background #fffbeb
+
+  div
+    min-width 0
+
+  strong,
+  span
+    display block
+
+  strong
+    color #93370d
+    font-size 13px
+
+  span
+    margin-top 3px
+    color #b54708
+    font-size 12px
+    line-height 18px
+
+  button
+    flex 0 0 auto
+    height 30px
+    padding 0 12px
+    border 1px solid #f79009
+    border-radius 6px
+    background #fff7ed
+    color #b54708
+    cursor pointer
+
+    &:hover
+      background #ffedd5
 
 .chat-history-item
   position relative
@@ -33,24 +162,179 @@
     //     display block
 
 .ai-stream-output
-  max-height 400px
-  overflow-y auto
+  // 2026-07-20 coder(lq): Keep AI chat with a single scroll owner, otherwise long replies create nested scrollbars in the right sidebar.
+  max-height none
+  overflow visible
 
 .ai-chat-input
   position relative
   margin-top 10px
+  flex 0 0 auto
 
   .ant-input
-    padding-bottom 40px
+    padding-bottom 82px
+
+  .ai-chat-textarea::placeholder
+    // 2026-07-20 coder(lq): The AI input sits on a large white surface; default placeholder contrast is too low for quick scanning.
+    color #7b8798 !important
+    opacity 1
 
   .ai-chat-terminals
     position absolute
-    bottom 5px
-    left 5px
-    right 5px
+    bottom 8px
+    left 10px
+    right 10px
     background transparent
     z-index 1
-    font-size 16px
+    gap 6px
+    font-size 14px
+
+.cn-ai-control-row
+  display flex
+  align-items center
+  justify-content space-between
+  gap 8px
+  min-width 0
+
+.cn-ai-mode-controls
+  display flex
+  align-items center
+  gap 6px
+  min-width 0
+  flex 1 1 auto
+  overflow hidden
+
+  .ant-segmented
+    flex 0 0 auto
+
+.cn-ai-target-select
+  min-width 0
+  flex 1 1 auto
+  display flex
+  align-items center
+  overflow hidden
+
+  .batch-tab-select-trigger
+    max-width 100%
+    min-height 26px
+    padding 0
+    overflow hidden
+    white-space nowrap
+    text-overflow ellipsis
+    font-size 13px
+
+.cn-ai-agent-target
+  display inline-flex
+  align-items center
+  min-width 0
+  max-width 100%
+  height 26px
+  padding 0 8px
+  border-radius 6px
+  background #f6f9fd
+  color #344054
+  font-size 13px
+  font-weight 600
+  line-height 1
+  overflow hidden
+  white-space nowrap
+  text-overflow ellipsis
+
+.cn-ai-action-icons
+  flex 0 0 auto
+  display inline-flex
+  align-items center
+  justify-content flex-end
+  gap 6px
+
+  > span
+    margin 0
+    width 28px
+    height 28px
+    display inline-flex
+    align-items center
+    justify-content center
+    border-radius 7px
+    color #344054
+    font-size 17px
+    line-height 1
+
+    &:hover
+      background #f5f8ff
+      color #1677ff
+
+.cn-ai-icon-button,
+.cn-ai-send-button
+  width 28px
+  height 28px
+  display inline-flex
+  align-items center
+  justify-content center
+  flex 0 0 28px
+  margin 0
+  border-radius 7px
+  color #344054
+  font-size 17px
+  line-height 1
+
+  &:hover
+    background #f5f8ff
+    color #1677ff
+
+.cn-ai-send-button
+  color #1f2937
+  font-size 19px
+  margin-left 6px
+
+  &.disabled
+    color #b8c2d2
+    cursor not-allowed
+
+.cn-ai-mode-label
+  display inline-flex
+  align-items center
+  height 100%
+  cursor help
+
+.cn-ai-mode-tip-pop
+  max-width 260px
+
+  b,
+  span
+    display block
+
+  b
+    margin-bottom 4px
+
+  span
+    line-height 18px
+
+.cn-ai-continuous-toggle
+  height 24px
+  flex 0 0 auto
+  display inline-flex
+  align-items center
+  justify-content center
+  padding 0 8px
+  border 1px solid #dbe3ef
+  border-radius 6px
+  background #fff
+  color #667085
+  cursor pointer
+  font-size 12px
+  line-height 1
+  white-space nowrap
+
+  &:hover
+    border-color #b8d8ff
+    background #f5f9ff
+    color #1677ff
+
+  &.active
+    border-color #1677ff
+    background #eef5ff
+    color #1677ff
+    font-weight 600
 
 .code-block
   width 100%
@@ -95,6 +379,33 @@
 .agent-tool-calls
   margin 8px 0
 
+.ai-solution-record-actions
+  display flex
+  justify-content flex-end
+  margin 6px 0 2px
+
+  button
+    height 28px
+    display inline-flex
+    align-items center
+    gap 5px
+    padding 0 10px
+    border 1px solid #cfd8e6
+    border-radius 6px
+    background #fff
+    color #344054
+    font-size 12px
+    cursor pointer
+
+    &:hover
+      border-color #1677ff
+      color #1677ff
+      background #f5f8ff
+
+    &:disabled
+      opacity .55
+      cursor not-allowed
+
 .agent-tool-call-card
   border 1px solid var(--main-darker)
   border-radius 4px
@@ -109,6 +420,20 @@
 
 .agent-tool-name
   font-weight 500
+  flex 0 0 auto
+
+.agent-tool-command-preview
+  min-width 0
+  max-width 42%
+  padding 1px 6px
+  border 1px solid #d8e0ea
+  border-radius 4px
+  background #f8fafc
+  color #344054
+  font-size 12px
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
 
 .agent-tool-tag
   margin-left auto
@@ -120,8 +445,30 @@
 .agent-tool-status-completed
   color #52c41a
 
+.agent-tool-status-pending
+  color #d48806
+
 .agent-tool-status-error
   color #ff4d4f
+
+.agent-tool-confirm-button
+  height 24px
+  padding 0 8px
+  border 1px solid #f0b95a
+  border-radius 6px
+  background #fff8e6
+  color #ad6800
+  display inline-flex
+  align-items center
+  gap 4px
+  cursor pointer
+  font-size 12px
+  flex 0 0 auto
+
+  &:hover
+    border-color #d48806
+    background #fff1c2
+    color #874d00
 
 .agent-tool-detail
   padding 0 8px 8px
@@ -156,6 +503,9 @@
 .agent-tool-completed
   border-color #52c41a
 
+.agent-tool-pending_confirm
+  border-color #d48806
+
 .agent-tool-error
   border-color #ff4d4f
 
@@ -164,3 +514,72 @@
     transform rotate(0deg)
   to
     transform rotate(360deg)
+
+// 2026-07-02 coder(lq): AI panels are normal assistant pages; cards, code blocks, and tool calls should follow the light workbench system.
+.ai-chat-container,
+.ai-history-wrap,
+.ai-stream-output
+  background #fff !important
+  color #1f2937 !important
+
+.chat-history-item,
+.agent-tool-call-card
+  background #fff !important
+  border 1px solid #d8e0ea !important
+  border-radius 8px !important
+  color #344054 !important
+
+.chat-history-item .code-block,
+.agent-tool-detail
+  border-color #d8e0ea !important
+
+.agent-tool-pre
+  background #f8fafc !important
+  color #1f2937 !important
+  border 1px solid #e4eaf2
+
+.agent-tool-label
+  color #667085 !important
+
+.ai-chat-input .ant-input
+  background #fff !important
+  border-color #cfd8e6 !important
+  color #1f2937 !important
+
+// 2026-07-04 coder(lq): AI right panel is rendered inside terminal chrome, so explicitly reset AntD assistant widgets to the light ops palette.
+.ai-chat-container
+  .ant-alert
+    border-color #b8d8ff !important
+    border-radius 8px !important
+    background #f5f8ff !important
+    color #344054 !important
+
+  .ant-alert-message,
+  .ant-alert-description
+    color #344054 !important
+
+  .ant-segmented
+    background #f1f5f9 !important
+    color #667085 !important
+
+  .ant-segmented-item
+    color #667085 !important
+
+  .ant-segmented-item-selected
+    background #fff !important
+    color #1677ff !important
+    box-shadow 0 1px 3px rgba(15, 23, 42, .10) !important
+
+  .ant-input,
+  textarea.ant-input,
+  .ant-input-affix-wrapper
+    background #fff !important
+    border-color #cfd8e6 !important
+    color #1f2937 !important
+
+  .ant-input-affix-wrapper .ant-input,
+  .ant-input-affix-wrapper .ant-input:focus
+    border 0 !important
+    box-shadow none !important
+    outline none !important
+    background transparent !important

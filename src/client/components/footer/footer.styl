@@ -42,6 +42,219 @@
       display none
 .batch-input-holder
   width 100px
+
+.batch-tab-select-trigger
+  display inline-flex
+  align-items center
+  gap 4px
+  min-height 26px
+  color #344054
+  border-radius 6px
+
+  &:hover
+    background #f5f8ff
+    color #1677ff
+
+.batch-tab-select-title
+  color #344054
+  font-size 12px
+  font-weight 600
+  text-align left
+
+.batch-tab-select-overlay
+  min-width 300px
+  padding 0 !important
+  border 1px solid #d8e0ea !important
+  border-radius 8px !important
+  background #fff !important
+  color #344054 !important
+  box-shadow 0 16px 42px rgba(15, 23, 42, .16) !important
+
+  &.ant-popover
+    border 0 !important
+    background transparent !important
+    box-shadow none !important
+
+  .ant-popover-container
+    padding 0 !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    box-shadow 0 16px 42px rgba(15, 23, 42, .16) !important
+
+  .ant-popover-content
+    background #fff !important
+    border-radius 8px !important
+
+  .ant-popover-inner
+    min-width 300px
+    padding 0 !important
+    border 1px solid #d8e0ea !important
+    border-radius 8px !important
+    background #fff !important
+    box-shadow 0 16px 42px rgba(15, 23, 42, .16) !important
+
+  .ant-popover-inner-content
+    padding 0 !important
+    background #fff !important
+    color #344054 !important
+
+  .ant-popover-arrow::before
+    background #fff !important
+    border-color #d8e0ea !important
+
+.batch-tab-select-popover
+  width 300px
+  padding 12px
+  box-sizing border-box
+  background #fff !important
+  color #344054
+  text-align left
+
+.batch-tab-select-head
+  padding-bottom 10px
+  border-bottom 1px solid #edf1f7
+
+.batch-tab-select-desc
+  margin-top 4px
+  color #667085
+  font-size 12px
+  line-height 18px
+
+.batch-tab-select-actions
+  display flex
+  justify-content flex-end
+  gap 8px
+  padding 10px 0
+
+  button
+    height 24px
+    padding 0 8px
+    border 1px solid #dbe3ef
+    border-radius 6px
+    background #fff
+    color #1677ff
+    cursor pointer
+    font-size 12px
+
+    &:hover
+      background #f5f8ff
+      border-color #b8d8ff
+
+.batch-tab-select-list
+  display flex
+  flex-direction column
+  gap 8px
+  max-height 260px
+  overflow auto
+
+.batch-tab-select-item
+  width 100%
+  min-height 44px
+  display grid
+  grid-template-columns 22px minmax(0, 1fr)
+  align-items center
+  gap 8px
+  padding 8px 10px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #fff
+  color #344054
+  cursor pointer
+  text-align left
+
+  &:hover
+    border-color #b8d8ff
+    background #f5f8ff
+
+  &.selected
+    border-color #1677ff
+    background #eef5ff
+    color #1677ff
+
+  .anticon
+    color #1677ff
+    font-size 16px
+
+.batch-tab-select-check
+  width 16px
+  height 16px
+  border 1px solid #cfd8e6
+  border-radius 50%
+  background #fff
+
+.batch-tab-select-name
+  min-width 0
+  display flex
+  flex-direction column
+  gap 2px
+
+  b,
+  em
+    display block
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+  b
+    color inherit
+    font-size 13px
+    font-weight 600
+
+  em
+    color #667085
+    font-size 12px
+    font-style normal
+
+.batch-tab-select-empty
+  padding 14px 10px
+  border 1px dashed #cfd8e6
+  border-radius 8px
+  background #f8fafc
+  color #667085
+  font-size 12px
+  text-align center
+
+.batch-input-history-popover
+  width 260px
+
+.batch-input-history-head
+  display flex
+  align-items center
+  justify-content space-between
+  gap 10px
+  margin-bottom 8px
+  color #344054
+  font-size 12px
+
+  span
+    color #1677ff
+    cursor pointer
+
+.batch-input-history-list
+  max-height 220px
+  overflow auto
+  display flex
+  flex-direction column
+  gap 6px
+
+  button
+    width 100%
+    min-height 30px
+    padding 6px 8px
+    border 1px solid #dbe3ef
+    border-radius 6px
+    background #fff
+    color #344054
+    text-align left
+    white-space pre-wrap
+    word-break break-word
+    cursor pointer
+
+    &:hover
+      border-color #1677ff
+      background #f5f8ff
+      color #1677ff
 @media (max-width: 500px)
   .batch-input-outer
     &.bi-show
@@ -51,3 +264,31 @@
       bottom 0
       z-index 100
       background var(--main)
+
+// 2026-07-02 coder(lq): Footer controls are navigation chrome; keep them consistent with the light workbench instead of terminal dark blocks.
+.main-footer
+  background #fff !important
+  color #344054 !important
+  border-top 1px solid #d8e0ea !important
+
+.terminal-footer-unit
+  color #344054 !important
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-select-selector
+    background #fff !important
+    border-color #cfd8e6 !important
+    color #1f2937 !important
+
+  .ant-input-affix-wrapper .ant-input,
+  .ant-input-affix-wrapper .ant-input:focus
+    border 0 !important
+    box-shadow none !important
+    outline none !important
+    background transparent !important
+
+@media (max-width: 500px)
+  .batch-input-outer
+    &.bi-show
+      background #fff !important

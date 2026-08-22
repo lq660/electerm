@@ -32,7 +32,7 @@ import { XmodemClient } from './xmodem-client.js'
 import DropFileModal from './drop-file-modal.jsx'
 import keyControlPressed from '../../common/key-control-pressed.js'
 import NormalBuffer from './normal-buffer.jsx'
-import { createTerm, resizeTerm, startTerminalLogFile, toggleTerminalLog } from './terminal-apis.js'
+import { createTerm, getTerminalCwd, resizeTerm, startTerminalLogFile, toggleTerminalLog } from './terminal-apis.js'
 import { shortcutExtend, shortcutDescExtend } from '../shortcuts/shortcut-handler.js'
 import { KeywordHighlighterAddon } from './highlight-addon.js'
 import { getFilePath, isUnsafeFilename } from '../../common/file-drop-utils.js'
@@ -146,13 +146,15 @@ class Term extends Component {
         background: 'rgba(0,0,0,0)'
       }
     }
+    if (!prevProps.sftpPathFollowSsh && this.props.sftpPathFollowSsh) {
+      this.startLocalCwdPolling()
+    } else if (prevProps.sftpPathFollowSsh && !this.props.sftpPathFollowSsh) {
+      this.stopLocalCwdPolling()
+    }
   }
 
   componentWillUnmount () {
     refs.remove(this.id)
-    if (window.store.activeTerminalId === this.props.tab.id) {
-      window.store.activeTerminalId = ''
-    }
     if (this.term) {
       this.term.parent = null
     }
@@ -234,11 +236,14 @@ class Term extends Component {
     // Check for shell integration related config changes
     const prevShowSuggestions = prevProps.config.showCmdSuggestions
     const currShowSuggestions = props.config.showCmdSuggestions
+    const prevAutoSaveCommandHistory = prevProps.config.autoSaveTerminalCommandHistory !== false
+    const currAutoSaveCommandHistory = props.config.autoSaveTerminalCommandHistory !== false
     const prevSftpFollow = prevProps.sftpPathFollowSsh
     const currSftpFollow = props.sftpPathFollowSsh
 
     if (
       (!prevShowSuggestions && currShowSuggestions) ||
+      (!prevAutoSaveCommandHistory && currAutoSaveCommandHistory) ||
       (!prevSftpFollow && currSftpFollow)
     ) {
       // Config was toggled to true, try to inject shell integration if not already done
@@ -264,6 +269,9 @@ class Term extends Component {
         }
       } else if (this.shellInjected && currSftpFollow) {
         this.getCwd()
+      }
+      if (!prevSftpFollow && currSftpFollow) {
+        this.scheduleLocalCwdRefresh()
       }
     }
     if (
@@ -355,7 +363,7 @@ class Term extends Component {
   warnSftpFollowUnsupported = () => {
     message.warning(
       <span>
-        Fish shell/windows shell is not supported for SFTP follow SSH path feature. See: <ExternalLink to='https://github.com/electerm/electerm/wiki/Warning-about-sftp-follow-ssh-path-function'>wiki</ExternalLink>
+        {e('sftpFollowUnsupported')} <ExternalLink to='https://github.com/electerm/electerm/wiki/Warning-about-sftp-follow-ssh-path-function'>wiki</ExternalLink>
       </span>
       , 7)
   }
@@ -393,7 +401,7 @@ class Term extends Component {
 
   cd = (p) => {
     if (isUnsafeFilename(p)) {
-      return message.error('File name contains unsafe characters')
+      return message.error(e('unsafeFileName'))
     }
     const isWinPath = /^[a-zA-Z]:\\/.test(p)
     this.runQuickCommand(isWinPath ? `cd /d "${p}"` : `cd "${p}"`)
@@ -496,7 +504,7 @@ class Term extends Component {
     switch (action) {
       case 'trz': {
         if (this.trzszClient && this.trzszClient.isActive) {
-          message.warning('A transfer is already in progress')
+          message.warning(e('transferInProgress'))
           this.handleDropFileModalCancel()
           return
         }
@@ -506,7 +514,7 @@ class Term extends Component {
       }
       case 'rz':{
         if (this.zmodemClient && this.zmodemClient.isActive) {
-          message.warning('A transfer is already in progress')
+          message.warning(e('transferInProgress'))
           this.handleDropFileModalCancel()
           return
         }
@@ -516,7 +524,7 @@ class Term extends Component {
       }
       case 'xmodem': {
         if (this.xmodemClient && this.xmodemClient.isActive) {
-          message.warning('A transfer is already in progress')
+          message.warning(e('transferInProgress'))
           this.handleDropFileModalCancel()
           return
         }
@@ -587,6 +595,17 @@ class Term extends Component {
   onCopy = () => {
     const selected = this.term.getSelection()
     copy(selected)
+    this.term.focus()
+  }
+
+  onCopyAll = () => {
+    const content = this.getTerminalBufferText()
+    if (!content.trim()) {
+      message.warning(e('noData'))
+      return
+    }
+    // 2026-07-20 coder(lq): Copy the full terminal scrollback so operators can send complete logs to AI or teammates without selecting manually.
+    copy(content)
     this.term.focus()
   }
 
@@ -798,6 +817,11 @@ class Term extends Component {
         extra: copyShortcut
       },
       {
+        key: 'onCopyAll',
+        icon: <iconsMap.CopyOutlined />,
+        label: e('copyTerminalAll')
+      },
+      {
         key: 'onPaste',
         icon: <iconsMap.SwitcherOutlined />,
         label: e('paste'),
@@ -854,12 +878,12 @@ class Term extends Component {
         {
           key: 'onXmodemSend',
           icon: <iconsMap.CloudUploadOutlined />,
-          label: 'XMODEM Send'
+          label: e('xmodemSend')
         },
         {
           key: 'onXmodemReceive',
           icon: <iconsMap.CloudDownloadOutlined />,
-          label: 'XMODEM Receive'
+          label: e('xmodemReceive')
         }
       )
     }
@@ -919,7 +943,8 @@ class Term extends Component {
   }
 
   setCwd = (cwd) => {
-    this.props.setCwd(cwd, this.state.id)
+    // 2026-07-06 coder(lq): CWD follow is scoped by terminal tab id; state has no id, so use the rendered tab id.
+    this.props.setCwd(cwd, this.props.tab.id)
   }
 
   getCursorPosition = () => {
@@ -1003,6 +1028,10 @@ class Term extends Component {
     this.currentInput = value
   }
 
+  getCommandHistorySessionId = () => {
+    return this.props.tab.sessionRootId || this.props.tab.id
+  }
+
   /**
    * Handle special input events for command history tracking
    * The actual input reading is done via getCurrentInput from buffer
@@ -1012,7 +1041,7 @@ class Term extends Component {
     if (d === '\r' || d === '\n') {
       const currentCmd = this.getCurrentInput()
       if (currentCmd && currentCmd.trim() && this.shouldUseManualHistory()) {
-        window.store.addCmdHistory(currentCmd.trim())
+        window.store.addCmdHistory(currentCmd.trim(), 'terminal', this.getCommandHistorySessionId(), { signal: 'manual' })
       }
       if (currentCmd && currentCmd.trim() === 'exit') {
         this.userTypeExit = true
@@ -1044,6 +1073,9 @@ class Term extends Component {
 
   onData = (d) => {
     this.handleInputEvent(d)
+    if (d.includes('\r') || d.includes('\n')) {
+      this.scheduleLocalCwdRefresh()
+    }
     // Skip normal suggestion logic when in password mode
     const suggestions = refsStatic.get('terminal-suggestions')
     if (suggestions?.state?.passwordMode) {
@@ -1063,6 +1095,48 @@ class Term extends Component {
     } else {
       this.closeSuggestions()
     }
+  }
+
+  scheduleLocalCwdRefresh = () => {
+    if (!this.isLocal() || !this.pid) {
+      return
+    }
+    const delays = [300, 900, 1600, 2600, 4000]
+    delays.forEach((delay, index) => {
+      const timerKey = `cwdRefreshTimer${index}`
+      clearTimeout(this.timers[timerKey])
+      this.timers[timerKey] = setTimeout(() => {
+        this.refreshLocalCwd()
+      }, delay)
+    })
+  }
+
+  refreshLocalCwd = async () => {
+    if (!this.isLocal() || !this.pid) {
+      return ''
+    }
+    const cwd = await getTerminalCwd(this.pid).catch(() => '')
+    if (cwd && cwd !== this.lastLocalCwd) {
+      this.lastLocalCwd = cwd
+      // 2026-07-06 coder(lq): Local terminals may miss OSC cwd events; pty cwd keeps file-follow reliable after cd.
+      this.setCwd(cwd)
+    }
+    return cwd
+  }
+
+  startLocalCwdPolling = () => {
+    if (!this.props.sftpPathFollowSsh || !this.isLocal() || !this.pid || this.timers.cwdPollTimer) {
+      return
+    }
+    // 2026-07-06 coder(lq): Split terminal/file view needs continuous cwd tracking because shell prompts and command timing differ by user setup.
+    this.timers.cwdPollTimer = setInterval(() => {
+      this.refreshLocalCwd()
+    }, 1000)
+  }
+
+  stopLocalCwdPolling = () => {
+    clearInterval(this.timers.cwdPollTimer)
+    this.timers.cwdPollTimer = null
   }
 
   loadRenderer = async (term, config) => {
@@ -1110,8 +1184,8 @@ class Term extends Component {
     this.fitAddon = new FitAddon()
     this.cmdAddon = new CommandTrackerAddon()
     this.cmdAddon.onCommandExecuted((cmd) => {
-      if (cmd && cmd.trim()) {
-        window.store.addCmdHistory(cmd.trim())
+      if (this.props.config.autoSaveTerminalCommandHistory !== false && cmd && cmd.trim()) {
+        window.store.addCmdHistory(cmd.trim(), 'terminal', this.getCommandHistorySessionId(), { signal: 'shell' })
       }
     })
     this.cmdAddon.onCwdChanged((cwd) => {
@@ -1207,12 +1281,13 @@ class Term extends Component {
   }
 
   shouldUseManualHistory = () => {
-    return !this.cmdAddon || !this.cmdAddon.hasShellIntegration()
+    return this.props.config.autoSaveTerminalCommandHistory !== false &&
+      (!this.cmdAddon || !this.cmdAddon.hasShellIntegration())
   }
 
   canInjectShellIntegration = () => {
     const { config } = this.props
-    const canInject = (config.showCmdSuggestions || this.props.sftpPathFollowSsh) &&
+    const canInject = (config.showCmdSuggestions || config.autoSaveTerminalCommandHistory !== false || this.props.sftpPathFollowSsh) &&
     (
       this.isSsh() ||
       (this.isLocal() && !isWin)
@@ -1486,6 +1561,8 @@ class Term extends Component {
     socket.onopen = async () => {
       await this.initAttachAddon()
       this.runInitScript()
+      this.scheduleLocalCwdRefresh()
+      this.startLocalCwdPolling()
       term._initialized = true
     }
     // term.onRrefresh(this.onRefresh)
@@ -1505,7 +1582,9 @@ class Term extends Component {
     this.fitAddon.fit()
     term.displayRaw = displayRaw
     term.loadAddon(
-      new KeywordHighlighterAddon(keywords)
+      new KeywordHighlighterAddon(keywords, {
+        enableLogHighlight: config.enableTerminalLogHighlight !== false
+      })
     )
   }
 

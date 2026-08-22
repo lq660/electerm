@@ -104,8 +104,18 @@ async function createStyleForTab (tab, props) {
 async function createGlobalStyle (props) {
   const st = await createBackgroundStyle(props.terminalBackgroundImagePath)
   if (!st) {
+    // 2026-07-04 coder(lq): Default terminal watermark should match the customized product brand, not the upstream asset.
     return '#container .session-batch-active .xterm-screen::before {' +
-    'background-image: url("./images/electerm-watermark.png");' +
+    'content: "云舵";' +
+    'background-image: none;' +
+    'display: flex;' +
+    'align-items: center;' +
+    'justify-content: center;' +
+    'font-size: 96px;' +
+    'font-weight: 800;' +
+    'letter-spacing: 0;' +
+    'color: rgba(255,255,255,0.05);' +
+    'pointer-events: none;' +
     '}'
   }
 

@@ -5,6 +5,7 @@
 const pack = require('../../package.json')
 const os = require('os')
 const { resolve } = require('path')
+const fs = require('fs')
 const { version } = pack
 const { mkdir, rm, exec, echo, cp } = require('shelljs')
 const dir = 'dist/v' + version
@@ -12,6 +13,37 @@ const cwd = process.cwd()
 
 const platform = os.platform()
 const isWin = platform === 'win32'
+
+function runRequired (command) {
+  const result = exec(command)
+  if (result.code !== 0) {
+    echo(`command failed: ${command}`)
+    process.exit(result.code)
+  }
+}
+
+function copyRootDependency (name) {
+  const from = resolve(cwd, 'node_modules', name)
+  const to = resolve(cwd, 'work/app/node_modules', name)
+  if (!fs.existsSync(from)) {
+    return
+  }
+  rm('-rf', to)
+  cp('-r', from, to)
+}
+
+function installAppDependencies () {
+  const installCommand = `cd work/app && npm i --omit=dev --legacy-peer-deps && cd ${cwd}`
+  const result = exec(installCommand)
+  if (result.code === 0) {
+    return
+  }
+
+  echo('normal dependency install failed, retrying without package scripts')
+  rm('-rf', 'work/app/node_modules')
+  runRequired(`cd work/app && npm i --omit=dev --legacy-peer-deps --ignore-scripts && cd ${cwd}`)
+  copyRootDependency('node-pty')
+}
 
 pack.main = 'app.js'
 delete pack.scripts
@@ -43,14 +75,15 @@ rm('-rf', 'work/app/assets/js/index*')
 rm('-rf', 'work/app/assets/js/*.txt')
 rm('-rf', 'node_modules/cpu-features')
 
-require('fs').writeFileSync(
+fs.writeFileSync(
   resolve(__dirname, '../../work/app/package.json'),
   JSON.stringify(
     pack, null, 2
   )
 )
 
-exec(`cd work/app && npm i --omit=dev && cd ${cwd}`)
+rm('-rf', 'work/app/node_modules')
+installAppDependencies()
 rm('-rf', 'work/app/node_modules/.bin')
 // Remove axios browser/ESM builds and unnecessary files (keep only lib/ and node CJS)
 rm('-rf', 'work/app/node_modules/axios/dist/esm')
@@ -101,7 +134,11 @@ rm('-rf', 'work/app/node_modules/node-pty/lib/testUtils.test.js.map')
 
 // yarn auto clean
 cp('-r', 'build/bin/.yarnclean', 'work/app/')
-exec(`cd work/app && yarn generate-lock-entry > yarn.lock && yarn autoclean --force && cd ${cwd}`)
+if (exec('command -v yarn', { silent: true }).code === 0) {
+  runRequired(`cd work/app && yarn generate-lock-entry > yarn.lock && yarn autoclean --force && cd ${cwd}`)
+} else {
+  echo('skip yarn autoclean: yarn not found')
+}
 rm('-rf', 'work/app/.yarnclean')
 rm('-rf', 'work/app/package-lock.json')
 rm('-rf', 'work/app/yarn.lock')

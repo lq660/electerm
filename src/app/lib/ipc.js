@@ -9,11 +9,13 @@ const {
   dialog,
   powerMonitor,
   globalShortcut,
-  shell
+  shell,
+  clipboard,
+  systemPreferences
 } = require('electron')
 const globalState = require('./glob-state')
 const ipcSyncFuncs = require('./ipc-sync')
-const { dbAction } = require('./db')
+const { dbAction, getStorageStatus } = require('./db')
 const { listItermThemes } = require('./iterm-theme')
 const installSrc = require('./install-src')
 const { getConfig } = require('./get-config')
@@ -37,7 +39,12 @@ const {
   getLang,
   loadLocales
 } = require('./locales')
-const { saveUserConfig } = require('./user-config-controller')
+const { saveUserConfig, rebuildUserConfig } = require('./user-config-controller')
+const {
+  exportConfigMigration,
+  importConfigMigration,
+  previewConfigMigration
+} = require('./config-migration')
 const { changeHotkeyReg, initShortCut } = require('./shortcut')
 const lastStateManager = require('./last-state')
 const {
@@ -65,7 +72,6 @@ const { checkDbUpgrade, doUpgrade } = require('../upgrade')
 const { listSerialPorts } = require('./serial-port')
 const initApp = require('./init-app')
 const { encryptAsync, decryptAsync } = require('./enc')
-const { safeEncrypt, safeDecrypt } = require('./safe-storage')
 const { initCommandLine } = require('./command-line')
 const { watchFile, unwatchFile } = require('./watch-file')
 const lookup = require('../common/lookup')
@@ -93,6 +99,70 @@ const SAFE_ENV_KEYS = [
   'DBUS_SESSION_BUS_ADDRESS', 'DESKTOP_SESSION', 'GNOME_DESKTOP_SESSION_ID', 'KDE_FULL_SESSION',
   'CI', 'DOCKER_HOST', 'CONTAINER'
 ]
+
+const SENSITIVE_CLIPBOARD_CLEAR_MS = 30 * 1000
+let sensitiveClipboardTimer = null
+
+async function authorizeSensitiveAction (options = {}) {
+  const {
+    reason = '允许云舵复制已保存密码',
+    appPassword = ''
+  } = options
+  if (appPassword) {
+    const ok = await checkPassword(appPassword)
+    return ok
+      ? { ok: true, method: 'app-password' }
+      : { ok: false, reason: '软件访问密码不正确' }
+  }
+  if (isMac && systemPreferences && typeof systemPreferences.promptTouchID === 'function') {
+    try {
+      await systemPreferences.promptTouchID(reason)
+      return { ok: true, method: 'system' }
+    } catch (err) {
+      return {
+        ok: false,
+        reason: err && err.message ? err.message : '系统认证未通过'
+      }
+    }
+  }
+  return {
+    ok: false,
+    reason: '请先在通用设置里设置软件访问密码，或在支持系统认证的设备上操作'
+  }
+}
+
+async function copySensitiveText (text, options = {}) {
+  if (!text) {
+    return {
+      copied: false,
+      reason: '没有可复制的密码'
+    }
+  }
+  const auth = await authorizeSensitiveAction(options)
+  if (!auth.ok) {
+    return {
+      copied: false,
+      reason: auth.reason
+    }
+  }
+  const value = String(text)
+  const clearAfter = Number(options.clearAfter) || SENSITIVE_CLIPBOARD_CLEAR_MS
+  clipboard.writeText(value)
+  if (sensitiveClipboardTimer) {
+    clearTimeout(sensitiveClipboardTimer)
+  }
+  sensitiveClipboardTimer = setTimeout(() => {
+    if (clipboard.readText() === value) {
+      clipboard.clear()
+    }
+    sensitiveClipboardTimer = null
+  }, clearAfter)
+  return {
+    copied: true,
+    clearAfter,
+    method: auth.method
+  }
+}
 
 async function initAppServer () {
   const {
@@ -136,6 +206,7 @@ function initIpc () {
       config,
       langs,
       langMap,
+      storageStatus: getStorageStatus(),
       installSrc,
       appPath,
       exePath,
@@ -170,9 +241,8 @@ function initIpc () {
     },
     encryptAsync,
     decryptAsync,
-    safeEncrypt: (str) => safeEncrypt(str),
-    safeDecrypt: (str) => safeDecrypt(str),
     dbAction,
+    getDbStorageStatus: getStorageStatus,
     getScreenSize,
     closeApp: (closeAction = '') => {
       globalState.set('closeAction', closeAction)
@@ -204,13 +274,45 @@ function initIpc () {
       lastStateManager.set('windowSize', update)
     },
     saveUserConfig,
+    rebuildUserConfig,
+    exportConfigMigration: async (password, options = {}) => {
+      const auth = await authorizeSensitiveAction({
+        reason: '允许云舵导出配置迁移包',
+        appPassword: options.appPassword
+      })
+      if (!auth.ok) {
+        throw new Error(auth.reason)
+      }
+      const {
+        appPassword,
+        ...migrationOptions
+      } = options
+      return exportConfigMigration(globalState.get('win'), password, migrationOptions)
+    },
+    authorizeSensitiveAction,
+    previewConfigMigration,
+    importConfigMigration: async (filePath, password, options = {}) => {
+      const auth = await authorizeSensitiveAction({
+        reason: '允许云舵导入配置迁移包',
+        appPassword: options.appPassword
+      })
+      if (!auth.ok) {
+        throw new Error(auth.reason)
+      }
+      const {
+        appPassword,
+        ...migrationOptions
+      } = options
+      return importConfigMigration(filePath, password, migrationOptions)
+    },
+    copySensitiveText,
     AIchat,
     AIchatWithTools,
     getStreamContent,
     stopStream,
     setTitle: (title) => {
       const win = globalState.get('win')
-      win && win.setTitle(packInfo.name + ' - ' + title)
+      win && win.setTitle((packInfo.productName || packInfo.name) + ' - ' + title)
     },
     setBackgroundColor: (color = '#33333300') => {
       const win = globalState.get('win')
@@ -241,7 +343,11 @@ function initIpc () {
     }
   }
   ipcMain.handle('async', (event, { name, args }) => {
-    return asyncGlobals[name](...args)
+    const func = asyncGlobals[name]
+    if (typeof func !== 'function') {
+      throw new Error(`Unknown async global: ${name}`)
+    }
+    return func(...args)
   })
   ipcMain.handle('show-open-dialog-sync', async (event, ...args) => {
     const win = BrowserWindow.fromWebContents(event.sender)

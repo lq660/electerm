@@ -157,6 +157,31 @@
 .sftp-panel
   background var(--main)
 
+.sftp-terminal-cwd-sync
+  height 28px
+  display inline-flex
+  align-items center
+  gap 6px
+  flex 0 0 auto
+  padding 0 10px
+  border 1px solid #b9d2ff
+  border-radius 6px
+  background #eef5ff
+  color #1677ff
+  font-size 12px
+  cursor pointer
+
+  &:hover
+    border-color #1677ff
+    background #e4efff
+
+  &:disabled
+    cursor default
+    opacity .65
+
+.sftp-terminal-cwd-sync-arrow
+  font-size 10px
+
 .file-list
   ::-webkit-scrollbar-thumb
     background-color var(--primary) !important
@@ -185,3 +210,47 @@
   &:hover
   &.active
     color var(--success)
+
+// 2026-07-02 coder(lq): SFTP file manager is an operational page, so use dense light tables instead of inherited dark terminal surfaces.
+.sftp-wrap,
+.sftp-section,
+.sftp-panel
+  background #f5f7fb !important
+  color #1f2937 !important
+
+.sftp-title-wrap,
+.sftp-file-table-header,
+.sftp-header-item,
+.pager-wrap
+  background #fbfdff !important
+  color #344054 !important
+  border-bottom 1px solid #d8e0ea !important
+
+.sftp-file-prop,
+.sftp-item:nth-child(even) .sftp-file-prop
+  background #fff !important
+  color #344054 !important
+  border-bottom 1px solid #edf1f7 !important
+
+.sftp-item:hover .sftp-file-prop,
+.sftp-item.selected .sftp-file-prop,
+.sftp-item.sftp-dragover .sftp-file-prop
+  background #eef5ff !important
+  color #1677ff !important
+
+.sftp-history
+  background #fff !important
+  border 1px solid #d8e0ea !important
+  border-radius 8px !important
+  box-shadow 0 12px 30px rgba(15, 23, 42, .14) !important
+
+.sftp-history-item
+  color #344054 !important
+  border-bottom 1px solid #edf1f7 !important
+  &:hover
+    background #eef5ff !important
+    color #1677ff !important
+
+.sftp-has-pager .pager-wrap
+  background #fbfdff !important
+  border-top 1px solid #d8e0ea !important

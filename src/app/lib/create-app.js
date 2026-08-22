@@ -22,7 +22,7 @@ const GPU_ERROR_SUGGESTION = `
 ⚠️  GPU Process Error Detected
 ================================================================================
 If you encounter GPU process crashes (exit_code=-2147483645 or similar),
-try running electerm with one of these flags:
+try running 云舵工作台 with one of these flags:
 
   1. --no-sandbox          (Recommended - run without sandbox)
   2. --disable-gpu        (Disable GPU rendering)
@@ -33,9 +33,9 @@ Or set environment variable:
   set DISABLE_GPU=1
 
 Example:
-  electerm.exe --no-sandbox
+  云舵工作台.exe --no-sandbox
   or
-  set DISABLE_GPU=1 && electerm.exe
+  set DISABLE_GPU=1 && 云舵工作台.exe
 ================================================================================
 `
 
@@ -69,11 +69,11 @@ process.on('uncaughtException', (error) => {
 })
 
 exports.createApp = async function () {
-  app.setName(packInfo.name)
+  app.setName(packInfo.productName || packInfo.name)
   // Set desktop name so Linux taskbars (e.g. UOS/Deepin dde-dock) can match
   // the window to the .desktop file embedded in the AppImage.
   if (process.platform === 'linux' && app.setDesktopName) {
-    app.setDesktopName(packInfo.name)
+    app.setDesktopName(packInfo.productName || packInfo.name)
   }
   // Handle GPU issues on Linux
   // On Linux, disable GPU for compatibility

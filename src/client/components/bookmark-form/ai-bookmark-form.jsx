@@ -23,6 +23,11 @@ import HelpIcon from '../common/help-icon'
 import Modal from '../common/modal.jsx'
 import { buildPrompt } from './bookmark-schema.js'
 import { fixBookmarkData } from './fix-bookmark-default.js'
+import {
+  featureIds,
+  getFeatureLockedMessage,
+  hasFeature
+} from '../../common/feature-plans'
 import generate from '../../common/id-with-stamp'
 import AiHistory, { addHistoryItem } from '../ai/ai-history.jsx'
 import { getItem, setItem } from '../../common/safe-local-storage'
@@ -58,6 +63,11 @@ export default function AIBookmarkForm (props) {
   }, [description])
 
   const handleGenerate = async () => {
+    if (!hasFeature(window.store.config, featureIds.aiChat)) {
+      message.warning(getFeatureLockedMessage(featureIds.aiChat))
+      window.store.openSubscriptionSetting()
+      return
+    }
     if (window.store.aiConfigMissing()) {
       window.store.toggleAIConfig()
       return
@@ -125,7 +135,7 @@ export default function AIBookmarkForm (props) {
       }
     } catch (error) {
       console.error('AI bookmark generation error:', error)
-      message.error('Can not generate bookmarks from AI response: ' + error.message)
+      message.error(`${e('aiBookmarkGenerateFailed')}: ${error.message}`)
     } finally {
       setLoading(false)
     }
@@ -194,7 +204,7 @@ export default function AIBookmarkForm (props) {
       message.success(e('Done'))
     } catch (error) {
       console.error('AI bookmark creation error:', error)
-      message.error('Can not create bookmarks from AI response: ' + error.message)
+      message.error(`${e('aiBookmarkCreateFailed')}: ${error.message}`)
     } finally {
       setConfirmProgress(null)
     }

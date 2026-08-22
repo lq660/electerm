@@ -3,6 +3,7 @@
  */
 
 import Modal from '../components/common/modal'
+import message from '../components/common/message'
 import { isString } from 'lodash-es'
 import getInitItem from '../common/init-setting-item'
 import {
@@ -10,6 +11,11 @@ import {
   maxZoom,
   minZoom
 } from '../common/constants'
+import {
+  featureIds,
+  getFeatureLockedMessage,
+  hasFeature
+} from '../common/feature-plans'
 
 const e = window.translate
 
@@ -63,6 +69,11 @@ export default Store => {
 
   Store.prototype.onNewSshAI = function () {
     const { store } = window
+    if (!hasFeature(store.config, featureIds.aiChat)) {
+      message.warning(getFeatureLockedMessage(featureIds.aiChat))
+      store.openSubscriptionSetting()
+      return
+    }
     if (store.aiConfigMissing()) {
       store.toggleAIConfig()
       return

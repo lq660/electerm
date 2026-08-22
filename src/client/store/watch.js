@@ -83,10 +83,15 @@ export default store => {
   }).start()
 
   autoRun(() => {
-    if (!isEmpty(store.config)) {
-      window.pre.runGlobalAsync('saveUserConfig', store.config)
+    const config = store.config
+    // 2026-08-04 coder(lq): Legacy keychain rows no longer set this lock; keep the guard only for genuinely unreadable local config rows.
+    if (!isEmpty(config) && !store.userConfigSaveLocked) {
+      window.pre.runGlobalAsync('saveUserConfig', config)
+        .catch(error => {
+          store.onError(error)
+        })
     }
-    return store.config
+    return config
   }, func => debounce(func, 100)).start()
 
   autoRun(() => {

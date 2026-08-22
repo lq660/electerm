@@ -15,6 +15,7 @@ import { RegularExpIcon } from '../icons/regular-exp'
 import classNames from 'classnames'
 import copy from 'json-deep-copy'
 import { refsStatic, refs } from '../common/ref'
+import { resolveTerminalId } from '../../common/active-terminal'
 import './term-search.styl'
 
 const e = window.translate
@@ -37,15 +38,15 @@ export default class TermSearch extends PureComponent {
   searchActions = [{
     id: 'prev',
     icon: ArrowLeftOutlined,
-    cls: 'mg1l'
+    label: '上一个匹配项'
   }, {
     id: 'next',
     icon: ArrowRightOutlined,
-    cls: 'mg1l'
+    label: '下一个匹配项'
   }, {
     id: 'close',
     icon: CloseCircleOutlined,
-    cls: 'mg2l'
+    label: '关闭搜索'
   }]
 
   componentDidMount () {
@@ -65,10 +66,9 @@ export default class TermSearch extends PureComponent {
 
   prev = () => {
     const {
-      activeTabId,
       termSearchOptions
     } = this.props
-    refs.get('term-' + activeTabId)
+    refs.get('term-' + this.getActiveTerminalId())
       ?.searchPrev(
         this.props.termSearch,
         copy(termSearchOptions)
@@ -76,7 +76,7 @@ export default class TermSearch extends PureComponent {
   }
 
   next = () => {
-    refs.get('term-' + this.props.activeTabId)
+    refs.get('term-' + this.getActiveTerminalId())
       ?.searchNext(
         this.props.termSearch,
         copy(this.props.termSearchOptions)
@@ -90,12 +90,20 @@ export default class TermSearch extends PureComponent {
   }
 
   clearSearch = () => {
-    const term = refs.get('term-' + this.props.activeTabId)
-    term?.searchAddon.clearDecorations()
+    const term = refs.get('term-' + this.getActiveTerminalId())
+    if (!term) {
+      return
+    }
+    term.searchAddon.clearDecorations()
     term.setState({
       searchResults: [],
       matchIndex: -1
     })
+  }
+
+  getActiveTerminalId = () => {
+    // 2026-07-11 coder(lq): Session child tabs have their own terminal IDs; search must target the visible child terminal instead of the outer connection tab.
+    return resolveTerminalId(this.props.activeTabId)
   }
 
   close = () => {
@@ -107,17 +115,16 @@ export default class TermSearch extends PureComponent {
     const {
       id,
       icon: Icon,
-      cls
+      label
     } = item
     const props = {
       onClick: this[id],
-      className: 'term-search-act mg1x ' + cls
+      className: `term-search-act term-search-action-${id}`
     }
     return (
-      <Icon
-        key={id}
-        {...props}
-      />
+      <Tooltip key={id} title={label}>
+        <Icon {...props} />
+      </Tooltip>
     )
   }
 
@@ -129,7 +136,7 @@ export default class TermSearch extends PureComponent {
     if (!termSearchMatchCount) {
       return null
     }
-    return <span className='mg1x'>({termSearchMatchIndex + 1}/{termSearchMatchCount})</span>
+    return <span className='term-search-match-count'>{termSearchMatchIndex + 1} / {termSearchMatchCount}</span>
   }
 
   renderAfter = () => {
@@ -208,6 +215,7 @@ export default class TermSearch extends PureComponent {
       onChange: this.handleChange,
       suffix: <>{this.renderSuffix()} {this.renderAfter()}</>,
       onPressEnter: this.next,
+      placeholder: '搜索当前终端内容',
       selectall: true
     }
     return (

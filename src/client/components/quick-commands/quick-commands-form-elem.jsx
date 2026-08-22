@@ -111,70 +111,86 @@ export default function QuickCommandForm (props) {
       <Form
         form={form}
         onFinish={handleSubmit}
-        className='form-wrap pd2l'
+        className='form-wrap pd2l cn-setting-detail-form cn-quick-command-form'
         layout='vertical'
         initialValues={initialValues}
       >
-        <FormItem
-          label={e('quickCommandName')}
-          rules={[{
-            max: 60, message: '60 chars max'
-          }, {
-            required: true, message: 'Name required'
-          }]}
-          hasFeedback
-          name='name'
-        >
-          <InputAutoFocus />
-        </FormItem>
-        {renderQm(form)}
-        <FormItem
-          name='labels'
-          label={e('label')}
-        >
-          <Select
-            mode='tags'
-          >
-            {
-              quickCommandTags.map(q => {
-                return (
-                  <Option value={q} key={'qmt-' + q}>
-                    {q}
-                  </Option>
-                )
-              })
-            }
-          </Select>
-        </FormItem>
-        <FormItem
-          label={e('settingShortcuts')}
-          name='shortcut'
-        >
-          <div>
-            <Input className='hide' />
-            <ShortcutEdit
-              {...editorProps}
-            />
+        <div className='cn-setting-card-title'>
+          <strong>快捷命令</strong>
+          <span>沉淀常用脚本、批量命令和快捷键</span>
+        </div>
+        <section className='cn-settings-section'>
+          <div className='cn-settings-section-title'>
+            <strong>基础信息</strong>
+            <span>名称、标签和执行方式</span>
           </div>
-        </FormItem>
-        <FormItem
-          label={e('inputOnly')}
-          name='inputOnly'
-          valuePropName='checked'
-        >
-          <Switch />
-        </FormItem>
-        <FormItem>
-          <p>
+          <FormItem
+            label={e('quickCommandName')}
+            rules={[{
+              max: 60, message: '最多 60 个字符'
+            }, {
+              required: true, message: '请输入名称'
+            }]}
+            hasFeedback
+            name='name'
+          >
+            <InputAutoFocus />
+          </FormItem>
+          <FormItem
+            name='labels'
+            label='标签'
+          >
+            <Select
+              mode='tags'
+            >
+              {
+                quickCommandTags.map(q => {
+                  return (
+                    <Option value={q} key={'qmt-' + q}>
+                      {q}
+                    </Option>
+                  )
+                })
+              }
+            </Select>
+          </FormItem>
+          <FormItem
+            label='快捷键'
+            name='shortcut'
+          >
+            <div>
+              <Input className='hide' />
+              <ShortcutEdit
+                {...editorProps}
+              />
+            </div>
+          </FormItem>
+          <FormItem
+            label={e('inputOnly')}
+            name='inputOnly'
+            valuePropName='checked'
+          >
+            <Switch />
+          </FormItem>
+        </section>
+        <section className='cn-settings-section'>
+          <div className='cn-settings-section-title'>
+            <strong>命令步骤</strong>
+            <span>支持多行命令、延迟执行和拖拽排序</span>
+          </div>
+          {renderQm(form)}
+        </section>
+        <FormItem className='cn-settings-action-row'>
+          <div>
             <Button
               type='primary'
               htmlType='submit'
             >{e('save')}
             </Button>
-          </p>
+          </div>
         </FormItem>
-        <p>
-          <b className='mg1r'>{e('templates')}:</b>
+        <p className='cn-settings-help-line'>
+          <b className='mg1r'>模板变量:</b>
           <span className='mg1r'>{templatesStr}</span>
           <HelpIcon
             link={wiki}

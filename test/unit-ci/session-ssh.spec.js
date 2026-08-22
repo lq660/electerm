@@ -144,11 +144,14 @@ function createPromptWs (promptResponder, options = {}) {
     defaultConfirmResponse = ['trust']
   } = options
   const prompts = []
+  const payloads = []
   let pendingOptions
   return {
     prompts,
+    payloads,
     s (payload) {
       if (payload && payload.action === 'session-interactive') {
+        payloads.push(payload)
         pendingOptions = payload.options
         if (includeConfirmPrompts || payload.options?.mode !== 'confirm') {
           prompts.push(payload.options)
@@ -225,6 +228,26 @@ function splitRoundKeyboardInteractiveAuth (rounds = []) {
             ctx.reject(['keyboard-interactive'])
           }
         })
+      })
+    }
+    return ctx.reject(['keyboard-interactive'])
+  }
+}
+
+function passwordKeyboardInteractiveAuth () {
+  return (ctx) => {
+    if (ctx.method === 'none') {
+      return ctx.reject(['keyboard-interactive'])
+    }
+    if (ctx.method === 'keyboard-interactive' && ctx.username === USERNAME) {
+      return ctx.prompt([
+        { prompt: 'Password:', echo: false }
+      ], 'electerm-test', 'password round', (responses) => {
+        if (responses[0] === PASSWORD) {
+          ctx.accept()
+        } else {
+          ctx.reject(['keyboard-interactive'])
+        }
       })
     }
     return ctx.reject(['keyboard-interactive'])
@@ -409,6 +432,68 @@ describe('session-ssh auth flows', () => {
       assert.deepEqual(rounds, ['otp', 'otp', 'password'])
       assert.equal(ws.prompts.length, 1)
       assert.match(ws.prompts[0].prompts[0].prompt, /verification code/i)
+    } finally {
+      term && term.kill()
+      await server.close()
+    }
+  })
+
+  test('marks unsaved bookmark login password prompts as saveable', async () => {
+    const server = await startServer(passwordKeyboardInteractiveAuth())
+    const ws = createPromptWs((options) => {
+      assert.equal(options.prompts.length, 1)
+      assert.match(options.prompts[0].prompt, /password/i)
+      return [PASSWORD]
+    })
+
+    let term
+    try {
+      term = await session({
+        host: '127.0.0.1',
+        port: server.port,
+        username: USERNAME,
+        from: 'bookmarks',
+        srcId: 'bookmark-1',
+        useSshAgent: false,
+        enableSsh: false,
+        readyTimeout: 5000
+      }, ws)
+
+      const passwordPayload = ws.payloads.find(payload => payload.options?.prompts?.[0]?.prompt === 'Password:')
+      assert.equal(passwordPayload?.savePasswordCandidate, true)
+      assert.equal(passwordPayload?.srcId, 'bookmark-1')
+    } finally {
+      term && term.kill()
+      await server.close()
+    }
+  })
+
+  test('does not mark MFA prompts as saveable passwords', async () => {
+    const server = await startServer(splitRoundKeyboardInteractiveAuth())
+    const ws = createPromptWs((options, prompts) => {
+      if (prompts.length === 1) {
+        return [OTP]
+      }
+      return [PASSWORD]
+    })
+
+    let term
+    try {
+      term = await session({
+        host: '127.0.0.1',
+        port: server.port,
+        username: USERNAME,
+        from: 'bookmarks',
+        srcId: 'bookmark-2',
+        useSshAgent: false,
+        enableSsh: false,
+        readyTimeout: 5000
+      }, ws)
+
+      const otpPayload = ws.payloads.find(payload => payload.options?.prompts?.[0]?.prompt === 'Verification code:')
+      const passwordPayload = ws.payloads.find(payload => payload.options?.prompts?.[0]?.prompt === 'Password:')
+      assert.equal(otpPayload?.savePasswordCandidate, false)
+      assert.equal(passwordPayload?.savePasswordCandidate, true)
     } finally {
       term && term.kill()
       await server.close()

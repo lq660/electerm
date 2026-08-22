@@ -18,7 +18,7 @@ function hasNoEncryptFields (userConfig) {
   return false
 }
 
-exports.saveUserConfig = async (userConfig) => {
+async function saveUserConfigBase (userConfig, options = {}) {
   const q = {
     _id: userConfigId
   }
@@ -48,6 +48,15 @@ exports.saveUserConfig = async (userConfig) => {
     ...conf,
     ...userConfig
   }, {
-    upsert: true
+    upsert: true,
+    ...options
   })
+}
+
+exports.saveUserConfig = async (userConfig) => {
+  return saveUserConfigBase(userConfig)
+}
+
+exports.rebuildUserConfig = async (userConfig) => {
+  return saveUserConfigBase(userConfig, { force: true })
 }

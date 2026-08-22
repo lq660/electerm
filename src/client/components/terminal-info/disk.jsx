@@ -34,7 +34,7 @@ export default function TerminalInfoDisk (props) {
   }
   return (
     <div className='terminal-info-section terminal-info-disk'>
-      <div className='pd1y bold'><PartitionOutlined /> File system</div>
+      <div className='terminal-info-section-title'><PartitionOutlined /> 文件系统</div>
       <Table {...ps} />
     </div>
   )

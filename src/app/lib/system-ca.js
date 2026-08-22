@@ -13,17 +13,8 @@ const os = require('os')
 let _certs = null
 
 function loadMacOS () {
-  try {
-    return execSync(
-      'security find-certificate -a -p ' +
-      '/System/Library/Keychains/SystemRootCertificates.keychain ' +
-      '/Library/Keychains/System.keychain ' +
-      os.homedir() + '/Library/Keychains/login.keychain-db',
-      { encoding: 'utf8', timeout: 10000 }
-    )
-  } catch {
-    return ''
-  }
+  // 2026-07-23 coder(lq): Do not run macOS `security ... Keychains` at startup; the product should not touch Keychain data implicitly.
+  return ''
 }
 
 function loadLinux () {

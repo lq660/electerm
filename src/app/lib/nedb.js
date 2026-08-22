@@ -98,6 +98,10 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
       const { _encdata: _, ...rest } = doc
       return { ...rest, ...parsed }
     } catch (e) {
+      if (e.code === 'SAFE_STORAGE_DISABLED') {
+        // 2026-08-04 coder(lq): Ignore legacy OS-keychain ciphertext instead of keeping a recovery state that slows or confuses startup.
+        return null
+      }
       return doc
     }
   }
@@ -122,7 +126,7 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
       if (op === 'find') {
         db[dbName][op](...args, (err, results) => {
           if (err) return reject(err)
-          resolve((results || []).map(doc => decryptDoc(dbName, doc)))
+          resolve((results || []).map(doc => decryptDoc(dbName, doc)).filter(Boolean))
         })
       } else if (op === 'findOne') {
         db[dbName][op](...args, (err, result) => {

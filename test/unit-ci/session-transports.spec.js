@@ -14,7 +14,10 @@ const serialportExports = require(serialportModulePath)
 const { MockBinding } = require('@serialport/binding-mock')
 
 const globalState = require('../../src/app/server/global-state')
-const { Ftp } = require('../../src/app/server/session-ftp')
+const {
+  Ftp,
+  test: testFtpConnection
+} = require('../../src/app/server/session-ftp')
 const sessionSerial = require('../../src/app/server/session-serial')
 const sessionTelnet = require('../../src/app/server/session-telnet')
 
@@ -235,6 +238,17 @@ describe('session-ftp transport flows', () => {
 
     const list = await ftp.list('/docs')
     assert.deepEqual(list.map(item => item.name), ['hello.txt'])
+  })
+
+  test('tests FTP credentials without opening a terminal session', async () => {
+    const result = await testFtpConnection({
+      host: '127.0.0.1',
+      port: ftpServer.port,
+      user: FTP_USERNAME,
+      password: FTP_PASSWORD,
+      readyTimeout: 5000
+    })
+    assert.equal(result, true)
   })
 
   test('copies directories recursively and removes them recursively', async () => {

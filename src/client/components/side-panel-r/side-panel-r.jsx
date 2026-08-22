@@ -7,7 +7,6 @@ import {
   InfoCircleOutlined
 } from '@ant-design/icons'
 import {
-  Typography,
   Flex,
   Tag
 } from 'antd'
@@ -27,9 +26,12 @@ export default memo(function RightSidePanel (
   if (!rightPanelVisible) {
     return null
   }
-  const tag = rightPanelTab === 'ai'
-    ? <Tag className='mg1r'>AI</Tag>
-    : <InfoCircleOutlined className='mg1r' />
+  const isAiPanel = rightPanelTab === 'ai'
+  const tag = isAiPanel
+    ? <Tag className='right-panel-tag'>AI</Tag>
+    : <InfoCircleOutlined className='right-panel-tag-icon' />
+  const panelName = isAiPanel ? '智能助手' : '运行详情'
+  const panelSubtitle = isAiPanel ? title : `${title || '当前会话'} 的状态、日志和资源信息`
 
   function onDragEnd (nw) {
     window.store.setRightSidePanelWidth(nw)
@@ -79,9 +81,15 @@ export default memo(function RightSidePanel (
         justify='space-between'
         align='center'
       >
-        <Typography.Text level={4} ellipsis style={{ margin: 0, flex: 1 }}>
-          {tag} {title}
-        </Typography.Text>
+        <div className='right-panel-heading'>
+          <div className='right-panel-title-main'>
+            {tag}
+            <span>{panelName}</span>
+          </div>
+          <div className='right-panel-title-sub' title={panelSubtitle}>
+            {panelSubtitle}
+          </div>
+        </div>
         <Flex>
           <PushpinOutlined
             {...pinProps}

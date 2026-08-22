@@ -398,7 +398,7 @@ export default class VncSession extends PureComponent {
   }
 
   onSecurityfailure = (event) => {
-    message.error('Security Failure: ' + event.detail?.reason)
+    message.error(`${e('securityFailure')}: ${event.detail?.reason || '-'}`)
   }
 
   onSerververification = (event) => {
@@ -437,7 +437,7 @@ export default class VncSession extends PureComponent {
   }
 
   onBell = (event) => {
-    message.warning('Bell')
+    message.warning(e('remoteBell'))
   }
 
   onDesktopname = (event) => {

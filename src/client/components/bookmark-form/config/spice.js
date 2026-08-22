@@ -26,7 +26,7 @@ const spiceConfig = {
       fields: [
         commonFields.category,
         commonFields.colorTitle,
-        { type: 'input', name: 'host', label: () => e('host'), rules: [{ required: true, message: e('host') + ' required' }] },
+        { type: 'input', name: 'host', label: () => e('host'), rules: [{ required: true, message: '请输入主机地址' }] },
         commonFields.port,
         { type: 'switch', name: 'viewOnly', label: () => e('viewOnly'), valuePropName: 'checked' },
         { type: 'switch', name: 'scaleViewport', label: () => e('scaleViewport'), valuePropName: 'checked' },

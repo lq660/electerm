@@ -87,7 +87,7 @@ test.describe('database encryption', () => {
     await electronApp.close()
   })
 
-  test('keeps settings pages usable when a legacy user config is locked', async () => {
+  test('keeps settings pages usable when unreadable local user config is locked', async () => {
     const dataDbPath = path.resolve(
       process.env.DATA_PATH,
       'users',
@@ -120,7 +120,7 @@ test.describe('database encryption', () => {
     expect(configState).toEqual({
       timeout: 12345,
       saveLocked: true,
-      noticeShown: true
+      noticeShown: false
     })
 
     await client.evaluate(() => window.store.openTerminalThemes())

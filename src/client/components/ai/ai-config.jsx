@@ -4,8 +4,7 @@ import {
   Button,
   AutoComplete,
   Alert,
-  Space,
-  Popconfirm
+  Space
 } from 'antd'
 import { useEffect, useState } from 'react'
 import Link from '../common/external-link'
@@ -44,7 +43,7 @@ const authHeaderOptions = [
   { value: 'Authorization' }
 ]
 
-export default function AIConfigForm ({ initialValues, onSubmit, onRebuildConfig, showAIConfig, configSaveLocked }) {
+export default function AIConfigForm ({ initialValues, onSubmit, showAIConfig }) {
   const [form] = Form.useForm()
   const [testing, setTesting] = useState(false)
   const baseURLAI = Form.useWatch('baseURLAI', form)
@@ -63,20 +62,6 @@ export default function AIConfigForm ({ initialValues, onSubmit, onRebuildConfig
     const saved = await onSubmit(values)
     if (saved !== false) {
       addHistoryItem(STORAGE_KEY_CONFIG, values, EVENT_NAME_CONFIG)
-    }
-  }
-
-  const handleRebuildConfig = async () => {
-    try {
-      const values = await form.validateFields()
-      const saved = await onRebuildConfig(values)
-      if (saved !== false) {
-        addHistoryItem(STORAGE_KEY_CONFIG, values, EVENT_NAME_CONFIG)
-      }
-    } catch (error) {
-      if (error?.message) {
-        message.error(error.message)
-      }
     }
   }
 
@@ -154,30 +139,6 @@ export default function AIConfigForm ({ initialValues, onSubmit, onRebuildConfig
         type='info'
         className='mg2y'
       />
-      {
-        configSaveLocked
-          ? (
-            <Alert
-              title='当前配置暂时无法持久保存'
-              description='检测到旧版本地加密配置无法解锁。普通保存只会在本次运行中生效，重启后可能丢失。确认当前配置可用后，可以重建本地配置并保存。'
-              type='warning'
-              className='mg2y'
-              showIcon
-              action={
-                <Popconfirm
-                  title='重建本地配置并保存？'
-                  description='这会用当前表单内容生成新的本地加密配置，替换那条已经无法解锁的旧配置。'
-                  okText='重建并保存'
-                  cancelText={e('cancel')}
-                  onConfirm={handleRebuildConfig}
-                >
-                  <Button danger>重建本地配置</Button>
-                </Popconfirm>
-              }
-            />
-            )
-          : null
-      }
       <p>
         完整地址：{initialValues?.baseURLAI}{initialValues?.apiPathAI}
       </p>

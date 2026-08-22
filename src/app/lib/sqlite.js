@@ -109,6 +109,12 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
       }
     } catch (e) {
       if (shouldDec && row.data.startsWith(ENC_PREFIX)) {
+        if (e.code === 'SAFE_STORAGE_DISABLED') {
+          // 2026-08-04 coder(lq): Treat legacy OS-keychain ciphertext as absent so startup never enters a keychain recovery flow.
+          lockedRows.delete(`${dbName}:${row._id}`)
+          console.error(`Encrypted row ${dbName}:${row._id} uses disabled legacy keychain storage and will be ignored.`)
+          return null
+        }
         // 2026-07-12 coder(lq): Keep unreadable ciphertext untouched and lock its ID so a default/empty object cannot overwrite it later.
         lockedRows.set(`${dbName}:${row._id}`, {
           dbName,

@@ -197,6 +197,46 @@ describe('sqlite createDb', () => {
       assert.equal(rebuilt.apiKeyAI, 'new-key')
     })
 
+    test('legacy safeStorage userConfig is ignored and does not lock future local saves', async () => {
+      const legacyTmpDir = makeTmpDir()
+      const legacyDbFolder = path.join(legacyTmpDir, 'electerm', 'users', 'testuser')
+      const legacyDb = createDb(legacyTmpDir, 'testuser', {
+        enc: simpleEnc,
+        dec: (str) => {
+          if (str.startsWith('v2:safe:')) {
+            const error = new Error('legacy safe storage disabled')
+            error.code = 'SAFE_STORAGE_DISABLED'
+            throw error
+          }
+          return simpleDec(str)
+        }
+      })
+      const dbPath = path.join(legacyDbFolder, 'electerm_data.db')
+      const rawDb = new DatabaseSync(dbPath)
+      rawDb.prepare(
+        'INSERT OR REPLACE INTO data (_id, data) VALUES (?, ?)'
+      ).run('userConfig', 'enc:v2:safe:legacy-ciphertext')
+      rawDb.close()
+
+      try {
+        const legacyConfig = await legacyDb.dbAction('data', 'findOne', { _id: 'userConfig' })
+        assert.equal(legacyConfig, null)
+        assert.equal(legacyDb.getStorageStatus().lockedCount, 0)
+
+        await legacyDb.dbAction(
+          'data',
+          'update',
+          { _id: 'userConfig' },
+          { _id: 'userConfig', apiKeyAI: 'new-local-key' },
+          { upsert: true }
+        )
+        const rebuilt = await legacyDb.dbAction('data', 'findOne', { _id: 'userConfig' })
+        assert.equal(rebuilt.apiKeyAI, 'new-local-key')
+      } finally {
+        fs.rmSync(legacyTmpDir, { recursive: true, force: true })
+      }
+    })
+
     test('profiles table is encrypted', async () => {
       const doc = { name: 'myProfile', secret: 'profileSecret' }
       await db.dbAction('profiles', 'insert', doc)

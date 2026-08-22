@@ -175,7 +175,7 @@ export default (Store) => {
     store.appPath = globs.appPath
     store.exePath = globs.exePath
     store.isPortable = globs.isPortable
-    // 2026-07-20 coder(lq): Surface locked encrypted user config at startup so settings pages do not imply changes can persist.
+    // 2026-08-04 coder(lq): Legacy keychain-backed config is ignored before this status is built; only genuinely unreadable local rows stay locked.
     store.userConfigSaveLocked = Boolean(globs.storageStatus?.tables?.data)
     store._config = globs.config
     window.et.langs = globs.langs

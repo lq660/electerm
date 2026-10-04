@@ -464,7 +464,8 @@ export default Store => {
 
   Store.prototype.setLayout = function (layout) {
     const { store } = window
-    layout = splitMap.c1
+    // 2026-10-04 coder(lq): Respect the selected layout; forcing c1 made every multi-pane layout control appear unresponsive.
+    layout = splitConfig[layout] ? layout : splitMap.c1
     const prevLayout = store.layout
     const { activeTabId } = store
     collapseToSingleBatch(store, activeTabId)
@@ -532,8 +533,6 @@ export default Store => {
     }
     const tabPropertiesExcludes = [
       'id',
-      'from',
-      'srcId',
       'status',
       'pane',
       'batch',
@@ -565,6 +564,12 @@ export default Store => {
       })()
     }
     const match = history[index]
+    // 2026-09-08 coder(lq): Refresh the snapshot so revisiting a saved connection also repairs legacy history without its bookmark identity.
+    const copiedTab = deepCopy(tab)
+    tabPropertiesExcludes.forEach(key => {
+      delete copiedTab[key]
+    })
+    match.tab = copiedTab
     match.count = (match.count || 0) + 1
     match.time = Date.now()
     action(function () {

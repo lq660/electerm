@@ -19,6 +19,18 @@ export function runCmd (pid, cmd) {
   })
 }
 
+export function runCmdStructured (pid, cmd, timeout, executionId, cancel = false, operation) {
+  return fetch({
+    pid,
+    cmd,
+    timeout,
+    executionId,
+    cancel,
+    operation,
+    action: 'run-cmd-structured'
+  })
+}
+
 export function getTerminalCwd (pid) {
   return fetch({
     pid,

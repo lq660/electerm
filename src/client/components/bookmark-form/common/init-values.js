@@ -29,6 +29,10 @@ export function createBaseInitValues (props, sessionType, defaults = {}) {
     type: sessionType,
     category: initBookmarkGroupId
   }
+  // 2026-09-03 coder(lq): Surface legacy remote startup paths in the new multi-path field.
+  if (base.startDirectoryRemote === undefined && base.startDirectory !== undefined) {
+    base.startDirectoryRemote = base.startDirectory
+  }
 
   // Only set default color if no color exists (for new bookmarks)
   if (!base.color) {

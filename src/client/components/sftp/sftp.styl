@@ -2,7 +2,80 @@
   display flex
   flex-direction row
 .sftp-section
-  flex 1
+  min-width 0
+
+.sftp-panel-divider
+  position relative
+  z-index 5
+  flex 0 0 10px
+  width 10px
+  min-width 10px
+  cursor col-resize
+  touch-action none
+  background transparent
+
+  &:before
+    position absolute
+    content ''
+    left 4px
+    top 0
+    bottom 0
+    width 2px
+    background #d8e0ea
+    transition background-color .15s ease, width .15s ease, left .15s ease
+
+  &:hover:before,
+  &:focus-visible:before,
+  &.dragging:before
+    left 3px
+    width 4px
+    background #1677ff
+
+  &:focus-visible
+    outline none
+
+.sftp-panel-title-actions
+  display inline-flex
+  align-items center
+  gap 8px
+  margin-left auto
+
+.sftp-panel-title-action,
+.sftp-panel-title-icon
+  display inline-flex
+  align-items center
+  justify-content center
+  min-height 28px
+  border 1px solid transparent
+  border-radius 6px
+  background transparent
+  color #667085
+  cursor pointer
+
+.sftp-panel-title-action
+  padding 0 8px
+  font-size 12px
+
+.sftp-panel-create-action
+  gap 5px
+
+  &:disabled
+    cursor default
+    opacity .5
+
+.sftp-panel-title-icon
+  width 28px
+  padding 0
+  font-size 15px
+
+.sftp-panel-title-action:hover,
+.sftp-panel-title-icon:hover,
+.sftp-panel-title-action:focus-visible,
+.sftp-panel-title-icon:focus-visible
+  border-color #b9d2ff
+  background #eef5ff
+  color #1677ff
+  outline none
 .sftp-title-wrap
   position relative
 .sftp-item
@@ -24,6 +97,16 @@
     .sftp-file-prop
       background-color var(--primary)
       color var(--primary-contrast)
+
+// 2026-09-22 coder(lq): Keep the desktop-style selection rectangle above file rows without intercepting clicks or drops.
+.sftp-selection-marquee
+  position fixed
+  z-index 20
+  pointer-events none
+  box-sizing border-box
+  border 1px solid #1677ff
+  border-radius 3px
+  background rgba(22, 119, 255, .14)
 .sftp-history
   position absolute
   left 0
@@ -79,6 +162,15 @@
   left 10px
   top 10px
   font-size 50px
+
+.sftp-file-icon-folder
+  // 2026-09-01 coder(lq): Use a quiet blue accent so folders are easy to scan without overpowering filenames.
+  color #8fb8e6
+  filter hue-rotate(165deg) saturate(.72) brightness(1.2)
+
+.sftp-file-icon-fallback.sftp-file-icon-folder
+  filter none
+
 .file-props-div
   display flex
   width 100%
@@ -103,6 +195,37 @@
   pointer-events none
   cursor default
   color var(--text)
+
+// 2026-10-01 coder(lq): Lift only the folder-size cell above the row selection overlay so its button can receive pointer events.
+.sftp-folder-size-cell
+  position relative
+  z-index 4
+  pointer-events auto
+
+.sftp-folder-size-action
+  position relative
+  max-width 100%
+  padding 0
+  border 0
+  background transparent
+  color #52779f
+  font inherit
+  line-height inherit
+  cursor pointer
+  pointer-events auto
+  overflow hidden
+  white-space nowrap
+  text-overflow ellipsis
+
+  &:hover,
+  &:focus-visible
+    color #2f5f8f
+    text-decoration underline
+    outline none
+
+  &:disabled
+    color #98a2b3
+    cursor wait
 
 .file-bg
   position absolute
@@ -156,6 +279,28 @@
 //sftp
 .sftp-panel
   background var(--main)
+
+.sftp-table-content
+  outline none
+
+  &:focus-visible
+    box-shadow inset 0 0 0 2px rgba(22, 119, 255, .35)
+
+// 2026-09-25 coder(lq): Preserve a small directory-level context target after the final virtualized row; fixed header actions remain available without scrolling.
+.sftp-list-blank-space
+  position relative
+  z-index 2
+  display flex
+  align-items center
+  justify-content center
+  min-height 44px
+  margin 4px 8px 8px
+  border 1px dashed var(--workbench-border, #d8e0ea)
+  border-radius 6px
+  background var(--workbench-panel-soft, #fbfdff)
+  color var(--workbench-placeholder, #98a2b3)
+  font-size 12px
+  user-select none
 
 .sftp-terminal-cwd-sync
   height 28px
@@ -254,3 +399,106 @@
 .sftp-has-pager .pager-wrap
   background #fbfdff !important
   border-top 1px solid #d8e0ea !important
+
+// 2026-09-22 coder(lq): Keep destructive file confirmation compact, explicit, and visually distinct from ordinary prompts.
+.sftp-delete-confirm-modal
+  .custom-modal-content
+    border-radius 12px !important
+    overflow hidden
+
+  .custom-modal-header
+    padding 18px 20px 14px !important
+    background #fff !important
+    border-bottom 0 !important
+
+  .custom-modal-title
+    font-size 17px !important
+    font-weight 650 !important
+
+  .custom-modal-body
+    padding 2px 20px 20px !important
+
+  .custom-modal-footer
+    padding 14px 20px !important
+
+  .custom-modal-ok-btn,
+  .custom-modal-cancel-btn
+    min-width 72px
+    min-height 36px
+    border-radius 7px
+    font-weight 600
+
+  .custom-modal-ok-btn
+    background #e5484d !important
+    border 1px solid #e5484d !important
+    color #fff !important
+
+    &:hover,
+    &:focus-visible
+      background #d9363e !important
+      border-color #d9363e !important
+      outline none
+
+.sftp-delete-confirm
+  display flex
+  align-items flex-start
+  gap 12px
+
+.sftp-delete-confirm-icon
+  display flex
+  align-items center
+  justify-content center
+  flex 0 0 38px
+  width 38px
+  height 38px
+  margin-top 2px
+  border-radius 50%
+  background #fff1f0
+  color #e5484d
+  font-size 18px
+
+.sftp-delete-confirm-content
+  min-width 0
+  flex 1
+
+.sftp-delete-confirm-summary
+  color #1f2937
+  font-size 14px
+  font-weight 600
+  line-height 22px
+
+.sftp-delete-confirm-warning
+  margin-top 3px
+  color #667085
+  font-size 13px
+  line-height 20px
+
+.sftp-delete-confirm-list
+  margin-top 12px
+  padding 7px 10px
+  border 1px solid #e4e7ec
+  border-radius 8px
+  background #f8fafc
+
+.sftp-delete-confirm-item
+  display flex
+  align-items center
+  gap 8px
+  min-width 0
+  height 28px
+  color #344054
+  font-size 13px
+
+  > .anticon
+    flex 0 0 auto
+    color #7a8da8
+
+  > span:last-child
+    overflow hidden
+    white-space nowrap
+    text-overflow ellipsis
+
+.sftp-delete-confirm-more
+  padding 4px 0 2px 22px
+  color #667085
+  font-size 12px

@@ -106,7 +106,15 @@ export default class QuickCommandsList extends List {
       <div
         key={id}
         className={cls}
+        role='button'
+        tabIndex={0}
         onClick={() => this.onClickItem(item)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            this.onClickItem(item)
+          }
+        }}
         data-id={id}
         draggable
         onDragOver={this.handleDragOver}

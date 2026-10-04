@@ -76,7 +76,15 @@ export default function ThemeListItem (props) {
   return (
     <div
       className={cls}
+      role='button'
+      tabIndex={0}
       onClick={handleClickTheme}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          handleClickTheme(event)
+        }
+      }}
     >
       <div className='elli pd1y pd2x' title={name}>
         {

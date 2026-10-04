@@ -68,7 +68,8 @@ export default auto(function WidgetsList ({ activeItemId, store }) {
       keyword
     )
     return (
-      <div
+      <button
+        type='button'
         key={widget.id}
         className={cls}
         onClick={() => onClickWidget(widget)}
@@ -79,7 +80,7 @@ export default auto(function WidgetsList ({ activeItemId, store }) {
         >
           {tag}{titleHighlight || e('new')}
         </div>
-      </div>
+      </button>
     )
   }
 

@@ -5,7 +5,6 @@ import FileInfoModal from '../sftp/file-info-modal'
 import UpdateCheck from './upgrade'
 import SettingModal from '../setting-panel/setting-modal'
 import TextEditor from '../text-editor/text-editor-entry'
-import Sidebar from '../sidebar'
 import CssOverwrite from '../bg/css-overwrite'
 import UiTheme from './ui-theme'
 import CustomCss from '../bg/custom-css.jsx'
@@ -59,9 +58,6 @@ export default auto(function Index (props) {
     ipcOnEvent('selectall', store.selectall)
     ipcOnEvent('focused', store.focus)
     ipcOnEvent('blur', store.onBlur)
-    ipcOnEvent('zoom-reset', store.onZoomReset)
-    ipcOnEvent('zoomin', store.onZoomIn)
-    ipcOnEvent('zoomout', store.onZoomout)
     ipcOnEvent('confirm-exit', store.beforeExitApp)
 
     document.addEventListener('drop', function (e) {
@@ -94,7 +90,6 @@ export default auto(function Index (props) {
     installSrc,
     fileTransfers,
     uiThemeConfig,
-    transferHistory,
     transferToConfirm,
     openResolutionEdit,
     rightPanelTitle,
@@ -153,28 +148,6 @@ export default auto(function Index (props) {
     themeConfig: store.getUiThemeConfig()
   }
   const copiedTransfer = deepCopy(fileTransfers)
-  const copiedHistory = deepCopy(transferHistory)
-  const sidebarProps = {
-    ...pick(store, [
-      'activeItemId',
-      'history',
-      'showModal',
-      'showInfoModal',
-      'openedSideBar',
-      'height',
-      'settingTab',
-      'settingItem',
-      'isSyncingSetting',
-      'leftSidebarWidth',
-      'transferTab',
-      'sidebarPanelTab',
-      'openWidgetsModal'
-    ]),
-    fileTransfers: copiedTransfer,
-    transferHistory: copiedHistory,
-    upgradeInfo,
-    pinned
-  }
 
   const infoModalProps = {
     ...pick(store, [
@@ -238,7 +211,7 @@ export default auto(function Index (props) {
     terminalSessionId: aiTerminalTarget.terminalId,
     showAIConfig: store.showAIConfig,
     rightPanelTab,
-    agentRunning: store.agentRunning
+    agentRunningScopes: store.agentRunningScopes
   }
   const cmdSuggestionsProps = {
     suggestions: store.terminalCommandSuggestions
@@ -272,7 +245,6 @@ export default auto(function Index (props) {
         <div
           id='outside-context'
         >
-          <Sidebar {...sidebarProps} />
           <Layout
             store={store}
           />

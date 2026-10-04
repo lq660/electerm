@@ -11,7 +11,8 @@ import {
   AutoComplete,
   Tooltip,
   Flex,
-  Space
+  Space,
+  Input
 } from 'antd'
 import deepCopy from 'json-deep-copy'
 import {
@@ -23,6 +24,7 @@ import {
 import defaultSettings from '../../common/default-setting'
 import ShowItem from '../common/show-item'
 import InputConfirm from '../common/input-confirm'
+import InputConfirmCommon from '../common/input-confirm-common'
 import { osResolve } from '../../common/resolve'
 import { chooseSaveDirectory } from '../../common/choose-save-folder'
 import mapper from '../../common/auto-complete-data-mapper'
@@ -270,17 +272,20 @@ export default class SettingTerminal extends Component {
     )
   }
 
-  renderText = (name, placeholder) => {
+  renderText = (name, placeholder, multiline = false) => {
     const value = this.props.config[name]
     const defaultValue = defaultSettings[name]
     const onChange = (v) => this.onChangeValue(v, name)
+    const props = {
+      value,
+      onChange,
+      placeholder: placeholder || defaultValue
+    }
     return (
       <div className='pd2b'>
-        <InputConfirm
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder || defaultValue}
-        />
+        {multiline
+          ? <InputConfirmCommon inputComponent={Input.TextArea} autoSize={{ minRows: 2, maxRows: 5 }} {...props} />
+          : <InputConfirm {...props} />}
       </div>
     )
   }
@@ -587,7 +592,7 @@ export default class SettingTerminal extends Component {
             '终端背景、本地启动目录和分词规则',
             <>
               {this.renderField(e('terminalBackgroundImage'), <TerminalBackgroundConfig {...bgProps} />)}
-              {this.renderField(startDirectoryLocalTxt, this.renderText('startDirectoryLocal', startDirectoryLocalTxt))}
+              {this.renderField(startDirectoryLocalTxt, this.renderText('startDirectoryLocal', startDirectoryLocalTxt, true))}
               {this.renderField(e('terminalWordSeparator'), this.renderText('terminalWordSeparator', e('terminalWordSeparator')))}
             </>
           )

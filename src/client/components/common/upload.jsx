@@ -86,6 +86,12 @@ export default class Upload extends PureComponent {
         role='button'
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
+        onKeyDown={(event) => {
+          if (!disabled && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault()
+            this.handleClick()
+          }
+        }}
       >
         {children}
       </div>

@@ -43,29 +43,14 @@ export default auto(function FooterEntry (props) {
     )
   }
 
-  const {
-    leftSidebarWidth,
-    openedSideBar,
-    inActiveTerminal
-  } = props.store
-  const w = 43 + leftSidebarWidth
-  const sideProps = openedSideBar
-    ? {
-        className: 'main-footer',
-        style: {
-          left: `${w}px`
-        }
-      }
-    : {
-        className: 'main-footer'
-      }
+  const { inActiveTerminal } = props.store
   if (
     inActiveTerminal
   ) {
     return null
   }
   return (
-    <div {...sideProps}>
+    <div className='main-footer'>
       <div className='terminal-footer-flex'>
         {renderCmdHistory()}
         {renderInfoIcon()}

@@ -19,6 +19,7 @@ const {
   testTerm,
   resize,
   runCmd,
+  runCmdStructured,
   getTerminalCwd,
   toggleTerminalLog,
   toggleTerminalLogTimestamp,
@@ -471,6 +472,8 @@ process.on('message', async (message) => {
       promise = getTerminalCwd(body)
     } else if (action === 'run-cmd') {
       promise = runCmd(body)
+    } else if (action === 'run-cmd-structured') {
+      promise = runCmdStructured(body)
     }
 
     const result = await promise

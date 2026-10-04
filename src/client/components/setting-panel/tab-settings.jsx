@@ -20,6 +20,7 @@ import {
 } from '../../common/constants'
 import { aiConfigsArr } from '../ai/ai-config-props'
 import { pick } from 'lodash-es'
+import { hasRunningAgentScopes } from '../../common/agent-running-scopes'
 
 export default auto(function TabSettings (props) {
   const {
@@ -51,7 +52,8 @@ export default auto(function TabSettings (props) {
   const aiConfProps = {
     initialValues: getInitialValues(),
     onSubmit: handleConfigSubmit,
-    showAIConfig: true
+    showAIConfig: true,
+    agentRunning: hasRunningAgentScopes(store.agentRunningScopes)
   }
 
   const sid = settingItem.id

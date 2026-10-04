@@ -9,7 +9,7 @@
  * Rules applied:
  * - Remove control characters (0x00-0x1F)
  * - Replace reserved characters: < > : " / \ | ? * with _
- * - Remove leading/trailing dots and spaces (Windows restriction)
+ * - Remove leading whitespace and trailing dots/spaces (Windows-safe)
  * - Reject reserved Windows device names: CON, PRN, AUX, NUL, COM1-9, LPT1-9
  * - Limit filename length to 255 bytes (common filesystem limit)
  * - Fallback to 'unnamed' if result is empty
@@ -19,8 +19,8 @@
 // eslint-disable-next-line no-control-regex
 const ILLEGAL_CHARS = /[<>:"/\\|?\x00-\x1f]/g
 
-// Leading/trailing dots and spaces are problematic on Windows
-const LEADING_TRAILING = /^[.\s]+|[.\s]+$/g
+// 2026-09-06 coder(lq): Preserve leading dots so dotfiles survive copy/paste while still trimming Windows-unsafe trailing dots and spaces.
+const LEADING_TRAILING = /^\s+|[.\s]+$/g
 
 // Reserved Windows device names (case-insensitive)
 const RESERVED_NAMES = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\.|$)/i

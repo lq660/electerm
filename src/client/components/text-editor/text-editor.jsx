@@ -13,6 +13,7 @@ import Modal from '../common/modal'
 import resolve from '../../common/resolve'
 import { safeGetItem } from '../../common/safe-local-storage.js'
 import { refsStatic, refs } from '../common/ref'
+import './text-editor.styl'
 
 const e = window.translate
 
@@ -176,13 +177,16 @@ export default class TextEditor extends PureComponent {
     if (!file) {
       return null
     }
+    const pathLib = window.require('path')
+    const fileName = pathLib.basename(path)
     const title = `${e('edit')} ${e('remote')} ${e('file')}: ${path}`
     const propsAll = {
       footer: null,
       title,
       maskClosable: false,
       onCancel: this.cancel,
-      width: '90%',
+      width: 'calc(100vw - 24px)',
+      wrapClassName: 'text-editor-modal-wrap',
       open: true
     }
     const pops = {
@@ -190,7 +194,7 @@ export default class TextEditor extends PureComponent {
       text,
       cancel: this.cancel,
       editWith: this.editWith,
-      editWithCustom: this.editWithCustom
+      fileName
     }
     return (
       <Modal

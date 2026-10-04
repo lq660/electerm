@@ -22,15 +22,31 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 .close-setting-wrap
   position absolute
   top 70px
-  font-size 16px
-  cursor pointer
   z-index 889
   right 20px
+
+.close-setting-button
+  display inline-flex
+  align-items center
+  justify-content center
+  width 32px
+  height 32px
+  padding 0
+  border 0
+  border-radius 50%
+  background transparent
+  color var(--workbench-control-text, #344054)
+  font-size 18px
+  line-height 1
+  cursor pointer
+  pointer-events auto
+  -webkit-app-region no-drag
   &:hover
-    color var(--success)
-.alt-close-setting-wrap
-  left 20px
-  right auto
+    color var(--workbench-primary, #1677ff)
+    background var(--workbench-primary-soft, #eef5ff)
+  &:focus-visible
+    outline 2px solid var(--workbench-primary, #1677ff)
+    outline-offset 2px
 .batch-op-wrap .close-setting-wrap
   top 40px
   right 30px
@@ -77,7 +93,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     position fixed
     top 128px
     bottom 0
-    left 43px
+    left 0
     right 0
     overflow-y scroll
   .setting-row
@@ -103,6 +119,59 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
 // 2026-07-02 coder(lq): Final settings-dialog overrides live here because component styles load after the global workbench skin.
 .setting-wrap
   font-size 12px
+
+  .cn-settings-app-action-grid
+    display grid
+    grid-template-columns repeat(auto-fit, minmax(180px, 1fr))
+    gap 10px
+    padding 0 0 12px
+
+  .cn-settings-app-action
+    min-height 58px
+    border 1px solid $cn-border-soft
+    border-radius 8px
+    background $cn-panel-soft
+    color $cn-control-text
+    display flex
+    align-items center
+    gap 10px
+    padding 10px 12px
+    text-align left
+    cursor pointer
+
+    > .anticon
+      flex 0 0 auto
+      color $cn-primary-base
+      font-size 18px
+
+    > span
+      min-width 0
+      display flex
+      flex-direction column
+      gap 2px
+
+    strong
+      color $cn-text
+      font-size 13px
+      line-height 18px
+
+    small
+      color $cn-muted
+      font-size 11px
+      line-height 16px
+
+    &:hover
+      border-color $cn-primary-base
+      background $cn-primary-soft
+
+    &:focus-visible
+      outline 2px solid $cn-primary-base
+      outline-offset 2px
+
+    &.danger
+      > .anticon,
+      strong
+        color #d92d20
 
   .ant-btn
     height 32px !important
@@ -746,3 +815,35 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     .cn-sync-provider-form .ant-form-item-label
       width auto !important
       text-align left !important
+
+// 2026-09-22 coder(lq): The management center is a bounded modal workspace rather than a second full-screen application shell.
+.setting-wrap.custom-drawer-modal
+  .cn-setting-header
+    -webkit-app-region no-drag !important
+
+  .cn-setting-status
+    padding-right 42px
+
+  .close-setting-wrap
+    top 18px !important
+    right 20px !important
+
+  .setting-row-left .model-bookmark-tree-wrap,
+  .cn-bookmark-form,
+  .item-list
+    min-height 0 !important
+
+  .item-list-wrap
+    max-height none !important
+
+@media (max-width: 1100px)
+  .setting-wrap.custom-drawer-modal
+    .setting-col
+      position absolute
+      left 0
+
+@media (max-width: 760px), (max-height: 620px)
+  .setting-wrap.custom-drawer-modal
+    .close-setting-wrap
+      top 14px !important
+      right 14px !important

@@ -17,115 +17,80 @@ describe('workspace', function () {
     extendClient(client, electronApp)
     await delay(3500)
 
-    // Test 1: Open layout dropdown and verify tabs exist
-    log('Test 1: Opening layout dropdown')
-    await client.click('.tabs .layout-dd-icon')
-    await delay(500)
-    const dropdown = await client.countElem('.layout-workspace-dropdown')
-    expect(dropdown).equal(1)
+    async function openWorkspaceMenu () {
+      if (await client.countElem('.cn-workspaces-settings')) {
+        return
+      }
+      if (!(await client.countElem('.cn-setting-header'))) {
+        await client.click('.cn-toolbar-actions button:has-text("设置")')
+      }
+      await client.click('.cn-setting-tabs-all .ant-tabs-tab:has-text("工作区")')
+    }
 
-    // Test 2: Verify Layout tab is active by default
-    log('Test 2: Verifying Layout tab is default')
-    const activeTab = await client.getText('.layout-workspace-dropdown .ant-tabs-tab.ant-tabs-tab-active')
-    expect(activeTab).includes('Layout')
-
-    // Test 3: Switch to Workspaces tab
-    log('Test 3: Switching to Workspaces tab')
-    await client.click('.layout-workspace-dropdown .ant-tabs-tab:has-text("Workspaces")')
-    await delay(300)
-
-    // Test 4: Verify workspace content is shown
-    log('Test 4: Verifying workspace content')
-    const workspaceContent = await client.countElem('.workspace-menu-content')
+    // 2026-10-04 coder(lq): Workspaces moved from the removed tab dropdown
+    // into the current app menu; test the user-visible route.
+    log('Test 1: Opening workspace menu')
+    await openWorkspaceMenu()
+    const workspaceContent = await client.countElem('.cn-workspaces-settings .workspace-menu-content')
     expect(workspaceContent).equal(1)
 
-    // Test 5: Verify save button exists
-    log('Test 5: Verifying save button')
+    log('Test 2: Verifying save button')
     const saveBtn = await client.countElem('.workspace-save-btn button')
     expect(saveBtn).equal(1)
 
-    // Test 6: Click save button to open save modal
-    log('Test 6: Opening save modal')
+    // Save a non-default layout so restoration verifies the stored layout.
+    await client.evaluate(() => window.store.setLayout('c2'))
+    log('Test 3: Opening save modal')
     await client.click('.workspace-save-btn button')
     await delay(300)
     const saveModal = await client.countElem('.custom-modal-close')
     expect(saveModal).equal(1)
 
-    // Test 7: Verify save modal has name input
-    log('Test 7: Verifying save modal input')
+    log('Test 4: Verifying save modal input')
     const nameInput = await client.countElem('.custom-modal-wrap .ant-input')
     expect(nameInput).greaterThan(0)
 
-    // Test 8: Enter a workspace name and save
-    log('Test 8: Saving workspace')
+    log('Test 5: Saving workspace')
     const workspaceName = 'Test Workspace ' + Date.now()
     await client.setValue('.custom-modal-wrap .ant-input', workspaceName)
     await delay(200)
-    await client.click('.custom-modal-wrap .ant-btn-primary:has-text("Save")')
+    await client.click('.custom-modal-wrap .ant-btn-primary')
     await delay(500)
 
-    // Test 9: Verify modal is closed
-    log('Test 9: Verifying modal closed')
+    log('Test 6: Verifying modal closed and state persisted')
     const modalAfterSave = await client.countElem('.custom-modal-close')
     expect(modalAfterSave).equal(0)
+    const savedWorkspace = await client.evaluate((name) => {
+      const item = window.store.workspaces.find(workspace => workspace.name === name)
+      return item && { id: item.id, layout: item.layout }
+    }, workspaceName)
+    expect(savedWorkspace.layout).equal('c2')
 
-    // Test 11: Open dropdown again and switch to workspace tab
-    log('Test 11: Reopening dropdown')
-    await client.click('.tabs .layout-dd-icon')
-    await delay(300)
-    await client.click('.layout-workspace-dropdown .ant-tabs-tab:has-text("Workspaces")')
-    await delay(300)
-
-    // Test 12: Verify workspace appears in the list
-    log('Test 12: Verifying workspace in list')
+    log('Test 7: Reopening workspace menu')
+    await openWorkspaceMenu()
     const workspaceItems = await client.countElem('.workspace-item')
     expect(workspaceItems).greaterThan(0)
 
-    // Test 13: Verify workspace name is displayed
-    log('Test 13: Verifying workspace name displayed')
-    const displayedName = await client.getText('.workspace-name')
-    expect(displayedName).includes('Test Workspace')
-
-    // Test 14: Change layout then load workspace to restore
-    log('Test 14: Testing workspace load')
-    // First change layout to something different
-    await client.click('.layout-workspace-dropdown .ant-tabs-tab:has-text("Layout")')
-    await delay(300)
-    await client.click('.layout-menu-item:nth-child(2)') // select c2 layout
+    log('Test 8: Testing workspace layout restore')
+    await client.evaluate(() => window.store.setLayout('c1'))
+    await openWorkspaceMenu()
+    await client.click(`.workspace-item:has-text("${workspaceName}")`)
     await delay(500)
+    const restoredLayout = await client.evaluate(() => window.store.layout)
+    expect(restoredLayout).equal('c2')
 
-    // Reopen dropdown and switch back to Workspaces tab
-    await client.click('.tabs .layout-dd-icon')
+    log('Test 9: Testing workspace delete')
+    await openWorkspaceMenu()
+    const target = client.locator('.workspace-item', { hasText: workspaceName })
+    await target.hover()
+    await target.locator('.workspace-delete-icon').click()
     await delay(300)
-    await client.click('.layout-workspace-dropdown .ant-tabs-tab:has-text("Workspaces")')
-    await delay(300)
-
-    // Now load the workspace by clicking on it
-    await client.click('.workspace-item')
+    await client.click('.ant-popconfirm .ant-btn-primary')
     await delay(500)
-
-    // Test 15: Delete workspace
-    log('Test 15: Testing workspace delete')
-    // Reopen dropdown
-    await client.click('.tabs .layout-dd-icon')
-    await delay(300)
-    await client.click('.layout-workspace-dropdown .ant-tabs-tab:has-text("Workspaces")')
-    await delay(300)
-
-    // Click delete icon
-    const deleteIcon = await client.countElem('.workspace-delete-icon')
-    if (deleteIcon > 0) {
-      await client.click('.workspace-delete-icon')
-      await delay(300)
-
-      // Confirm delete
-      await client.click('.ant-popconfirm .ant-btn-primary')
-      await delay(500)
-
-      // Verify workspace deleted
-      const remainingWorkspaces = await client.countElem('.workspace-item')
-      expect(remainingWorkspaces).equal(0)
-    }
+    const deleted = await client.evaluate((id) => {
+      return !window.store.workspaces.some(workspace => workspace.id === id)
+    }, savedWorkspace.id)
+    expect(deleted).equal(true)
 
     await electronApp.close().catch(console.log)
   })

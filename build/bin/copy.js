@@ -23,6 +23,8 @@ const to2 = resolve(
 )
 
 fs.mkdirSync(to1, { recursive: true })
+// 2026-09-01 coder(lq): Rebuild the icon directory from its contents so repeated packaging never creates icons/icons nesting.
+fs.rmSync(to2, { recursive: true, force: true })
 fs.mkdirSync(to2, { recursive: true })
 
 const arr = []
@@ -36,10 +38,15 @@ if (fs.existsSync(trayIconsDir)) {
 }
 
 if (fs.existsSync(from0)) {
-  arr.push({
-    from: from0,
-    to: to2
-  })
+  // Copy entries into the target itself; copying the source directory would
+  // make shell utilities create a second `icons` directory when the target exists.
+  for (const name of fs.readdirSync(from0)) {
+    fs.cpSync(
+      resolve(from0, name),
+      resolve(to2, name),
+      { recursive: true }
+    )
+  }
 }
 
 for (const obj of arr) {

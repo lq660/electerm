@@ -41,7 +41,7 @@ export default function KeywordFilter ({ keyword, type, updateKeyword }) {
     onKeyPress: handleKeyPress,
     placeholder: e('keyword'),
     className: 'keyword-filter-input',
-    suffix: <CheckOutlined onClick={applyFilter} />
+    suffix: <button type='button' className='icon-button' aria-label={e('confirm')} title={e('confirm')} onClick={applyFilter}><CheckOutlined /></button>
   }
 
   const tooltipContent = (

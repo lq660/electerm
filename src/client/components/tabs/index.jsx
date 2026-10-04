@@ -8,9 +8,9 @@ import runIdle from '../../common/run-idle'
 import { throttle } from 'lodash-es'
 import TabTitle from './tab-title'
 import {
-  DownOutlined,
   LeftOutlined,
-  RightOutlined
+  RightOutlined,
+  UnorderedListOutlined
 } from '@ant-design/icons'
 import { Dropdown } from 'antd'
 import Tab from './tab'
@@ -45,6 +45,7 @@ export default class Tabs extends Component {
     tabsRef.current.addEventListener('wheel', this.handleWheelEvent, {
       passive: false
     })
+    this.adjustScroll()
   }
 
   componentDidUpdate (prevProps) {
@@ -58,6 +59,8 @@ export default class Tabs extends Component {
   }
 
   componentWillUnmount () {
+    this.tabsRef.current?.removeEventListener('wheel', this.handleWheelEvent)
+    this.handleWheelEvent.cancel()
   }
 
   modifier = (...args) => {
@@ -73,9 +76,8 @@ export default class Tabs extends Component {
   }
 
   tabsWidth = () => {
-    const { batch } = this.props
     return Array.from(
-      document.querySelectorAll(`.v${batch + 1} .tab`)
+      this.domRef.current?.querySelectorAll('.tab') || []
     ).reduce((prev, c) => {
       return prev + c.clientWidth
     }, 0)
@@ -91,10 +93,7 @@ export default class Tabs extends Component {
   }
 
   getInnerWidth = () => {
-    const { batch } = this.props
-    const cls = `.v${batch + 1} .tabs-inner`
-    const inner = document.querySelector(cls)
-    return inner ? inner.clientWidth : 0
+    return this.domRef.current?.clientWidth || 0
   }
 
   handleAdd = e => {
@@ -131,11 +130,20 @@ export default class Tabs extends Component {
   }
 
   adjustScroll = () => {
-    const { tabs, currentBatchTabId, batch } = this.props
+    const { tabs, currentBatchTabId } = this.props
     const index = tabs.findIndex(t => t.id === currentBatchTabId)
+    if (!this.domRef.current) {
+      return
+    }
+    if (index < 0) {
+      this.setState({
+        overflow: this.isOverflow()
+      })
+      return
+    }
     const tabsDomWith = Array.from(
-      document.querySelectorAll(`.v${batch + 1} .tab`)
-    ).slice(0, index + 2).reduce((prev, c) => {
+      this.domRef.current.querySelectorAll('.tab')
+    ).slice(0, index + 1).reduce((prev, c) => {
       return prev + c.clientWidth
     }, 0)
     const w = (index + 1) * tabMargin + tabsDomWith
@@ -177,9 +185,8 @@ export default class Tabs extends Component {
     }
   }, 100, { leading: true, trailing: true })
 
-  handleClickMenu = ({ key }) => {
-    const id = key.split('##')[1]
-    window.store['activeTabId' + this.props.batch] = id
+  handleClickMenu = (tab) => {
+    window.store.clickTab(tab.id, tab.batch ?? this.props.batch)
   }
 
   renderAddBtn = () => {
@@ -200,42 +207,73 @@ export default class Tabs extends Component {
   }
 
   renderNoExtra () {
-    return null
-  }
-
-  renderExtra () {
-    const items = this.props.tabs.map((t, i) => {
-      return {
-        key: i + '##' + t.id,
-        label: (
-          <span><TabTitle tab={t} /></span>
-        ),
-        onClick: () => this.handleClickMenu({ key: i + '##' + t.id })
-      }
-    })
-    const dropProps = {
-      className: 'tabs-add-btn font16',
-      menu: {
-        items
-      },
-      placement: 'bottomRight'
+    const sessionDropdown = this.renderSessionDropdown()
+    if (!sessionDropdown) {
+      return null
     }
     return (
       <div className='tabs-extra pd1x'>
-        {this.renderAddBtn()}
-        <LeftOutlined
-          className='mg1l iblock pointer font12 tab-scroll-icon'
-          onClick={this.handleScrollLeft}
-        />
-        <RightOutlined
-          className='mg1x iblock pointer font12 tab-scroll-icon'
-          onClick={this.handleScrollRight}
-        />
-        <Dropdown
-          {...dropProps}
+        {sessionDropdown}
+      </div>
+    )
+  }
+
+  renderSessionDropdown () {
+    const tabs = window.store.tabs || this.props.tabs || []
+    if (!tabs.length) {
+      return null
+    }
+    const items = tabs.map(t => {
+      return {
+        key: `${t.batch ?? this.props.batch}##${t.id}`,
+        label: (
+          <span><TabTitle tab={t} /></span>
+        ),
+        onClick: () => this.handleClickMenu(t)
+      }
+    })
+    // 2026-09-23 coder(lq): Keep the all-sessions chooser visible even before the current tab row overflows.
+    return (
+      <Dropdown
+        menu={{ items }}
+        placement='bottomRight'
+        overlayClassName='layout-workspace-dropdown'
+      >
+        <button
+          type='button'
+          className='icon-button tabs-session-list'
+          aria-label='全部会话'
+          title='全部会话'
         >
-          <DownOutlined className='tabs-dd-icon' />
-        </Dropdown>
+          <UnorderedListOutlined />
+        </button>
+      </Dropdown>
+    )
+  }
+
+  renderExtra () {
+    return (
+      <div className='tabs-extra pd1x'>
+        {this.renderAddBtn()}
+        <button
+          type='button'
+          className='icon-button mg1l tab-scroll-icon'
+          aria-label='向左滚动标签页'
+          title='向左滚动标签页'
+          onClick={this.handleScrollLeft}
+        >
+          <LeftOutlined />
+        </button>
+        <button
+          type='button'
+          className='icon-button mg1x tab-scroll-icon'
+          aria-label='向右滚动标签页'
+          title='向右滚动标签页'
+          onClick={this.handleScrollRight}
+        >
+          <RightOutlined />
+        </button>
+        {this.renderSessionDropdown()}
       </div>
     )
   }
@@ -269,45 +307,52 @@ export default class Tabs extends Component {
     return (
       <div
         className='tabs-inner'
-        ref={this.domRef}
         style={style}
       >
-        <div
-          style={{
-            left
-          }}
-        />
-        <div
-          className='tabs-wrapper relative'
-          style={{
-            width: tabsWidthAll + extraTabWidth + 10
-          }}
-          onDoubleClick={this.handleAdd}
-        >
+        {/* 2026-08-31 coder(lq): Keep the workspace outside the session-tab scroller so it always stays visible. */}
+        <div className='tabs-home-fixed'>
           {this.renderHomeTab()}
-          {
-            tabs.map((tab, i) => {
-              const isLast = i === len - 1
-              const tabProps = {
-                ...this.props,
-                tab,
-                isLast,
-                addTab: this.handleTabAdd,
-                tabIndex: i
-              }
-              return (
-                <Tab
-                  {...tabProps}
-                  key={tab.id}
-                />
-              )
-            })
-          }
-          {
-            overflow
-              ? null
-              : this.renderAddBtn()
-          }
+        </div>
+        <div
+          className='tabs-scroll'
+          ref={this.domRef}
+        >
+          <div
+            style={{
+              left
+            }}
+          />
+          <div
+            className='tabs-wrapper relative'
+            style={{
+              width: tabsWidthAll + extraTabWidth + 10
+            }}
+            onDoubleClick={this.handleAdd}
+          >
+            {
+              tabs.map((tab, i) => {
+                const isLast = i === len - 1
+                const tabProps = {
+                  ...this.props,
+                  tab,
+                  isLast,
+                  addTab: this.handleTabAdd,
+                  tabIndex: i
+                }
+                return (
+                  <Tab
+                    {...tabProps}
+                    key={tab.id}
+                  />
+                )
+              })
+            }
+            {
+              overflow
+                ? null
+                : this.renderAddBtn()
+            }
+          </div>
         </div>
       </div>
     )
@@ -322,13 +367,15 @@ export default class Tabs extends Component {
       { 'active-all': active }
     )
     return (
-      <div
+      <button
+        type='button'
         className={cls}
         onClick={this.handleHomeClick}
         title='工作台首页'
+        aria-label='工作台首页'
       >
         <span className='tab-title elli'>工作台</span>
-      </div>
+      </button>
     )
   }
 

@@ -17,6 +17,7 @@ const TabSettings = lazy(() => import('./tab-settings'))
 const TabThemes = lazy(() => import('./tab-themes'))
 const TabProfiles = lazy(() => import('./tab-profiles'))
 const TabWidgets = lazy(() => import('./tab-widgets'))
+const TabWorkspaces = lazy(() => import('./tab-workspaces'))
 
 const Loading = () => <div style={{ padding: 20, textAlign: 'center' }}><Spin /></div>
 
@@ -26,23 +27,19 @@ const cnTabLabels = {
   [settingMap.terminalThemes]: '终端主题',
   [settingMap.quickCommands]: '快捷命令',
   [settingMap.profiles]: '连接模板',
-  [settingMap.widgets]: '工具面板'
+  [settingMap.widgets]: '工具面板',
+  [settingMap.workspaces]: '工作区'
 }
 
-const cnTabGroupMap = {
-  resource: [settingMap.bookmarks],
-  settings: [settingMap.setting],
-  tools: [
-    settingMap.terminalThemes,
-    settingMap.quickCommands,
-    settingMap.profiles,
-    settingMap.widgets
-  ]
-}
-
-function getCnTabGroup (settingTab) {
-  return Object.keys(cnTabGroupMap).find(key => cnTabGroupMap[key].includes(settingTab)) || 'settings'
-}
+const cnTabOrder = [
+  settingMap.bookmarks,
+  settingMap.setting,
+  settingMap.terminalThemes,
+  settingMap.quickCommands,
+  settingMap.profiles,
+  settingMap.widgets,
+  settingMap.workspaces
+]
 
 const cnPageMeta = {
   [settingMap.bookmarks]: {
@@ -86,6 +83,13 @@ const cnPageMeta = {
     scope: '效率工具',
     badge: '扩展能力',
     areaClass: 'cn-area-tools'
+  },
+  [settingMap.workspaces]: {
+    title: '工作区',
+    desc: '管理窗口布局，并保存或恢复常用的多分屏连接组合',
+    scope: '工作台配置',
+    badge: '布局与会话',
+    areaClass: 'cn-area-settings'
   }
 }
 
@@ -141,9 +145,8 @@ export default auto(function SettingModalWrap (props) {
         'initLoadingData'
       ])
     }
-    // 2026-07-04 coder(lq): Keep navigation task-oriented for Chinese ops users; resource, settings, and tools should not be mixed in one global tab row.
-    const group = getCnTabGroup(settingTab)
-    const visibleTabs = cnTabGroupMap[group]
+    // 2026-09-23 coder(lq): Keep every migrated settings section directly reachable after removing the global side rail.
+    const visibleTabs = cnTabOrder
     const items = visibleTabs.map(key => ({
       key,
       label: key === settingMap.widgets
@@ -157,7 +160,7 @@ export default auto(function SettingModalWrap (props) {
       items,
       onChange: store.handleChangeSettingTab,
       destroyOnHidden: true,
-      className: `setting-tabs cn-setting-tabs-${group} ${visibleTabs.length === 1 ? 'cn-setting-tabs-single' : ''}`,
+      className: 'setting-tabs cn-setting-tabs-all',
       type: 'card'
     }
     return (
@@ -203,6 +206,10 @@ export default auto(function SettingModalWrap (props) {
             listProps={props0}
             settingItem={settingItem}
             formProps={formProps}
+            store={store}
+            settingTab={settingTab}
+          />
+          <TabWorkspaces
             store={store}
             settingTab={settingTab}
           />

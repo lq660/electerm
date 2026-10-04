@@ -43,14 +43,8 @@ export default function InputConfirmCommon ({
   const icons = isEditing
     ? (
       <>
-        <CheckOutlined
-          onClick={handleConfirm}
-          className='mg1x pointer'
-        />
-        <CloseOutlined
-          onClick={handleCancel}
-          className='pointer'
-        />
+        <button type='button' onClick={handleConfirm} className='icon-button mg1x' aria-label='确认' title='确认'><CheckOutlined /></button>
+        <button type='button' onClick={handleCancel} className='icon-button' aria-label='取消' title='取消'><CloseOutlined /></button>
       </>
       )
     : null

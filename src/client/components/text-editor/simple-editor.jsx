@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Input, Button, Flex } from 'antd'
+import { Input, Button, Flex, Tooltip } from 'antd'
+import classnames from 'classnames'
 import {
   ArrowUpOutlined,
   ArrowDownOutlined,
@@ -9,12 +10,21 @@ import {
 import { copy } from '../../common/clipboard'
 import { escapeRegExp } from 'lodash-es'
 
+const e = window.translate
+
 export default function SimpleEditor (props) {
+  const text = props.value || ''
   const [searchKeyword, setSearchKeyword] = useState('')
   const [occurrences, setOccurrences] = useState([])
   const [currentMatch, setCurrentMatch] = useState(-1)
   const [isNavigating, setIsNavigating] = useState(false)
   const editorRef = useRef(null)
+  const textareaProps = props.textareaProps || {}
+  const {
+    style: textareaStyleFromProps,
+    className: textareaClassName,
+    ...textareaRestProps
+  } = textareaProps
 
   // When currentMatch changes, highlight the match in textarea
   useEffect(() => {
@@ -37,7 +47,7 @@ export default function SimpleEditor (props) {
         // Scroll to the selection position
         // Use setTimeout to ensure the selection is rendered before scrolling
         setTimeout(() => {
-          const textBeforeSelection = props.value.substring(0, match.start)
+          const textBeforeSelection = text.substring(0, match.start)
           const lineBreaks = textBeforeSelection.split('\n').length - 1
 
           // Estimate the scroll position
@@ -56,23 +66,18 @@ export default function SimpleEditor (props) {
     setIsNavigating(false)
   }, [currentMatch, occurrences])
 
-  // Auto-search when keyword changes (but not when text is being edited)
+  // Auto-search while typing and keep the match list in sync with editor text.
   useEffect(() => {
-    findMatches()
-  }, [searchKeyword])
-
-  // Update matches when text changes, but don't change currentMatch position
-  useEffect(() => {
-    updateMatchesOnly()
-  }, [props.value])
+    syncMatches()
+  }, [searchKeyword, text])
 
   // Copy the editor content to clipboard
   const copyEditorContent = () => {
-    copy(props.value || '')
+    copy(text)
   }
 
   // Find all matches of the search keyword in text
-  const findMatches = () => {
+  const findMatches = (editorText = text) => {
     if (!searchKeyword) {
       setOccurrences([])
       setCurrentMatch(-1)
@@ -80,12 +85,11 @@ export default function SimpleEditor (props) {
     }
 
     const matches = []
-    const text = props.value || ''
     const escapedKeyword = escapeRegExp(searchKeyword)
     const regex = new RegExp(escapedKeyword, 'gi')
     let match
 
-    while ((match = regex.exec(text)) !== null) {
+    while ((match = regex.exec(editorText)) !== null) {
       matches.push({
         start: match.index,
         end: match.index + searchKeyword.length
@@ -95,36 +99,15 @@ export default function SimpleEditor (props) {
     setCurrentMatch(matches.length ? 0 : -1)
   }
 
-  // Update matches only (without changing currentMatch position)
-  const updateMatchesOnly = () => {
+  // Sync matches with current keyword/text.
+  const syncMatches = () => {
     if (!searchKeyword) {
       setOccurrences([])
+      setCurrentMatch(-1)
       return
     }
 
-    const matches = []
-    const text = props.value || ''
-    const escapedKeyword = escapeRegExp(searchKeyword)
-    const regex = new RegExp(escapedKeyword, 'gi')
-    let match
-
-    while ((match = regex.exec(text)) !== null) {
-      matches.push({
-        start: match.index,
-        end: match.index + searchKeyword.length
-      })
-    }
-    setOccurrences(matches)
-  }
-
-  // Handle search action when user presses enter or clicks the search button
-  const handleSearch = (e) => {
-    if (e && e.stopPropagation) {
-      e.stopPropagation()
-      e.preventDefault()
-    }
-    findMatches()
-    goToNextMatch()
+    findMatches(text)
   }
 
   function handleChange (e) {
@@ -133,6 +116,9 @@ export default function SimpleEditor (props) {
 
   // Navigate to next match
   const goToNextMatch = () => {
+    if (!occurrences.length) {
+      return
+    }
     setIsNavigating(true)
     if (currentMatch < occurrences.length - 1) {
       setCurrentMatch(currentMatch + 1)
@@ -143,6 +129,9 @@ export default function SimpleEditor (props) {
 
   // Navigate to previous match
   const goToPrevMatch = () => {
+    if (!occurrences.length) {
+      return
+    }
     setIsNavigating(true)
     if (currentMatch > 0) {
       setCurrentMatch(currentMatch - 1)
@@ -158,10 +147,10 @@ export default function SimpleEditor (props) {
     }
     return (
       <>
-        <Button onClick={goToPrevMatch}>
+        <Button onClick={goToPrevMatch} size='small' type='text'>
           <ArrowUpOutlined />
         </Button>
-        <Button onClick={goToNextMatch}>
+        <Button onClick={goToNextMatch} size='small' type='text'>
           <ArrowDownOutlined />
         </Button>
       </>
@@ -185,32 +174,50 @@ export default function SimpleEditor (props) {
   }
 
   return (
-    <div className='simple-editor'>
-      <Flex className='mg1b' justify='space-between'>
-        <Input.Search
+    <div
+      className={classnames('simple-editor', props.className)}
+      style={props.style}
+    >
+      <Flex className='simple-editor-toolbar' align='center' gap={8}>
+        <Input
+          className='simple-editor-search'
           value={searchKeyword}
           onChange={handleChange}
           placeholder='在文本中搜索...'
           allowClear
-          enterButton={<SearchOutlined />}
-          onSearch={handleSearch}
-          onPressEnter={handleSearch}
+          prefix={<SearchOutlined />}
           suffix={renderAfter()}
-          style={{ width: 'auto' }}
         />
-        <Button
-          onClick={copyEditorContent}
-          className='mg3l'
-        >
-          <CopyOutlined />
-        </Button>
+        <Tooltip title={e('copy')}>
+          <Button
+            onClick={copyEditorContent}
+            aria-label={e('copy')}
+            title={e('copy')}
+            type='text'
+            size='small'
+            icon={<CopyOutlined />}
+          />
+        </Tooltip>
       </Flex>
-      <Input.TextArea
-        ref={editorRef}
-        value={props.value}
-        onChange={props.onChange}
-        rows={20}
-      />
+      <div className='simple-editor-editor'>
+        <Input.TextArea
+          ref={editorRef}
+          className={classnames('simple-editor-textarea', textareaClassName)}
+          value={text}
+          onChange={props.onChange}
+          rows={props.textareaRows || 20}
+          autoSize={props.textareaAutoSize}
+          style={{
+            width: '100%',
+            minWidth: 0,
+            flex: 1,
+            minHeight: 0,
+            height: '100%',
+            ...(textareaStyleFromProps || {})
+          }}
+          {...textareaRestProps}
+        />
+      </div>
     </div>
   )
 }

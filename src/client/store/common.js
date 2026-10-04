@@ -17,6 +17,7 @@ import { refs, refsStatic } from '../components/common/ref'
 import { action } from 'manate'
 import uid from '../common/uid'
 import deepCopy from 'json-deep-copy'
+import { isHistoryReady } from '../common/lazy-history.mjs'
 import { aiConfigsArr } from '../components/ai/ai-config-props'
 import { resolveTerminalId } from '../common/active-terminal'
 import {
@@ -254,11 +255,16 @@ export default Store => {
 
   Store.prototype.removeAiHistory = function (id) {
     const { store } = window
-    const index = store.aiChatHistory.findIndex(d => d.id === id)
-    if (index === -1) {
+    if (!isHistoryReady(store, 'aiChatHistory')) {
+      return store.ensureHistoryLoaded('aiChatHistory').then(() => store.removeAiHistory(id)).catch(store.onError)
+    }
+    const history = store.aiChatHistory || []
+    const nextHistory = history.filter(d => d.id !== id)
+    if (nextHistory.length === history.length) {
       return
     }
-    window.store.aiChatHistory.splice(index, 1)
+    // 2026-08-30 coder(lq): Replace the observable history array so every deletion path refreshes the transcript immediately.
+    store.aiChatHistory = nextHistory
   }
 
   Store.prototype.getLangName = function (
@@ -314,6 +320,10 @@ export default Store => {
     const normalizedCmd = normalizeTerminalCommandForHistory(cmd)
     if (!normalizedCmd) {
       return
+    }
+    const { store } = window
+    if (!isHistoryReady(store, 'terminalCommandHistory')) {
+      return store.ensureHistoryLoaded('terminalCommandHistory').then(() => store.addCmdHistory(cmd, source, sessionId, options)).catch(store.onError)
     }
     const { terminalCommandHistory } = window.store
     const existing = terminalCommandHistory.find(item => normalizeTerminalCommandForHistory(item.cmd) === normalizedCmd)
@@ -378,6 +388,10 @@ export default Store => {
   })
 
   Store.prototype.deleteCmdHistory = function (cmd) {
+    const { store } = window
+    if (!isHistoryReady(store, 'terminalCommandHistory')) {
+      return store.ensureHistoryLoaded('terminalCommandHistory').then(() => store.deleteCmdHistory(cmd)).catch(store.onError)
+    }
     const { terminalCommandHistory } = window.store
     const normalizedCmd = normalizeTerminalCommandForHistory(cmd)
     if (!normalizedCmd) {
@@ -391,6 +405,10 @@ export default Store => {
   }
 
   Store.prototype.clearAllCmdHistory = function () {
+    const { store } = window
+    if (!isHistoryReady(store, 'terminalCommandHistory')) {
+      return store.ensureHistoryLoaded('terminalCommandHistory').then(() => store.clearAllCmdHistory()).catch(store.onError)
+    }
     window.store.terminalCommandHistory = []
   }
 

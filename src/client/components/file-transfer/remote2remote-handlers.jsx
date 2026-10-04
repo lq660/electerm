@@ -24,11 +24,11 @@ export default class Remote2RemoteHandlers extends Component {
     this.handlers.clear()
   }
 
-  canHandle = ({ fromFile, targetHost }) => {
+  canHandle = ({ fromFile, targetHost, targetTabId }) => {
     return fromFile?.type === typeMap.remote &&
       fromFile?.host &&
       targetHost &&
-      fromFile.host !== targetHost &&
+      (fromFile.host !== targetHost || fromFile.tabId !== targetTabId) &&
       fromFile?.tabId
   }
 
@@ -62,7 +62,11 @@ export default class Remote2RemoteHandlers extends Component {
     const targetHost = targetTab?.host
     let handled = false
     for (const fromFile of fromFiles) {
-      if (!this.canHandle({ fromFile, targetHost })) {
+      if (!this.canHandle({
+        fromFile,
+        targetHost,
+        targetTabId: targetTab?.id
+      })) {
         continue
       }
       handled = true

@@ -36,12 +36,15 @@ function TreeExpander (props) {
     ? onUnExpand
     : onExpand
   return (
-    <div
+    <button
+      type='button'
       className='tree-expander pointer'
+      aria-label={shouldOpen ? '折叠' : '展开'}
+      title={shouldOpen ? '折叠' : '展开'}
       onClick={func}
     >
       <Icon />
-    </div>
+    </button>
   )
 }
 

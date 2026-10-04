@@ -75,9 +75,7 @@ export default auto(function Layout (props) {
       height,
       pinnedQuickCommandBar,
       // tabsHeight,
-      leftSidebarWidth,
       // infoPanelPinned,
-      pinned,
       rightPanelVisible,
       rightPanelPinned,
       rightPanelWidth,
@@ -85,7 +83,8 @@ export default auto(function Layout (props) {
       inActiveTerminal
     } = props.store
     const h = height - getFooterOffset() - (inActiveTerminal && pinnedQuickCommandBar ? quickCommandBoxHeight : 0) + resizeTrigger
-    const l = pinned ? 43 + leftSidebarWidth : 43
+    // 2026-09-22 coder(lq): The global left rail was removed; terminal and workbench layouts now use the full window width.
+    const l = 0
     const r = rightPanelVisible && rightPanelPinned ? rightPanelWidth : 0
     return {
       height: h,
@@ -101,15 +100,12 @@ export default auto(function Layout (props) {
       height,
       width,
       pinnedQuickCommandBar,
-      leftSidebarWidth,
       rightPanelVisible,
       rightPanelPinned,
-      rightPanelWidth,
-      pinned
+      rightPanelWidth
     } = props.store
-    const l = pinned ? leftSidebarWidth : 0
     const r = rightPanelPinned && rightPanelVisible ? rightPanelWidth : 0
-    const w = width - l - r - 42
+    const w = width - r
     const h = height - getFooterOffset() - (pinnedQuickCommandBar ? quickCommandBoxHeight : 0)
     return layoutAlg(layout, w, h, props.store.layoutSplitRatios[layout])
   }

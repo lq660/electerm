@@ -413,9 +413,9 @@ class Tab extends Component {
 
   renderCloseIcon () {
     return (
-      <span className='tab-close pointer' onClick={this.handleClose}>
+      <button type='button' className='tab-close' aria-label={e('close')} title={e('close')} onClick={this.handleClose}>
         <CloseOutlined />
-      </span>
+      </button>
     )
   }
 
@@ -472,9 +472,18 @@ class Tab extends Component {
         <div
           className={cls}
           draggable
+          role='tab'
+          tabIndex={0}
+          aria-selected={Boolean(tab.id === this.props.activeTabId)}
           ref={this.tabRef}
           data-id={id}
           onClick={this.handleClick}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              this.handleClick(event)
+            }
+          }}
           {...pick(this, [
             'onDrag',
             'onDragEnter',

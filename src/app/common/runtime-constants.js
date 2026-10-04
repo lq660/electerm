@@ -31,7 +31,8 @@ const trayIconPath = resolve(
   )
 )
 const extIconPath = isDev
-  ? '/node_modules/electerm-icons/icons/'
+  // 2026-09-01 coder(lq): Vite serves dependency icons through /icons in development.
+  ? '/icons/'
   : 'icons/'
 
 const defaultUserName = require('./default-user-name')

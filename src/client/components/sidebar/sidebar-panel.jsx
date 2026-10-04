@@ -112,17 +112,26 @@ export default memo(function SidebarPanel (props) {
           </div>
           <div className='cn-side-panel-actions'>
             <Tooltip title={e('pin')}>
-              <PushpinOutlined
-                {...prps1}
+              <button
+                type='button'
+                className={prps1.className}
+                aria-label={e('pin')}
+                title={e('pin')}
                 onClick={store.handlePin}
-              />
+              >
+                <PushpinOutlined />
+              </button>
             </Tooltip>
             <Tooltip title='关闭'>
-              <CloseOutlined
-                {...prps}
+              <button
+                type='button'
                 className={`${prps.className} cn-side-panel-close`}
+                aria-label='关闭传输中心'
+                title='关闭'
                 onClick={closeTransferPanel}
-              />
+              >
+                <CloseOutlined />
+              </button>
             </Tooltip>
           </div>
         </div>

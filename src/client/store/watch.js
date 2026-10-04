@@ -18,10 +18,13 @@ import { debounce, isEmpty } from 'lodash-es'
 import deepCopy from 'json-deep-copy'
 import { refsStatic } from '../components/common/ref'
 import dataCompare from '../common/data-compare'
+import { isHistoryReady } from '../common/lazy-history.mjs'
+import { getChangedConfigFields } from '../common/config-persistence.mjs'
 
 export default store => {
   for (const name of dbNamesForWatch) {
     window[`watch${name}`] = autoRun(async () => {
+      if (!isHistoryReady(store, name)) return
       const n = store.getItems(name)
       if (window.migrating) {
         return
@@ -82,11 +85,15 @@ export default store => {
     return store.showModal
   }).start()
 
+  let lastSavedConfig = deepCopy(store.config) || {}
   autoRun(() => {
     const config = store.config
+    const changedConfig = getChangedConfigFields(lastSavedConfig, config)
+    lastSavedConfig = deepCopy(config) || {}
     // 2026-08-04 coder(lq): Legacy keychain rows no longer set this lock; keep the guard only for genuinely unreadable local config rows.
-    if (!isEmpty(config) && !store.userConfigSaveLocked) {
-      window.pre.runGlobalAsync('saveUserConfig', config)
+    // 2026-09-22 coder(lq): Save only changed top-level fields; full snapshots from other windows can otherwise restore stale AI settings.
+    if (!isEmpty(changedConfig) && !store.userConfigSaveLocked) {
+      window.pre.runGlobalAsync('saveUserConfig', changedConfig)
         .catch(error => {
           store.onError(error)
         })

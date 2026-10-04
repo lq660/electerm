@@ -1,3 +1,11 @@
+$session-primary = var(--workbench-primary, #426f9d)
+$session-primary-strong = var(--workbench-primary-strong, #365f8a)
+$session-primary-soft = var(--workbench-primary-soft, #eef3f8)
+$session-primary-tint = var(--workbench-primary-tint, #f5f8fb)
+$session-primary-border = var(--workbench-primary-border, #c6d5e4)
+$session-primary-active-border = var(--workbench-primary-active-border, #b8cadb)
+$session-primary-icon-bg = var(--workbench-primary-icon-bg, #e7eef5)
+
 @keyframes rotate
   from
     background-position -3000px
@@ -18,6 +26,10 @@
 .type-tab
   display inline-block
   vertical-align middle
+  border 0
+  background transparent
+  color inherit
+  font-family inherit
   line-height 30px
   padding 0 14px 0 0
   margin-right 0px
@@ -90,19 +102,19 @@
     font-size 12px
 
     &:not(.add)
-      border-color #bfd3f2
-      background #f3f7ff
-      color #5b78a5
+      border-color $session-primary-border
+      background #fff
+      color $session-primary
 
     &:hover
-      border-color #1677ff
-      color #1677ff
-      background #f5f8ff
+      border-color $session-primary-active-border
+      color $session-primary-strong
+      background $session-primary-tint
 
     &.active
-      border-color #1677ff
-      background #1677ff
-      color #fff
+      border-color $session-primary-active-border
+      background $session-primary-soft
+      color $session-primary-strong
       font-weight 600
 
     &.add
@@ -122,7 +134,7 @@
       bottom 4px
       width 2px
       border-radius 2px
-      background #1677ff
+      background $session-primary
 
     &.drag-over-before::before
       left -5px
@@ -142,7 +154,7 @@
 
   &:hover
     background #e5edf8
-    color #1677ff
+    color $session-primary-strong
 
 .cn-session-toolbar-actions
   margin-left auto
@@ -176,14 +188,14 @@
   line-height 1
 
   &:hover
-    color #1677ff
-    border-color #b8d8ff
-    background #f5f9ff
+    color $session-primary-strong
+    border-color $session-primary-active-border
+    background $session-primary-tint
 
   &.active
-    color #fff !important
-    border-color #1677ff
-    background #1677ff
+    color $session-primary-strong !important
+    border-color $session-primary-active-border
+    background $session-primary-soft
 
   &.auto
     border-color #13c2c2
@@ -303,6 +315,24 @@
     &:hover
       color #1677ff
 
+.cn-session-aside-meta
+  min-width 0
+  display flex
+  flex-direction row
+  align-items center
+  gap 4px
+  margin-top 2px
+
+  span
+    flex 0 1 auto
+    padding 0 5px
+    border 1px solid #dbe3ef
+    border-radius 5px
+    background #f8fafc
+    color #667085
+    font-size 10px
+    line-height 17px
+
 .cn-session-aside
   position relative
   width 360px
@@ -338,7 +368,7 @@
 
   &:hover::after,
   .cn-session-aside.is-resizing &::after
-    background #1677ff
+    background $session-primary
 
 .cn-session-aside-head
   display grid
@@ -358,8 +388,8 @@
     align-items center
     justify-content center
     border-radius 8px
-    background #e6f1ff
-    color #1677ff
+    background $session-primary-icon-bg
+    color $session-primary-strong
     font-size 18px
 
   div
@@ -384,8 +414,10 @@
 
 .cn-session-aside-tabs
   // 2026-07-24 coder(lq): Separate AI, reusable records, and session details so the sidebar has a clear primary context.
+  // 2026-09-23 coder(lq): Use a quiet selected state so Shell controls match the workbench hierarchy instead of competing with content.
+  // 2026-09-29 coder(lq): Keep only task-level destinations here; record subtypes belong inside the records panel.
   display grid
-  grid-template-columns repeat(4, minmax(0, 1fr))
+  grid-template-columns repeat(3, minmax(0, 1fr))
   gap 6px
   flex 0 0 auto
   margin-bottom 8px
@@ -412,14 +444,14 @@
       white-space nowrap
 
     &:hover
-      border-color #b8d8ff
-      background #f5f9ff
-      color #1677ff
+      border-color $session-primary-active-border
+      background $session-primary-tint
+      color $session-primary-strong
 
     &.active
-      border-color #1677ff
-      background #1677ff
-      color #fff
+      border-color $session-primary-active-border
+      background $session-primary-soft
+      color $session-primary-strong
 
 .cn-session-aside-body
   min-height 0
@@ -432,11 +464,64 @@
 .cn-session-aside-panel-ai
   display flex
   flex-direction column
-  gap 8px
+  gap 0
+  height 100%
 
 .cn-session-aside-panel-history
   height 100%
   min-height 0
+
+.cn-session-aside-panel-records
+  height 100%
+  min-height 0
+  display flex
+  flex-direction column
+  gap 8px
+
+.cn-session-record-tabs
+  flex 0 0 auto
+  display grid
+  grid-template-columns repeat(2, minmax(0, 1fr))
+  gap 4px
+  padding 4px
+  border 1px solid #dbe3ef
+  border-radius 8px
+  background #f8fafc
+
+  button
+    height 28px
+    min-width 0
+    display inline-flex
+    align-items center
+    justify-content center
+    gap 6px
+    border 1px solid transparent
+    border-radius 6px
+    background transparent
+    color #667085
+    cursor pointer
+    font-size 12px
+    font-weight 600
+
+    &:hover
+      color $session-primary-strong
+
+    &.active
+      border-color #dbe3ef
+      background #fff
+      color $session-primary-strong
+      box-shadow 0 1px 2px rgba(16, 24, 40, .05)
+
+    &:focus-visible
+      outline 2px solid $session-primary-active-border
+      outline-offset 1px
+
+.cn-session-record-content
+  min-height 0
+  flex 1
+
+  &.is-history
+    overflow hidden
 
 .cn-command-history-panel
   height 100%
@@ -790,11 +875,15 @@
       color #1677ff
 
 .cn-session-ai-section
+  display flex
+  flex 1 1 auto
+  flex-direction column
+  min-height 0
   margin-bottom 0
-  padding 8px
-  border 1px solid #dbe3ef
-  border-radius 8px
-  background #fff
+  padding 0
+  border 0
+  border-radius 0
+  background transparent
 
   &.is-open
     min-height 0
@@ -804,6 +893,9 @@
   grid-template-columns 28px minmax(0, 1fr) auto
   gap 8px
   align-items center
+  padding 8px 10px
+  border-bottom 1px solid var(--workbench-border, #dbe3ef)
+  background var(--workbench-panel, #fff)
 
   > .anticon
     display flex
@@ -834,6 +926,11 @@
     color #667085
     font-size 12px
 
+  .cn-session-ai-model
+    margin-top 3px
+    color #5f728b
+    font-size 11px
+
   b
     padding 2px 6px
     border-radius 999px
@@ -849,10 +946,15 @@
       color #b54708
 
 .cn-session-ai-description
-  margin 6px 0 0
+  // 2026-08-31 coder(lq): Model identity now lives in the compact AI header to keep the work area focused.
+  display none
+  margin 0
+  padding 5px 10px 6px
+  border-bottom 1px solid var(--workbench-border-soft, #edf1f7)
+  background var(--workbench-panel, #fff)
   color #667085
-  font-size 12px
-  line-height 18px
+  font-size 11px
+  line-height 16px
 
 .cn-session-ai-actions
   display grid
@@ -884,9 +986,10 @@
       color #1677ff
 
 .cn-session-ai-chat
-  height clamp(520px, 68vh, 820px)
+  flex 1 1 auto
+  height auto
   min-height 0
-  margin-top 8px
+  margin-top 0
   overflow hidden
 
   .ai-chat-container
@@ -1448,5 +1551,10 @@
     box-shadow 0 0 0 2px #fff
 
 .split-view-toggle
+  border 0
+  background transparent
+  color inherit
+  font-family inherit
+  cursor pointer
   &.active
     color var(--success)

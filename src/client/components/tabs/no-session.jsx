@@ -4,15 +4,20 @@ import {
   ClockCircleOutlined,
   CloudServerOutlined,
   CodeOutlined,
+  DownOutlined,
+  EditOutlined,
   FileTextOutlined,
   FolderOpenOutlined,
   PlusOutlined,
   SearchOutlined,
   SettingOutlined,
-  ThunderboltOutlined
+  SwapOutlined,
+  ThunderboltOutlined,
+  UpOutlined
 } from '@ant-design/icons'
 import { auto } from 'manate/react'
 import HistoryPanel from '../sidebar/history'
+import TransferModal from '../sidebar/transfer-modal'
 import QuickConnect from './quick-connect'
 import {
   connectionMap,
@@ -20,7 +25,6 @@ import {
 } from '../../common/constants'
 import { dedupeRecentHistory } from '../../common/recent-history'
 import { getWorkbenchAntdTheme, getWorkbenchTokens } from '../../common/workbench-theme'
-import { getZoomPercent } from '../../common/zoom-display'
 import './no-session.styl'
 
 function safeGroup (group) {
@@ -142,14 +146,14 @@ function getRecentUseTime (bookmark, history) {
   return parseTime(matchedHistory?.time)
 }
 
-function getCreatedTime (bookmark) {
+function getCreatedTime (bookmark, fallback = 0) {
   const createdAt = parseTime(bookmark?.createdAt || bookmark?.createTime || bookmark?.createdTime)
   if (createdAt) {
     return createdAt
   }
   const idTime = String(bookmark?.id || '').match(/_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})$/)
   if (!idTime) {
-    return 0
+    return fallback
   }
   const [, year, month, day, hour, minute, second] = idTime
   return parseTime(`${year}-${month}-${day}T${hour}:${minute}:${second}`)
@@ -173,7 +177,8 @@ function sortSavedServers (servers, sortType, history) {
           a.originalIndex - b.originalIndex
       }
       if (sortType === 'created') {
-        const createdDiff = getCreatedTime(b.bookmark) - getCreatedTime(a.bookmark)
+        // 2026-08-31 coder(lq): Legacy bookmarks without a timestamp fall back to their persisted order so the default remains deterministic.
+        const createdDiff = getCreatedTime(b.bookmark, b.createdIndex) - getCreatedTime(a.bookmark, a.createdIndex)
         return createdDiff || a.originalIndex - b.originalIndex
       }
       const recentDiff = getRecentUseTime(b.bookmark, history) - getRecentUseTime(a.bookmark, history)
@@ -184,6 +189,7 @@ function sortSavedServers (servers, sortType, history) {
 function buildServerGroups (store) {
   const bookmarks = store.bookmarks || []
   const bookmarkMap = new Map(bookmarks.map(bookmark => [bookmark.id, bookmark]))
+  const bookmarkIndexMap = new Map(bookmarks.map((bookmark, index) => [bookmark.id, index]))
   const groupedBookmarkIds = new Set()
   const groups = (store.bookmarkGroups || [])
     .map(safeGroup)
@@ -201,6 +207,7 @@ function buildServerGroups (store) {
           host: getBookmarkMeta(bookmark),
           status: bookmark.host ? 'online' : 'offline',
           load: getConnectionLabel(bookmark),
+          createdIndex: bookmarkIndexMap.get(bookmark.id) || 0,
           bookmark
         }))
       return {
@@ -219,6 +226,7 @@ function buildServerGroups (store) {
       host: getBookmarkMeta(bookmark),
       status: bookmark.host ? 'online' : 'offline',
       load: getConnectionLabel(bookmark),
+      createdIndex: bookmarkIndexMap.get(bookmark.id) || 0,
       bookmark
     }))
   if (ungroupedServers.length) {
@@ -239,7 +247,9 @@ function buildServerGroups (store) {
 export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
   const { store } = window
   const [serverKeyword, setServerKeyword] = useState('')
-  const [serverSort, setServerSort] = useState('recent')
+  const [transferExpanded, setTransferExpanded] = useState(false)
+  // 2026-08-31 coder(lq): Show newly added server resources first by default; users can still choose another sort mode from the selector.
+  const [serverSort, setServerSort] = useState('created')
   const handleClick = () => {
     window.openTabBatch = batch
   }
@@ -264,6 +274,13 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
       return
     }
     onNewSsh()
+  }
+
+  // 2026-09-03 coder(lq): Allow editing a saved server from the workbench card without first opening the connection.
+  const editServer = (server) => {
+    if (server.bookmark) {
+      store.openBookmarkEdit(server.bookmark)
+    }
   }
 
   const groups = buildServerGroups(store)
@@ -296,7 +313,6 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
   const uiTheme = store.getUiThemeConfig()
   const workbenchTheme = getCompactWorkbenchTheme(uiTheme)
   const workbenchTokens = getWorkbenchTokens(uiTheme)
-  const zoomPercent = getZoomPercent(store.config?.zoom)
 
   return (
     <ConfigProvider theme={workbenchTheme}>
@@ -322,16 +338,16 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
             />
             <div className='cn-nav-section'>
               <div className='cn-section-title'>本地工作区</div>
-              <button className='cn-nav-item active' onClick={onNewTab} disabled={!window.store.hasNodePty}>
+              <button type='button' className='cn-nav-item active' onClick={onNewTab} disabled={!window.store.hasNodePty}>
                 <CodeOutlined />
                 <span>本地终端</span>
                 <Tag className='cn-shell-tag'>zsh</Tag>
               </button>
-              <button className='cn-nav-item' onClick={openLocalFiles}>
+              <button type='button' className='cn-nav-item' onClick={openLocalFiles}>
                 <FolderOpenOutlined />
                 <span>本地文件</span>
               </button>
-              <button className='cn-nav-item' onClick={openQuickCommandSettings}>
+              <button type='button' className='cn-nav-item' onClick={openQuickCommandSettings}>
                 <FileTextOutlined />
                 <span>脚本片段</span>
               </button>
@@ -339,7 +355,7 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
             <div className='cn-nav-section remote-section'>
               <div className='cn-section-title with-action'>
                 <span>远程服务器</span>
-                <button onClick={onNewSsh}><PlusOutlined /></button>
+                <button type='button' onClick={onNewSsh}><PlusOutlined /></button>
               </div>
               {
                 groups.map(group => (
@@ -350,7 +366,7 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
                     </div>
                     {
                       group.servers.map(server => (
-                        <button className='cn-server-row' key={`${group.title}-${server.name}`} onClick={() => openServer(server)}>
+                        <button type='button' className='cn-server-row' key={`${group.title}-${server.name}`} onClick={() => openServer(server)}>
                           <i className={`cn-status-dot ${server.status}`} />
                           <span>
                             <strong>{server.name}</strong>
@@ -378,7 +394,6 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
                   <span>服务器 {savedConnectionTotal}</span>
                   <span>最近 {historyItems.length}</span>
                   <span>传输 {transferTotal}</span>
-                  <span>缩放 {zoomPercent}%</span>
                 </div>
               </div>
               <div className='cn-toolbar-actions'>
@@ -411,9 +426,11 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
                   </div>
                   <p>
                     {
-                      normalizedServerKeyword
-                        ? `已保存 ${savedConnectionTotal} 个连接，当前显示 ${savedServers.length} 个`
-                        : `共 ${savedConnectionTotal} 个连接`
+                      store.initLoadingData
+                        ? '正在加载连接…'
+                        : normalizedServerKeyword
+                          ? `已保存 ${savedConnectionTotal} 个连接，当前显示 ${savedServers.length} 个`
+                          : `共 ${savedConnectionTotal} 个连接`
                     }
                   </p>
                 </div>
@@ -461,17 +478,30 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
                               <span>{server.groupTitle}</span>
                             </div>
                             <Tag className='cn-connection-type'>{server.load}</Tag>
-                            <Button
-                              type='primary'
-                              size='small'
-                              className='cn-connection-open-btn'
-                              onClick={event => {
-                                event.stopPropagation()
-                                openServer(server)
-                              }}
-                            >
-                              打开
-                            </Button>
+                            <div className='cn-connection-actions'>
+                              <Button
+                                size='small'
+                                className='cn-connection-edit-btn'
+                                icon={<EditOutlined />}
+                                onClick={event => {
+                                  event.stopPropagation()
+                                  editServer(server)
+                                }}
+                              >
+                                编辑
+                              </Button>
+                              <Button
+                                type='primary'
+                                size='small'
+                                className='cn-connection-open-btn'
+                                onClick={event => {
+                                  event.stopPropagation()
+                                  openServer(server)
+                                }}
+                              >
+                                打开
+                              </Button>
+                            </div>
                           </div>
                         ))
                       }
@@ -507,11 +537,38 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
 
             <div className='cn-workbench-status-row'>
               <section className='cn-transfer-drawer'>
-                <div>
-                  <strong>传输任务</strong>
-                  <span>进行中 {transferTotal} · 已完成 {transferHistoryTotal} · 失败 {failedTransfers}</span>
-                </div>
-                <Progress percent={transferPercent} size='small' strokeColor={workbenchTokens['workbench-primary']} />
+                {/* 2026-09-22 coder(lq): Transfer tasks live in the workbench after the global shortcut rail was removed. */}
+                <button
+                  type='button'
+                  className='cn-transfer-drawer-toggle'
+                  onClick={() => setTransferExpanded(value => !value)}
+                  aria-expanded={transferExpanded}
+                >
+                  <span className='cn-transfer-drawer-title'>
+                    <SwapOutlined />
+                    <span>
+                      <strong>传输任务</strong>
+                      <small>进行中 {transferTotal} · 已完成 {transferHistoryTotal} · 失败 {failedTransfers}</small>
+                    </span>
+                  </span>
+                  <span className='cn-transfer-drawer-progress'>
+                    <Progress percent={transferPercent} size='small' strokeColor={workbenchTokens['workbench-primary']} />
+                    {transferExpanded ? <UpOutlined /> : <DownOutlined />}
+                  </span>
+                </button>
+                {
+                  transferExpanded
+                    ? (
+                      <div className='cn-workbench-transfer-content'>
+                        <TransferModal
+                          fileTransfers={store.fileTransfers || []}
+                          transferHistory={store.transferHistory || []}
+                          transferTab={store.transferTab}
+                        />
+                      </div>
+                      )
+                    : null
+                }
               </section>
             </div>
           </main>
@@ -531,8 +588,8 @@ export default auto(function NoSessionPanel ({ onNewTab, onNewSsh, batch }) {
                 : (
                   <div className='cn-empty-history'>
                     <ClockCircleOutlined />
-                    <strong>暂无最近连接</strong>
-                    <span>打开或保存连接后会显示在这里。</span>
+                    <strong>{store.initLoadingData ? '正在加载最近连接…' : '暂无最近连接'}</strong>
+                    <span>{store.initLoadingData ? '请稍候' : '打开或保存连接后会显示在这里。'}</span>
                   </div>
                   )
             }

@@ -1,9 +1,9 @@
 import { Component } from 'react'
 import copy from 'json-deep-copy'
 import { isFunction } from 'lodash-es'
-import generate from '../../common/uid'
 import { typeMap, transferTypeMap, fileOperationsMap, fileActions } from '../../common/constants'
 import format, { computeLeftTime, computePassedTime } from './transfer-speed-format'
+import { findAvailableDuplicateTransferName } from './transfer-name'
 import {
   getLocalFileInfo,
   getRemoteFileInfo,
@@ -28,17 +28,24 @@ export default class TransportAction extends Component {
     const {
       id,
       transferBatch = '',
-      tabId
+      tabId,
+      typeFrom,
+      typeTo,
+      sourceTabId,
+      targetTabId
     } = props.transfer
-    const sftp = refs.get('sftp-' + tabId)
     this.id = `tr-${transferBatch}-${id}`
-    this.tabId = tabId
+    // 2026-09-02 coder(lq): Keep source and target SFTP refs separate for cross-terminal transfers.
+    this.sourceTabId = sourceTabId || (typeFrom === typeMap.remote ? tabId : null)
+    this.targetTabId = targetTabId || (typeTo === typeMap.remote ? tabId : null)
+    this.tabId = tabId || this.sourceTabId || this.targetTabId
     refsTransfers.add(this.id, this)
     this.total = 0
     this.transferred = 0
     this.currentProgress = 1
-    this.isFtp = sftp?.type === 'ftp'
-    this.terminalId = sftp?.terminalId
+    const remoteSftp = refs.get('sftp-' + (this.sourceTabId || this.targetTabId))
+    this.isFtp = remoteSftp?.type === 'ftp'
+    this.terminalId = remoteSftp?.terminalId
   }
 
   componentDidMount () {
@@ -133,12 +140,16 @@ export default class TransportAction extends Component {
   // }
 
   remoteList = () => {
-    window.store.remoteList(this.tabId)
+    window.store.remoteList(this.targetTabId || this.tabId)
   }
 
   localList = () => {
-    window.store.localList(this.tabId)
+    window.store.localList(this.targetTabId || this.tabId)
   }
+
+  getSourceTabId = () => this.sourceTabId || this.tabId
+
+  getTargetTabId = () => this.targetTabId || this.tabId
 
   onEnd = (update = {}) => {
     if (this.onCancel) {
@@ -232,7 +243,7 @@ export default class TransportAction extends Component {
     this.transport?.resume()
   }
 
-  mvOrCp = () => {
+  mvOrCp = async () => {
     const {
       transfer
     } = this.props
@@ -240,7 +251,6 @@ export default class TransportAction extends Component {
       fromPath,
       toPath,
       typeFrom,
-      tabId,
       operation // 'mv' or 'cp'
     } = transfer
 
@@ -249,7 +259,7 @@ export default class TransportAction extends Component {
 
     // Check if it's a copy operation to the same path (no rename decision pending)
     if (!this.newPath && fromPath === toPath && operation === fileOperationsMap.cp) {
-      finalToPath = this.handleRename(toPath, typeFrom === typeMap.remote).newPath
+      finalToPath = (await this.handleRename(toPath, typeFrom === typeMap.remote)).newPath
       transfer.toPath = finalToPath
       this.update({
         toPath: finalToPath
@@ -263,7 +273,13 @@ export default class TransportAction extends Component {
           this.onError(e)
         })
     }
-    const sftp = refs.get('sftp-' + tabId)?.sftp
+    const remoteTabId = typeFrom === typeMap.remote
+      ? this.getSourceTabId()
+      : this.getTargetTabId()
+    const sftp = refs.get('sftp-' + remoteTabId)?.sftp
+    if (!sftp) {
+      return this.onError(new Error('SFTP connection is no longer available'))
+    }
     return sftp[operation](fromPath, finalToPath)
       .then(this.onEnd)
       .catch(e => {
@@ -292,7 +308,13 @@ export default class TransportAction extends Component {
       ? fromPath
       : toPath
     const mode = toFile.mode || fromMode
-    const sftp = refs.get('sftp-' + this.tabId).sftp
+    const remoteTabId = typeFrom === typeMap.remote
+      ? this.getSourceTabId()
+      : this.getTargetTabId()
+    const sftp = refs.get('sftp-' + remoteTabId)?.sftp
+    if (!sftp) {
+      return this.onError(new Error('SFTP connection is no longer available'))
+    }
     this.transport = await sftp[transferType]({
       remotePath,
       localPath,
@@ -339,7 +361,7 @@ export default class TransportAction extends Component {
 
     const fromFile = transfer.fromFile
       ? transfer.fromFile
-      : await this.checkExist(typeFrom, fromPath, this.tabId)
+      : await this.checkExist(typeFrom, fromPath, this.getSourceTabId())
     if (!fromFile) {
       return this.tagTransferError(id, 'file not exist')
     }
@@ -364,25 +386,24 @@ export default class TransportAction extends Component {
   checkConflict = async (transfer = this.props.transfer) => {
     const {
       typeTo,
-      toPath,
-      tabId
+      toPath
     } = transfer
     const transferStillExists = window.store.fileTransfers.some(t => t.id === transfer.id)
     if (!transferStillExists) {
       return false
     }
-    const toFile = await this.checkExist(typeTo, toPath, tabId)
+    const toFile = await this.checkExist(typeTo, toPath, this.getTargetTabId())
 
     if (toFile) {
       this.update({
         toFile
       })
       if (transfer.resolvePolicy) {
-        this.onDecision(transfer.resolvePolicy)
+        await this.onDecision(transfer.resolvePolicy)
         return true
       }
       if (this.resolvePolicy) {
-        this.onDecision(this.resolvePolicy)
+        await this.onDecision(this.resolvePolicy)
         return true
       }
       const transferWithToFile = {
@@ -396,7 +417,7 @@ export default class TransportAction extends Component {
     return false
   }
 
-  onDecision = (policy) => {
+  onDecision = async (policy) => {
     if (policy === fileActions.skip || policy === fileActions.cancel) {
       return this.onEnd()
     }
@@ -407,7 +428,7 @@ export default class TransportAction extends Component {
         toPath
       } = this.props.transfer
       this.oldPath = toPath
-      const { newPath, newName } = this.handleRename(toPath, typeTo === typeMap.remote)
+      const { newPath, newName } = await this.handleRename(toPath, typeTo === typeMap.remote)
       this.update({
         toPath: newPath
       })
@@ -438,7 +459,7 @@ export default class TransportAction extends Component {
       p = await window.fs.zipFolder(fromPath)
     } else {
       isFromRemote = true
-      const terminalId = refs.get('sftp-' + this.tabId)?.terminalId
+      const terminalId = refs.get('sftp-' + this.getSourceTabId())?.terminalId
       p = await zipCmd(terminalId, fromPath)
     }
     this.zipSrc = p
@@ -548,17 +569,24 @@ export default class TransportAction extends Component {
   }
 
   list = async (type, path, tabId) => {
-    const sftp = refs.get('sftp-' + tabId)
+    const sftp = refs.get('sftp-' + (tabId || this.getSourceTabId()))
+    if (!sftp) {
+      throw new Error('SFTP connection is no longer available')
+    }
     return sftp[type + 'List'](true, path)
   }
 
   handleRename = (fromPath, isRemote) => {
-    const { path, base, ext } = getFolderFromFilePath(fromPath, isRemote)
-    const newName = `${base}(rename-${generate()})${ext ? '.' + ext : ''}`
-    return {
-      newPath: resolve(path, newName),
-      newName
-    }
+    const { path, name } = getFolderFromFilePath(fromPath, isRemote)
+    return findAvailableDuplicateTransferName({
+      dirPath: path,
+      fileName: name,
+      resolvePath: resolve,
+      exists: async (candidatePath) => {
+        const type = isRemote ? typeMap.remote : typeMap.local
+        return !!await this.checkExist(type, candidatePath, isRemote ? this.getTargetTabId() : undefined)
+      }
+    })
   }
 
   onFolderData = (transferred) => {
@@ -601,7 +629,13 @@ export default class TransportAction extends Component {
     const localPath = isDown ? toPath : fromPath
     const remotePath = isDown ? fromPath : toPath
     const mode = toFile.mode || fromMode
-    const sftp = refs.get('sftp-' + this.tabId).sftp
+    const remoteTabId = typeFrom === typeMap.remote
+      ? this.getSourceTabId()
+      : this.getTargetTabId()
+    const sftp = refs.get('sftp-' + remoteTabId)?.sftp
+    if (!sftp) {
+      throw new Error('SFTP connection is no longer available')
+    }
 
     return new Promise((resolve, reject) => {
       let transport
@@ -756,7 +790,6 @@ export default class TransportAction extends Component {
     const {
       fromPath,
       typeFrom,
-      tabId,
       toFile,
       isRenamed
     } = transfer
@@ -768,7 +801,7 @@ export default class TransportAction extends Component {
       }
     }
 
-    const list = await this.list(typeFrom, fromPath, tabId)
+    const list = await this.list(typeFrom, fromPath, this.getSourceTabId())
     const bigFileSize = 1024 * 1024
     const smallFilesBatch = 30
     const BigFilesBatch = 3
@@ -816,15 +849,17 @@ export default class TransportAction extends Component {
   mkdir = async (transfer = this.props.transfer) => {
     const {
       typeTo,
-      toPath,
-      tabId
+      toPath
     } = transfer
     if (typeTo === typeMap.local) {
       return window.fs.mkdir(toPath)
         .then(() => true)
         .catch(() => false)
     }
-    const sftp = refs.get('sftp-' + tabId).sftp
+    const sftp = refs.get('sftp-' + this.getTargetTabId())?.sftp
+    if (!sftp) {
+      return false
+    }
     return sftp.mkdir(toPath)
       .then(() => true)
       .catch(() => false)

@@ -14,7 +14,15 @@ export default class TabsSubMenuChild extends PureComponent {
         className='sub-context-menu-item'
         title={title}
         key={item.id}
+        role='button'
+        tabIndex={0}
         onClick={this.handleClick}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            this.handleClick()
+          }
+        }}
       >
         {title}
       </div>

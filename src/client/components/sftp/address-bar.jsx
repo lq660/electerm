@@ -128,7 +128,15 @@ function renderHistory (props, type) {
             <div
               key={o}
               className='sftp-history-item'
+              role='button'
+              tabIndex={0}
               onClick={() => props.onClickHistory(type, o)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  props.onClickHistory(type, o)
+                }
+              }}
             >
               {o}
             </div>

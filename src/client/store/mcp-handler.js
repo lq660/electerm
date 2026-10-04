@@ -6,7 +6,7 @@
 import uid from '../common/uid'
 import { settingMap } from '../common/constants'
 import { refs, refsTabs } from '../components/common/ref'
-import { runCmd } from '../components/terminal/terminal-apis'
+import { runCmdStructured } from '../components/terminal/terminal-apis'
 import deepCopy from 'json-deep-copy'
 import {
   getLocalFileInfo,
@@ -129,7 +129,7 @@ export default Store => {
 
         // Background task operations
         case 'run_background_command':
-          result = store.mcpRunBackgroundCommand(args)
+          result = await store.mcpRunBackgroundCommand(args)
           break
         case 'get_background_task_status':
           result = await store.mcpGetBackgroundTaskStatus(args)
@@ -539,6 +539,40 @@ export default Store => {
     }
   }
 
+  // 2026-09-01 coder(lq): Agent execution uses the session exec channel; the PTY remains for visible user interaction.
+  Store.prototype.mcpRunTerminalCommandStructured = async function (args) {
+    const { store } = window
+    const { terminalId: tabId } = resolveTerminalTarget(args.tabId || store.activeTabId)
+    if (!tabId) throw new Error('No active terminal')
+    if (!args.command) throw new Error('No command provided')
+    const startedAt = Date.now()
+    const timeout = Math.min(Math.max(Number(args.timeout) || 45000, 1000), 120000)
+    const result = await runCmdStructured(tabId, args.command, timeout, args.executionId)
+    const stdout = result?.stdout || ''
+    const stderr = result?.stderr || ''
+    return {
+      ok: result?.exitCode === 0,
+      success: result?.exitCode === 0,
+      command: args.command,
+      exitCode: result?.exitCode ?? null,
+      stdout,
+      stderr,
+      output: [stdout, stderr].filter(Boolean).join('\n'),
+      timedOut: result?.timedOut === true,
+      cancelled: result?.cancelled === true,
+      outputTruncated: result?.outputTruncated === true,
+      waitingForInput: false,
+      durationMs: Date.now() - startedAt,
+      tabId
+    }
+  }
+
+  Store.prototype.mcpCancelStructuredCommand = function (args) {
+    if (!args.executionId || !args.tabId) return Promise.resolve({ cancelled: false })
+    const { terminalId } = resolveTerminalTarget(args.tabId)
+    return runCmdStructured(terminalId, undefined, undefined, args.executionId, true)
+  }
+
   Store.prototype.mcpGetTerminalSelection = function (args) {
     const { store } = window
     const { terminalId: tabId } = resolveTerminalTarget(args.tabId || store.activeTabId)
@@ -748,146 +782,38 @@ export default Store => {
   // ==================== Background Task Management ====================
 
   const backgroundTasks = new Map()
-  let bgTaskCounter = 0
 
-  async function runMonitorCmd (tabId, cmd) {
-    try {
-      const result = await runCmd(tabId, cmd)
-      return result
-    } catch (e) {
-      // Fallback: send via terminal and wait for idle
-      const { store } = window
-      store.mcpSendTerminalCommand({ command: cmd, tabId })
-      const idle = await store.mcpWaitForTerminalIdle({
-        tabId, timeout: 10000, lines: 10, minWait: 500
-      })
-      return idle.output || ''
-    }
-  }
-
-  Store.prototype.mcpRunBackgroundCommand = function (args) {
+  Store.prototype.mcpRunBackgroundCommand = async function (args) {
     const { store } = window
     const { terminalId: tabId } = resolveTerminalTarget(args.tabId || store.activeTabId)
-    if (!tabId) {
-      throw new Error('No active terminal')
-    }
-    if (!args.command) {
-      throw new Error('No command provided')
-    }
-
-    const taskId = `bg-${Date.now()}-${++bgTaskCounter}`
-    const logFile = `/tmp/electerm-${taskId}.log`
-    const pidFile = `/tmp/electerm-${taskId}.pid`
-    const exitFile = `/tmp/electerm-${taskId}.exit`
-
-    // Encode command as base64 to avoid all quote-escaping issues.
-    // The subshell runs the user's command, captures its exit code, then cleans up the PID file.
-    const b64 = btoa(args.command)
-    const inner = `eval "$(echo ${b64} | base64 --decode)" > ${logFile} 2>&1; e=$?; echo $e > ${exitFile}; rm -f ${pidFile}`
-    const wrapped = `nohup bash -c '${inner}' & echo $! > ${pidFile}; disown`
-
-    store.mcpSendTerminalCommand({ command: wrapped, tabId, inputOnly: false })
-
-    const task = {
-      id: taskId,
-      command: args.command,
-      tabId,
-      startTime: Date.now(),
-      logFile,
-      pidFile,
-      exitFile,
-      status: 'started'
-    }
-    backgroundTasks.set(taskId, task)
-
-    return {
-      taskId,
-      tabId,
-      logFile,
-      pidFile,
-      exitFile,
-      message: 'Command started in background. Use get_background_task_status to check.'
+    if (!tabId || !args.command) throw new Error('Command and terminal are required')
+    const taskId = args.executionId || crypto.randomUUID()
+    backgroundTasks.set(taskId, { tabId })
+    try {
+      return { ...await runCmdStructured(tabId, args.command, undefined, taskId, false, 'background-start'), tabId }
+    } catch (error) {
+      backgroundTasks.delete(taskId)
+      throw error
     }
   }
 
   Store.prototype.mcpGetBackgroundTaskStatus = async function (args) {
     const task = backgroundTasks.get(args.taskId)
-    if (!task) {
-      throw new Error(`Task ${args.taskId} not found`)
-    }
-
-    const pidOutput = await runMonitorCmd(task.tabId,
-      `cat ${task.pidFile} 2>/dev/null`)
-    const pid = pidOutput.trim()
-
-    if (!pid) {
-      return { ...task, status: 'unknown', message: 'PID file not found' }
-    }
-
-    const aliveCheck = await runMonitorCmd(task.tabId,
-      `kill -0 ${pid} 2>/dev/null && echo alive || echo dead`)
-
-    if (aliveCheck.trim() === 'alive') {
-      task.status = 'running'
-      return { ...task, pid, status: 'running' }
-    }
-
-    // Process exited — read exit code
-    const exitOutput = await runMonitorCmd(task.tabId,
-      `cat ${task.exitFile} 2>/dev/null`)
-    const exitCode = exitOutput.trim()
-
-    task.status = 'completed'
-    task.exitCode = exitCode !== '' ? parseInt(exitCode, 10) : null
-    task.endTime = Date.now()
-    return { ...task, pid, status: 'completed', exitCode: task.exitCode }
+    if (!task) throw new Error('后台任务不存在或已过期')
+    return { ...await runCmdStructured(task.tabId, undefined, undefined, args.taskId, false, 'background-status'), tabId: task.tabId }
   }
 
   Store.prototype.mcpGetBackgroundTaskLog = async function (args) {
-    const task = backgroundTasks.get(args.taskId)
-    if (!task) {
-      throw new Error(`Task ${args.taskId} not found`)
-    }
-
-    const lines = args.lines || 100
-    const output = await runMonitorCmd(task.tabId,
-      `tail -n ${lines} ${task.logFile} 2>/dev/null || echo '(no output yet)'`)
-
-    return {
-      taskId: task.id,
-      output: output.trim(),
-      lines
-    }
+    const result = await window.store.mcpGetBackgroundTaskStatus(args)
+    const lines = Math.min(500, Math.max(1, Number(args.lines) || 100))
+    const output = [result.stdout, result.stderr].filter(Boolean).join('\n').split('\n').slice(-lines).join('\n')
+    return { ...result, output, lines }
   }
 
   Store.prototype.mcpCancelBackgroundTask = async function (args) {
     const task = backgroundTasks.get(args.taskId)
-    if (!task) {
-      throw new Error(`Task ${args.taskId} not found`)
-    }
-
-    const pidOutput = await runMonitorCmd(task.tabId,
-      `cat ${task.pidFile} 2>/dev/null`)
-    const pid = pidOutput.trim()
-
-    if (pid) {
-      await runMonitorCmd(task.tabId,
-        `kill ${pid} 2>/dev/null; echo $? > ${task.exitFile}`)
-      task.status = 'cancelled'
-      task.endTime = Date.now()
-      return {
-        taskId: task.id,
-        pid,
-        status: 'cancelled',
-        message: 'Process killed'
-      }
-    }
-
-    return {
-      taskId: task.id,
-      status: 'unknown',
-      message: 'PID not found, task may have already finished'
-    }
+    if (!task) return { taskId: args.taskId, cancelled: false }
+    return { ...await runCmdStructured(task.tabId, undefined, undefined, args.taskId, true), taskId: args.taskId }
   }
 
   // ==================== Settings APIs ====================
@@ -1008,6 +934,8 @@ export default Store => {
       id: uid(),
       title: tab.title,
       tabId,
+      sourceTabId: tabId,
+      targetTabId: tabId,
       operation: ''
     }
 
@@ -1050,7 +978,9 @@ export default Store => {
       },
       id: uid(),
       title: tab.title,
-      tabId
+      tabId,
+      sourceTabId: tabId,
+      targetTabId: tabId
     }
 
     store.addTransferList([transferItem])

@@ -599,7 +599,7 @@ export default function CommandAssistant ({
     <Modal
       open={open}
       onCancel={onClose}
-      title='命令助手'
+      title='命令速查'
       width={860}
       footer={null}
       wrapClassName='command-assistant-modal'
@@ -614,8 +614,8 @@ export default function CommandAssistant ({
         />
         <div className='command-assistant-system' aria-label='命令运行环境'>
           <span>运行环境</span>
-          <button className={system === 'linux' ? 'active' : ''} onClick={() => setSystem('linux')}>Linux</button>
-          <button className={system === 'mac' ? 'active' : ''} onClick={() => setSystem('mac')}>macOS</button>
+          <button type='button' className={system === 'linux' ? 'active' : ''} onClick={() => setSystem('linux')}>Linux</button>
+          <button type='button' className={system === 'mac' ? 'active' : ''} onClick={() => setSystem('mac')}>macOS</button>
         </div>
       </div>
 
@@ -761,11 +761,11 @@ export default function CommandAssistant ({
             : null}
           <div className='command-assistant-target'>发送到：{terminalName}</div>
           <div className='command-assistant-actions'>
-            <button className='secondary' onClick={() => handleUse(false)}>
+            <button type='button' className='secondary' onClick={() => handleUse(false)}>
               <SendOutlined />
               填入终端
             </button>
-            <button className='primary' onClick={() => handleUse(true)}>
+            <button type='button' className='primary' onClick={() => handleUse(true)}>
               <PlayCircleOutlined />
               执行命令
             </button>

@@ -89,27 +89,6 @@ function buildMenu () {
           type: 'separator'
         },
         {
-          click () {
-            globalState.get('win').webContents.send('zoom-reset', null)
-          },
-          label: e('resetzoom')
-        },
-        {
-          click () {
-            globalState.get('win').webContents.send('zoomin', null)
-          },
-          label: e('zoomin')
-        },
-        {
-          click () {
-            globalState.get('win').webContents.send('zoomout', null)
-          },
-          label: e('zoomout')
-        },
-        {
-          type: 'separator'
-        },
-        {
           role: 'togglefullscreen',
           label: e('togglefullscreen')
         }
@@ -241,13 +220,6 @@ function buildMenu () {
     // Window menu
     template[3].submenu = [
       ...template[3].submenu,
-      {
-        role: 'zoom',
-        label: e('zoom')
-      },
-      {
-        type: 'separator'
-      },
       {
         role: 'front',
         label: e('front')

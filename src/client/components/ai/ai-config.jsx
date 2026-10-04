@@ -4,7 +4,9 @@ import {
   Button,
   AutoComplete,
   Alert,
-  Space
+  Space,
+  Select,
+  Radio
 } from 'antd'
 import { useEffect, useState } from 'react'
 import Link from '../common/external-link'
@@ -15,6 +17,7 @@ import {
 import Password from '../common/password'
 import AiHistory, { addHistoryItem } from './ai-history'
 import message from '../common/message'
+import defaultSettings from '../../common/default-setting'
 
 const STORAGE_KEY_CONFIG = 'ai_config_history'
 const EVENT_NAME_CONFIG = 'ai-config-history-update'
@@ -22,10 +25,7 @@ const EVENT_NAME_CONFIG = 'ai-config-history-update'
 const e = window.translate
 const defaultRoles = [
   {
-    value: 'Terminal expert, provide commands for different OS, explain usage briefly, use markdown format'
-  },
-  {
-    value: '终端专家,提供不同系统下命令,简要解释用法,用markdown格式'
+    value: defaultSettings.roleAI
   }
 ]
 
@@ -43,10 +43,16 @@ const authHeaderOptions = [
   { value: 'Authorization' }
 ]
 
-export default function AIConfigForm ({ initialValues, onSubmit, showAIConfig }) {
+export default function AIConfigForm ({ initialValues, onSubmit, showAIConfig, agentRunning = false }) {
   const [form] = Form.useForm()
   const [testing, setTesting] = useState(false)
   const baseURLAI = Form.useWatch('baseURLAI', form)
+  const apiPathAI = Form.useWatch('apiPathAI', form)
+  const currentBaseURL = baseURLAI ?? initialValues?.baseURLAI ?? ''
+  const currentPath = apiPathAI ?? initialValues?.apiPathAI ?? ''
+  const fullURL = /^https?:\/\//i.test(currentPath)
+    ? currentPath
+    : `${currentBaseURL.replace(/\/+$/, '')}/${currentPath.replace(/^\/+/, '')}`
 
   useEffect(() => {
     if (initialValues) {
@@ -79,7 +85,8 @@ export default function AIConfigForm ({ initialValues, onSubmit, showAIConfig })
         values.apiKeyAI,
         values.proxyAI,
         false,
-        values.authHeaderNameAI
+        values.authHeaderNameAI,
+        values.reasoningEffortAI
       )
       if (res && res.error) {
         message.error(res.error)
@@ -140,7 +147,7 @@ export default function AIConfigForm ({ initialValues, onSubmit, showAIConfig })
         className='mg2y'
       />
       <p>
-        完整地址：{initialValues?.baseURLAI}{initialValues?.apiPathAI}
+        完整地址：{fullURL}
       </p>
       <Form
         form={form}
@@ -182,7 +189,7 @@ export default function AIConfigForm ({ initialValues, onSubmit, showAIConfig })
               noStyle
             >
               <Input
-                placeholder='/chat/completions'
+                placeholder='/v1/responses 或 /v1/chat/completions'
                 style={{ width: '25%' }}
               />
             </Form.Item>
@@ -195,6 +202,40 @@ export default function AIConfigForm ({ initialValues, onSubmit, showAIConfig })
         >
           <Input
             placeholder='请输入或选择 AI 模型'
+          />
+        </Form.Item>
+
+        <Form.Item
+          label='推理强度'
+          name='reasoningEffortAI'
+          tooltip='根据接口自动使用 reasoning.effort（Responses）或 reasoning_effort（Chat Completions）；自动表示不额外发送该参数。部分模型或服务商可能不支持此选项。'
+        >
+          <Select
+            options={[
+              { value: 'auto', label: '自动（由模型决定）' },
+              { value: 'low', label: '低' },
+              { value: 'medium', label: '中' },
+              { value: 'high', label: '高' }
+            ]}
+          />
+        </Form.Item>
+
+        <Form.Item
+          label='命令执行通道'
+          name='terminalExecutionChannelAI'
+          tooltip='选择 AI 的前台命令通过独立 SSH 通道执行，还是直接使用当前可见终端。'
+          extra={agentRunning
+            ? 'AI 任务运行中暂不能切换，完成或停止后可修改。'
+            : '独立 SSH 不占用当前终端；当前终端会显示 AI 输入和输出。后台和长时间命令始终使用独立通道。'}
+        >
+          <Radio.Group
+            disabled={agentRunning}
+            optionType='button'
+            buttonStyle='solid'
+            options={[
+              { value: 'isolated', label: '独立 SSH 通道' },
+              { value: 'current', label: '当前终端' }
+            ]}
           />
         </Form.Item>
 

@@ -240,6 +240,8 @@ test('sanitizeVersion: throws on invalid version', () => {
 test('sanitizeFilename: passes valid filenames', () => {
   expect(sanitizeFilename('electerm-3.2.0-linux-x64.tar.gz')).toBe('electerm-3.2.0-linux-x64.tar.gz')
   expect(sanitizeFilename('electerm-3.2.0-mac-x64.dmg')).toBe('electerm-3.2.0-mac-x64.dmg')
+  expect(sanitizeFilename('.env')).toBe('.env')
+  expect(sanitizeFilename('.gitignore')).toBe('.gitignore')
 })
 
 test('sanitizeFilename: trims whitespace', () => {

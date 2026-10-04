@@ -34,28 +34,27 @@ export default auto(function WindowControl (props) {
   }
   return (
     <div className='window-controls'>
-      <div className='window-control-box window-control-minimize' onClick={minimize}>
-        <MinusOutlined title={e('minimize')} className='iblock font12 widnow-control-icon' />
-      </div>
-      <div
+      <button type='button' aria-label={e('minimize')} title={e('minimize')} className='window-control-box window-control-minimize' onClick={minimize}>
+        <MinusOutlined className='iblock font12 widnow-control-icon' />
+      </button>
+      <button
+        type='button'
+        aria-label={isMaximized ? e('unmaximize') : e('maximize')}
+        title={isMaximized ? e('unmaximize') : e('maximize')}
         className='window-control-box window-control-maximize'
         onClick={
           isMaximized ? unmaximize : maximize
         }
       >
-        <span
-          title={
-            isMaximized ? e('unmaximize') : e('maximize')
-          }
-          className={
+        <span className={
             'iblock font12 icon-maximize widnow-control-icon ' +
               (isMaximized ? 'is-max' : 'not-max')
           }
         />
-      </div>
-      <div className='window-control-box window-control-close' onClick={closeApp}>
-        <CloseOutlined title={e('close')} className='iblock font12 widnow-control-icon' />
-      </div>
+      </button>
+      <button type='button' aria-label={e('close')} title={e('close')} className='window-control-box window-control-close' onClick={closeApp}>
+        <CloseOutlined className='iblock font12 widnow-control-icon' />
+      </button>
     </div>
   )
 })

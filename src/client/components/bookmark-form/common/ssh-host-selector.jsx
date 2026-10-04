@@ -14,7 +14,16 @@ export default function SshHostSelector ({ ips = [], useIp, form, onBlur, onPast
         <div
           key={ip}
           className='iblock mg2r pointer ip-item'
+          role='button'
+          tabIndex={0}
+          aria-label={`${e('use')} ${ip}`}
           onClick={() => useIp(form, ip)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              useIp(form, ip)
+            }
+          }}
         >
           <b>{ip}</b>
           <span

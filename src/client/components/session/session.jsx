@@ -34,7 +34,8 @@ import {
   FontColorsOutlined,
   DownOutlined,
   UpOutlined,
-  PlusOutlined
+  PlusOutlined,
+  SettingOutlined
 } from '@ant-design/icons'
 import {
   Tooltip,
@@ -53,7 +54,8 @@ import {
   terminalFtpType,
   terminalSpiceType,
   isMac,
-  sessionAsideWidthKey
+  sessionAsideWidthKey,
+  statusMap
 } from '../../common/constants'
 import createName from '../../common/create-title'
 import uid from '../../common/uid'
@@ -71,6 +73,7 @@ import {
   hasFeature
 } from '../../common/feature-plans'
 import { getItem, setItem } from '../../common/safe-local-storage'
+import { getUsagePercent } from '../../common/system-metrics.mjs'
 import message from '../common/message'
 import './session.styl'
 
@@ -98,25 +101,6 @@ function shouldEnablePathFollowByDefault (props) {
   const isLocal = !tab.authType && (termType === connectionMap.local || !termType)
   // 2026-07-11 coder(lq): Local file tabs sync on explicit user action; keep the persisted follow preference only for remote sessions.
   return !isLocal && !!config.sftpPathFollowSsh
-}
-
-function sizeToBytes (value = '') {
-  const parsed = parseFloat(value)
-  if (!Number.isFinite(parsed)) return 0
-  const unit = String(value).trim().slice(-1).toUpperCase()
-  const multiplier = {
-    K: 1024,
-    M: 1024 * 1024,
-    G: 1024 * 1024 * 1024,
-    T: 1024 * 1024 * 1024 * 1024
-  }[unit] || 1
-  return parsed * multiplier
-}
-
-function getUsagePercent (used, total) {
-  const usedBytes = sizeToBytes(used)
-  const totalBytes = sizeToBytes(total)
-  return totalBytes ? Math.round(usedBytes * 100 / totalBytes) : 0
 }
 
 function getEmptyServerMetrics () {
@@ -149,6 +133,7 @@ export default class SessionWrapper extends Component {
       showCommandAssistant: false,
       showAiAssistant: false,
       sessionAsideTab: 'session',
+      sessionRecordTab: 'solutions',
       sessionAsideWidth: getInitialSessionAsideWidth(),
       draggingTerminalSessionId: '',
       dragOverTerminalSessionId: '',
@@ -550,7 +535,8 @@ export default class SessionWrapper extends Component {
         ...prev.terminalSessions.filter(session => !session.base && session.id !== this.props.tab.id),
         {
           id,
-          title: `终端 ${index}`
+          title: `终端 ${index}`,
+          status: statusMap.processing
         }
       ],
       activeTerminalSessionId: id,
@@ -656,12 +642,39 @@ export default class SessionWrapper extends Component {
     }
     return {
       ...copy(this.props.tab),
+      ...session,
       id: session.id,
       sessionRootId: this.props.tab.id,
       title: session.title,
       tabCount: session.title.replace('终端 ', `${this.props.tab.tabCount}.`),
       pane: paneMap.terminal
     }
+  }
+
+  onEditTerminalSessionTab = (id, update = {}) => {
+    const activeTerminalId = this.getActiveTerminalSessionId()
+    const shouldResetMetrics = id === activeTerminalId &&
+      update.status && update.status !== statusMap.success
+
+    if (id === this.props.tab.id) {
+      if (shouldResetMetrics) {
+        this.setState({ serverMetrics: getEmptyServerMetrics() })
+      }
+      this.props.editTab(id, update)
+      return
+    }
+
+    // 2026-10-04 coder(lq): Child terminals are session-local and have no row in the global tab store, so keep their connection state with the owning session.
+    this.setState(prev => ({
+      terminalSessions: prev.terminalSessions.map(session => (
+        session.id === id
+          ? { ...session, ...update }
+          : session
+      )),
+      ...(shouldResetMetrics
+        ? { serverMetrics: getEmptyServerMetrics() }
+        : {})
+    }))
   }
 
   renderTerminalSessionTabs = () => {
@@ -683,6 +696,7 @@ export default class SessionWrapper extends Component {
     return (
       <div className='cn-terminal-session-tabs'>
         <button
+          type='button'
           className={classnames('fixed', {
             active: pane === paneMap.terminal && activeId === this.props.tab.id
           })}
@@ -694,6 +708,7 @@ export default class SessionWrapper extends Component {
           this.isLocalFileTab() || this.isSshFileTab()
             ? (
               <button
+                type='button'
                 className={classnames('fixed', 'file-tab', {
                   active: pane === paneMap.fileManager && activeFileId === this.props.tab.id
                 })}
@@ -707,6 +722,7 @@ export default class SessionWrapper extends Component {
         {
           this.getExtraTerminalSessions().map(session => (
             <button
+              type='button'
               key={session.id}
               className={classnames({
                 active: pane === paneMap.terminal && session.id === activeId,
@@ -732,6 +748,7 @@ export default class SessionWrapper extends Component {
         {
           fileSessions.map(session => (
             <button
+              type='button'
               key={session.id}
               className={classnames('file-tab', {
                 active: pane === paneMap.fileManager && session.id === activeFileId,
@@ -760,6 +777,7 @@ export default class SessionWrapper extends Component {
            */
         }
         <button
+          type='button'
           className='add'
           onClick={this.handleAddTerminalSession}
         >
@@ -770,6 +788,7 @@ export default class SessionWrapper extends Component {
           this.isLocalFileTab()
             ? (
               <button
+                type='button'
                 className='add'
                 onClick={this.handleAddFileSession}
               >
@@ -1096,6 +1115,7 @@ export default class SessionWrapper extends Component {
                     <Term
                       {...pops}
                       tab={sessionTab}
+                      editTab={this.onEditTerminalSessionTab}
                       activeTabId={outerSessionActive ? activeTerminalSessionId : this.props.activeTabId}
                       currentBatchTabId={outerSessionActive ? activeTerminalSessionId : this.props.currentBatchTabId}
                       logName={logName}
@@ -1108,7 +1128,7 @@ export default class SessionWrapper extends Component {
               : (
                 <div className='cn-terminal-empty'>
                   <div>当前终端区没有打开的终端标签</div>
-                  <button onClick={this.handleAddTerminalSession}>
+                  <button type='button' onClick={this.handleAddTerminalSession}>
                     <PlusOutlined />
                     <span>新建终端标签</span>
                   </button>
@@ -1135,16 +1155,18 @@ export default class SessionWrapper extends Component {
       height
     } = this.props
     const width = this.getWidth()
+    // 2026-09-25 coder(lq): File panes share the terminal workspace and must use its content height; the raw session height extends beneath tabs and the footer.
+    const contentHeight = this.props.computeHeight(height)
     if (!this.canSplitView() || !this.props.tab.sshSftpSplitView) {
       return {
         width,
-        height
+        height: contentHeight
       }
     }
     const direction = this.getSplitDirection()
     const [, size2] = this.state.splitSize
     const w = direction === 'leftRight' ? size2 * width / 100 : width
-    const h = direction === 'leftRight' ? height : size2 * height / 100
+    const h = direction === 'leftRight' ? contentHeight : size2 * contentHeight / 100
     return {
       width: w,
       height: h
@@ -1284,6 +1306,10 @@ export default class SessionWrapper extends Component {
     this.setState({ sessionAsideTab })
   }
 
+  handleSessionRecordTabChange = (sessionRecordTab) => {
+    this.setState({ sessionRecordTab })
+  }
+
   onServerMetricsUpdate = (update) => {
     this.setState(prev => ({
       serverMetrics: {
@@ -1293,7 +1319,7 @@ export default class SessionWrapper extends Component {
     }))
   }
 
-  renderServerMonitor = (terminalId, terminalTitle) => {
+  renderServerMonitor = (terminalId, terminalTitle, isConnected) => {
     const { uptime, cpu, mem, disks } = this.state.serverMetrics
     const rootDisk = disks.find(disk => disk.mount === '/') || disks[0]
     const memoryPercent = getUsagePercent(mem.used, mem.total)
@@ -1301,23 +1327,33 @@ export default class SessionWrapper extends Component {
     return (
       <div className='cn-session-aside-section'>
         <div className='cn-session-aside-title'>服务器监控 · {terminalTitle}</div>
-        <TerminalInfoRunner
-          key={terminalId}
-          pid={terminalId}
-          isRemote
-          setState={this.onServerMetricsUpdate}
-        />
         {
-          hasMetrics
+          isConnected
             ? (
-              <div className='cn-session-metrics'>
-                <div><span>CPU</span><b>{cpu || '读取中'}</b></div>
-                <div><span>内存</span><b>{mem.used ? `${memoryPercent}%` : '读取中'}</b></div>
-                <div><span>磁盘</span><b>{rootDisk?.usedPercent || '读取中'}</b></div>
-                <div className='wide'><span>运行时长</span><b>{uptime?.trim() || '读取中'}</b></div>
-              </div>
+              <TerminalInfoRunner
+                key={terminalId}
+                pid={terminalId}
+                isRemote
+                setState={this.onServerMetricsUpdate}
+              />
               )
-            : <div className='cn-session-metrics-loading'>正在读取当前终端的服务器状态...</div>
+            : null
+        }
+        {
+          !isConnected
+            ? <div className='cn-session-metrics-loading'>终端连接后自动读取服务器状态</div>
+            : (
+                hasMetrics
+                  ? (
+                    <div className='cn-session-metrics'>
+                      <div><span>CPU</span><b>{cpu || '读取中'}</b></div>
+                      <div><span>内存</span><b>{mem.used ? `${memoryPercent}%` : '读取中'}</b></div>
+                      <div><span>磁盘</span><b>{rootDisk?.usedPercent || '读取中'}</b></div>
+                      <div className='wide'><span>运行时长</span><b>{uptime?.trim() || '读取中'}</b></div>
+                    </div>
+                    )
+                  : <div className='cn-session-metrics-loading'>正在读取当前终端的服务器状态...</div>
+              )
         }
       </div>
     )
@@ -1590,6 +1626,18 @@ export default class SessionWrapper extends Component {
     )
   }
 
+  renderSettingsToggle = () => {
+    // 2026-09-22 coder(lq): Keep Settings reachable from an active session after removing the global left rail.
+    return (
+      <Tooltip title='设置中心' placement='bottomLeft'>
+        <SettingOutlined
+          className='sess-icon pointer'
+          onClick={() => window.store.openSetting()}
+        />
+      </Tooltip>
+    )
+  }
+
   renderTermControls = () => {
     const { props } = this
     const { pane } = props.tab
@@ -1610,6 +1658,7 @@ export default class SessionWrapper extends Component {
       <div className='cn-session-toolbar-actions'>
         {this.renderSftpPathFollowControl()}
         {this.renderTransferPanelToggle()}
+        {this.renderSettingsToggle()}
         {this.renderSplitToggle()}
         {this.renderKeepaliveIcon()}
         {this.renderBroadcastIcon()}
@@ -1635,12 +1684,15 @@ export default class SessionWrapper extends Component {
     )
     return (
       <Tooltip title={title} placement='bottomLeft'>
-        <span
+        <button
+          type='button'
           className={cls}
+          aria-label={title}
+          title={title}
           onClick={this.handleSshSftpSplitView}
         >
           <SplitViewIcon />
-        </span>
+        </button>
       </Tooltip>
     )
   }
@@ -1705,16 +1757,19 @@ export default class SessionWrapper extends Component {
               }
             )
             return (
-              <span
+              <button
+                type='button'
                 className={cls}
                 key={type + '_' + i}
+                aria-label={labelMapper[type] || e(type)}
+                title={labelMapper[type] || e(type)}
                 onClick={() => this.onChangePane(targetPane)}
               >
                 <span className='type-tab-txt'>
                   <span>{labelMapper[type] || e(type)}</span>
                   <span className='type-tab-line' />
                 </span>
-              </span>
+              </button>
             )
           })
         }
@@ -1909,7 +1964,7 @@ export default class SessionWrapper extends Component {
     if (!this.shouldShowSessionAside()) {
       return null
     }
-    const { sessionAsideCollapsed, sessionAsideTab } = this.state
+    const { sessionAsideCollapsed, sessionAsideTab, sessionRecordTab } = this.state
     const { tab } = this.props
     const isSsh = !!tab.host && (!tab.type || tab.type === connectionMap.ssh)
     const title = createName(tab)
@@ -1918,8 +1973,11 @@ export default class SessionWrapper extends Component {
       : '本机'
     const type = isSsh ? 'SSH' : '本地终端'
     const activeTerminalId = this.getActiveTerminalSessionId()
-    const activeTerminalTitle = this.getTerminalSessions()
-      .find(session => session.id === activeTerminalId)?.title || '终端'
+    const activeTerminalSession = this.getTerminalSessions()
+      .find(session => session.id === activeTerminalId) || this.getBaseTerminalSession()
+    const activeTerminalTitle = activeTerminalSession.title || '终端'
+    const activeTerminalTab = this.buildTerminalSessionTab(activeTerminalSession)
+    const activeTerminalConnected = activeTerminalTab.status === statusMap.success
     const batchInput = (cmd, selectedTabIds) => {
       selectedTabIds.map(id => {
         const termId = id === tab.id ? this.getActiveTerminalSessionId() : id
@@ -1942,7 +2000,7 @@ export default class SessionWrapper extends Component {
       terminalSessionId: activeTerminalId,
       showAIConfig: window.store.showAIConfig,
       rightPanelTab: 'ai',
-      agentRunning: window.store.agentRunning
+      agentRunningScopes: window.store.agentRunningScopes
     }
     const sessionAsideWidth = this.getSessionAsideWidth()
     if (sessionAsideCollapsed) {
@@ -1966,33 +2024,30 @@ export default class SessionWrapper extends Component {
           onPointerDown={this.handleSessionAsideResizeStart}
         />
         <div className='cn-session-aside-tabs'>
+          {/* 2026-09-29 coder(lq): Keep primary navigation task-oriented and move record types into secondary navigation. */}
           <button
+            type='button'
             className={classnames({ active: sessionAsideTab === 'session' })}
             onClick={() => this.handleSessionAsideTabChange('session')}
           >
             <CloudServerOutlined />
-            <span>会话</span>
+            <span>概览</span>
           </button>
           <button
+            type='button'
             className={classnames({ active: sessionAsideTab === 'ai' })}
             onClick={() => this.handleSessionAsideTabChange('ai')}
           >
             <RobotOutlined />
-            <span>AI</span>
+            <span>AI 助手</span>
           </button>
           <button
+            type='button'
             className={classnames({ active: sessionAsideTab === 'records' })}
             onClick={() => this.handleSessionAsideTabChange('records')}
           >
-            <BookOutlined />
-            <span>处理记录</span>
-          </button>
-          <button
-            className={classnames({ active: sessionAsideTab === 'history' })}
-            onClick={() => this.handleSessionAsideTabChange('history')}
-          >
             <HistoryOutlined />
-            <span>命令历史</span>
+            <span>记录</span>
           </button>
         </div>
         <div className='cn-session-aside-body'>
@@ -2004,12 +2059,14 @@ export default class SessionWrapper extends Component {
                     <div className='cn-session-ai-head'>
                       <RobotOutlined />
                       <div>
-                        <strong>AI 助手</strong>
+                        <strong>AI Shell</strong>
                         <span>{title} · {activeTerminalTitle}</span>
+                        <span className='cn-session-ai-model'>
+                          {aiReady ? `当前模型：${aiModel}` : '模型未配置'}
+                        </span>
                       </div>
                       <b className={aiReady ? 'ready' : 'missing'}>{aiReady ? '已配置' : '未配置'}</b>
                     </div>
-                    <p className='cn-session-ai-description'>{aiReady ? `当前模型：${aiModel}` : '需要先配置模型和密钥'}</p>
                     <div className='cn-session-ai-chat'>
                       <AIChat {...aiChatProps} />
                     </div>
@@ -2019,66 +2076,91 @@ export default class SessionWrapper extends Component {
               : sessionAsideTab === 'records'
                 ? (
                   <div className='cn-session-aside-panel cn-session-aside-panel-records'>
-                    <SolutionRecords
-                      tab={tab}
-                      serverName={title}
-                      host={host}
-                      onRunCommand={this.handleRunSolutionCommand}
-                    />
+                    <div className='cn-session-record-tabs' role='tablist' aria-label='记录类型'>
+                      <button
+                        type='button'
+                        role='tab'
+                        aria-selected={sessionRecordTab === 'solutions'}
+                        className={classnames({ active: sessionRecordTab === 'solutions' })}
+                        onClick={() => this.handleSessionRecordTabChange('solutions')}
+                      >
+                        <BookOutlined />
+                        <span>处理记录</span>
+                      </button>
+                      <button
+                        type='button'
+                        role='tab'
+                        aria-selected={sessionRecordTab === 'history'}
+                        className={classnames({ active: sessionRecordTab === 'history' })}
+                        onClick={() => this.handleSessionRecordTabChange('history')}
+                      >
+                        <HistoryOutlined />
+                        <span>命令历史</span>
+                      </button>
+                    </div>
+                    <div className={classnames('cn-session-record-content', { 'is-history': sessionRecordTab === 'history' })}>
+                      {
+                        sessionRecordTab === 'history'
+                          ? (
+                            <CommandHistoryPanel
+                              tab={tab}
+                              activeTerminalTitle={activeTerminalTitle}
+                              onUseCommand={this.handleUseHistoryCommand}
+                            />
+                            )
+                          : (
+                            <SolutionRecords
+                              tab={tab}
+                              serverName={title}
+                              host={host}
+                              onRunCommand={this.handleRunSolutionCommand}
+                            />
+                            )
+                      }
+                    </div>
                   </div>
                   )
-                : sessionAsideTab === 'history'
-                  ? (
-                    <div className='cn-session-aside-panel cn-session-aside-panel-history'>
-                      <CommandHistoryPanel
-                        tab={tab}
-                        activeTerminalTitle={activeTerminalTitle}
-                        onUseCommand={this.handleUseHistoryCommand}
-                      />
+                : (
+                  <div className='cn-session-aside-panel'>
+                    <div className='cn-session-aside-head'>
+                      <CloudServerOutlined />
+                      <div>
+                        <strong>{title}</strong>
+                        <span>{host}</span>
+                        <small className='cn-session-aside-meta'>
+                          <span>{type}</span>
+                          <span>{activeTerminalConnected ? '已连接' : '连接中'}</span>
+                          <span>#{tab.tabCount}</span>
+                        </small>
+                      </div>
                     </div>
-                    )
-                  : (
-                    <div className='cn-session-aside-panel'>
-                      <div className='cn-session-aside-head'>
-                        <CloudServerOutlined />
-                        <div>
-                          <strong>{title}</strong>
-                          <span>{host}</span>
-                        </div>
-                      </div>
 
-                      {isSsh ? this.renderServerMonitor(activeTerminalId, activeTerminalTitle) : null}
+                    {isSsh ? this.renderServerMonitor(activeTerminalId, activeTerminalTitle, activeTerminalConnected) : null}
 
-                      <div className='cn-session-aside-section'>
-                        <div className='cn-session-aside-title'>会话信息</div>
-                        <div className='cn-session-info-row'><span>类型</span><b>{type}</b></div>
-                        <div className='cn-session-info-row'><span>状态</span><b>{tab.status === 'success' ? '已连接' : '连接中'}</b></div>
-                        <div className='cn-session-info-row'><span>标签</span><b>#{tab.tabCount}</b></div>
-                      </div>
-
-                      <div className='cn-session-aside-section'>
-                        <div className='cn-session-aside-title'>会话工具</div>
-                        <button className='cn-session-tool-row' onClick={this.handleOpenCommandAssistant}>
-                          <SearchOutlined />
-                          <span>
-                            <b>命令助手</b>
-                            <em>用中文查找常用运维命令</em>
-                          </span>
-                        </button>
-                        <button
-                          className={classnames('cn-session-tool-row', {
-                            'is-active': this.state.showBatchInput
-                          })}
-                          onClick={this.handleToggleBatchInput}
-                        >
-                          <ThunderboltOutlined />
-                          <span>
-                            <b>批量命令</b>
-                            <em>向选中的终端同时发送命令</em>
-                          </span>
-                          {this.state.showBatchInput ? <UpOutlined /> : <DownOutlined />}
-                        </button>
-                        {
+                    <div className='cn-session-aside-section'>
+                      <div className='cn-session-aside-title'>常用操作</div>
+                      <button type='button' className='cn-session-tool-row' onClick={this.handleOpenCommandAssistant}>
+                        <SearchOutlined />
+                        <span>
+                          <b>命令速查</b>
+                          <em>从内置命令库搜索，不调用 AI</em>
+                        </span>
+                      </button>
+                      <button
+                        type='button'
+                        className={classnames('cn-session-tool-row', {
+                          'is-active': this.state.showBatchInput
+                        })}
+                        onClick={this.handleToggleBatchInput}
+                      >
+                        <ThunderboltOutlined />
+                        <span>
+                          <b>批量命令</b>
+                          <em>向选中的终端同时发送命令</em>
+                        </span>
+                        {this.state.showBatchInput ? <UpOutlined /> : <DownOutlined />}
+                      </button>
+                      {
                         this.state.showBatchInput
                           ? (
                             <div className='cn-session-batch-input'>
@@ -2095,16 +2177,16 @@ export default class SessionWrapper extends Component {
                             )
                           : null
                       }
-                        <button className='cn-session-tool-row' onClick={handleOpenInfoPanel}>
-                          <FontColorsOutlined />
-                          <span>
-                            <b>编码与终端信息</b>
-                            <em>查看字符集、换行和终端参数</em>
-                          </span>
-                        </button>
-                      </div>
+                      <button type='button' className='cn-session-tool-row' onClick={handleOpenInfoPanel}>
+                        <FontColorsOutlined />
+                        <span>
+                          <b>编码与终端信息</b>
+                          <em>查看字符集、换行和终端参数</em>
+                        </span>
+                      </button>
                     </div>
-                    )
+                  </div>
+                  )
           }
         </div>
       </aside>

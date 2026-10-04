@@ -2,15 +2,11 @@
   background var(--main)
   height 36px
   position absolute
-  left 44px
+  // 2026-09-22 coder(lq): The footer uses the full window width after removing the global navigation rail.
+  left 0
   right 0
   bottom 0
   z-index 200
-.pinned
-  .main-footer
-  .qm-wrap-tooltip
-    left 343px
-
 .terminal-footer-flex
   display flex
   .terminal-footer-unit .ant-select-selector .ant-select-selection-placeholder
@@ -227,7 +223,10 @@
   color #344054
   font-size 12px
 
-  span
+  .batch-input-history-clear
+    border 0
+    padding 0
+    background transparent
     color #1677ff
     cursor pointer
 

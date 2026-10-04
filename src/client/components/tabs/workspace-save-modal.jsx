@@ -60,6 +60,8 @@ export default auto(function WorkspaceSaveModal ({ store }) {
     value: w.id
   }))
 
+  // 2026-10-04 coder(lq): Keep this child dialog above the Settings drawer
+  // so its fields and save button remain clickable.
   return (
     <Modal
       title={e('save')}
@@ -67,6 +69,7 @@ export default auto(function WorkspaceSaveModal ({ store }) {
       onCancel={handleCancel}
       footer={null}
       width={400}
+      zIndex={1300}
     >
       <div className='pd1y'>
         <Space direction='vertical' className='width-100'>

@@ -8,21 +8,30 @@ import { NewPromise } from './promise-timeout'
 
 const id = 's'
 window.et.wsOpened = false
+let wsInitPromise
 
 export const initWsCommon = async () => {
   if (window.et.wsOpened) {
     return
   }
-  const ws = await initWs('common', id, undefined, true)
-  if (!ws) {
-    return
+  // 2026-09-02 coder(lq): Share one in-flight connection handshake so startup and concurrent requests do not open duplicate WebSockets.
+  if (!wsInitPromise) {
+    wsInitPromise = (async () => {
+      const ws = await initWs('common', id, undefined, true)
+      if (!ws) {
+        return
+      }
+      window.et.wsOpened = true
+      ws.onclose = () => {
+        window.et.wsOpened = false
+      }
+      window.et.commonWs = ws
+      window.store.wsInited = true
+    })().finally(() => {
+      wsInitPromise = null
+    })
   }
-  window.et.wsOpened = true
-  ws.onclose = () => {
-    window.et.wsOpened = false
-  }
-  window.et.commonWs = ws
-  window.store.wsInited = true
+  return wsInitPromise
 }
 
 window.pre.ipcOnEvent('power-resume', initWsCommon)

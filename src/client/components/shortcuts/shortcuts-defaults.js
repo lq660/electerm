@@ -52,16 +52,6 @@ export default () => {
       shortcutMac: 'alt+f'
     },
     {
-      name: 'app_zoomin',
-      shortcut: 'ctrl+=',
-      shortcutMac: 'meta+='
-    },
-    {
-      name: 'app_zoomout',
-      shortcut: 'ctrl+-',
-      shortcutMac: 'meta+-'
-    },
-    {
       name: 'app_prevTab',
       shortcut: 'ctrl+shift+tab',
       shortcutMac: 'ctrl+shift+tab'

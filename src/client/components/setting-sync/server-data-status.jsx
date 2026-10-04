@@ -38,13 +38,15 @@ export default function ServerDataStatus (props) {
           className='pointer mg1r hover-black'
           onClick={handleReload}
         />
-        <span
+        <button
+          type='button'
           className='pointer mg2l hover-black'
+          aria-label={e('compare') || 'compare'}
           onClick={handleCompare}
         >
           <DiffOutlined className='mg1r' />
           {e('compare') || 'compare'}
-        </span>
+        </button>
       </span>
     )
   }

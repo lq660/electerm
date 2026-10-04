@@ -4,9 +4,9 @@
  */
 
 const { appPath, defaultUserName } = require('../common/app-props')
-const { encryptDbValue, decryptDbValue } = require('./db-crypto')
+const { encryptDbValue, decryptDbValue, decryptDbValueAsync } = require('./db-crypto')
 
-const encOpts = { enc: encryptDbValue, dec: decryptDbValue }
+const encOpts = { enc: encryptDbValue, dec: decryptDbValue, decAsync: decryptDbValueAsync }
 
 if (process.versions.node < '22.0.0') {
   const { createDb } = require('./nedb')

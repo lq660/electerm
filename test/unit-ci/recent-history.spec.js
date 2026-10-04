@@ -14,6 +14,27 @@ async function loadRecentHistory () {
 }
 
 describe('recent history', () => {
+  test('reopens the current bookmark instead of stale history credentials', async () => {
+    const { findHistoryBookmark } = await loadRecentHistory()
+    const bookmark = { id: 'saved', host: 'new.example.com', password: 'updated' }
+    const history = { from: 'bookmarks', srcId: 'saved', host: 'old.example.com', password: 'old' }
+    assert.equal(findHistoryBookmark(history, [bookmark]), bookmark)
+    assert.equal(history.password, 'old')
+    assert.equal(findHistoryBookmark({ ...history, srcId: 'deleted' }, [bookmark]), null)
+  })
+
+  test('recovers legacy history only for a unique matching endpoint and account', async () => {
+    const { findHistoryBookmark } = await loadRecentHistory()
+    const history = { host: 'server.example.com', username: 'root' }
+    const bookmark = { id: 'saved', type: 'ssh', host: history.host, username: 'root', port: '22' }
+    assert.equal(findHistoryBookmark(history, [bookmark]), bookmark)
+    assert.equal(findHistoryBookmark(history, [bookmark, { ...bookmark, id: 'other' }]), null)
+    assert.equal(findHistoryBookmark(history, [{ ...bookmark, username: 'deploy' }]), null)
+    assert.equal(findHistoryBookmark(history, [{ ...bookmark, port: 2200 }]), null)
+    assert.equal(findHistoryBookmark(history, [{ ...bookmark, type: 'telnet' }]), null)
+    assert.equal(findHistoryBookmark({ path: '/tmp' }, [bookmark]), null)
+  })
+
   test('uses a stable key for the same ssh server', async () => {
     const { getRecentHistoryKey } = await loadRecentHistory()
     const first = getRecentHistoryKey({

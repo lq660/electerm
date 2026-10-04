@@ -13,6 +13,7 @@ import { initWsCommon } from '../common/fetch-from-server'
 import safeParse from '../common/parse-json-safe'
 import initWatch from './watch'
 import { parseQuickConnect } from '../common/parse-quick-connect'
+import { createHistoryLoader, lazyHistoryNames } from '../common/lazy-history.mjs'
 
 function getHost (argv, opts) {
   const arr = argv
@@ -127,6 +128,18 @@ export async function addTabFromCommandLine (store, opts) {
 }
 
 export default (Store) => {
+  const historyLoaders = new WeakMap()
+  Store.prototype.ensureHistoryLoaded = function (name) {
+    const { store } = window
+    if (!historyLoaders.has(store)) {
+      historyLoaders.set(store, createHistoryLoader({
+        store,
+        read: async name => JSON.parse(await fetchInitData(name, true)),
+        snapshot: (name, items) => refsStatic.add('oldState-' + name, JSON.parse(JSON.stringify(items)))
+      }))
+    }
+    return historyLoaders.get(store)(name)
+  }
   Store.prototype.openInitSessions = function () {
     const { store } = window
     const onStartSessions = store.config.onStartSessions
@@ -179,8 +192,15 @@ export default (Store) => {
     store.userConfigSaveLocked = Boolean(globs.storageStatus?.tables?.data)
     store._config = globs.config
     window.et.langs = globs.langs
-    store.zoom(store.config.zoom, false, true)
-    await initWsCommon()
+    // 2026-08-30 coder(lq): Ignore legacy saved zoom values so every launch starts at 100% display scale.
+    store.zoom(1, false, true)
+    if (store.config.zoom !== 1) {
+      store.setConfig({ zoom: 1 })
+    }
+    // 2026-09-02 coder(lq): Start the shared WebSocket handshake in the background; local database reads can proceed immediately for a faster home screen.
+    initWsCommon().catch(err => {
+      console.warn('Background WebSocket initialization failed:', err)
+    })
   }
   Store.prototype.initData = async function () {
     const { store } = window
@@ -188,7 +208,7 @@ export default (Store) => {
     try {
       await store.initApp()
       const ext = {}
-      const all = dbNames.map(async name => {
+      const all = dbNames.filter(name => !lazyHistoryNames.includes(name)).map(async name => {
         const data = await fetchInitData(name)
         return {
           name,
@@ -217,6 +237,17 @@ export default (Store) => {
       store.fetchSshConfigItems()
       store.initCommandLine().catch(store.onError)
       initWatch(store)
+      // 2026-09-11 coder(lq): Warm encrypted AI history after the first screen is usable; opening AI then reuses the same in-flight read instead of starting late.
+      const preloadAiHistory = () => {
+        store.ensureHistoryLoaded('aiChatHistory').catch(err => {
+          console.warn('Background AI history preload failed:', err)
+        })
+      }
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(preloadAiHistory, { timeout: 2000 })
+      } else {
+        setTimeout(preloadAiHistory, 500)
+      }
       setTimeout(
         () => {
           store.fixProfiles()

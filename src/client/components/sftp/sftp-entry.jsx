@@ -29,7 +29,25 @@ import ListTable from './list-table-ui'
 import deepCopy from 'json-deep-copy'
 import isValidPath from '../../common/is-valid-path'
 import normalizeRemotePath from '../../common/normalize-remote-path'
-import { DownOutlined, LoadingOutlined, ReloadOutlined, SyncOutlined } from '@ant-design/icons'
+import { getStartDirectoryCandidates, readLastDirectory, rememberLastDirectory } from '../../common/start-directory'
+import {
+  folderSizeConcurrency,
+  getCachedFolderSize,
+  loadFolderSize
+} from './folder-size'
+import { compareSftpFiles, hasSftpSortUpdate } from './file-sort'
+import {
+  CloseOutlined,
+  DeleteOutlined,
+  DownOutlined,
+  FileAddOutlined,
+  FileOutlined,
+  FolderAddOutlined,
+  FolderOutlined,
+  LoadingOutlined,
+  ReloadOutlined,
+  SyncOutlined
+} from '@ant-design/icons'
 import * as owner from './owner-list'
 import AddressBar from './address-bar'
 import getProxy from '../../common/get-proxy'
@@ -51,9 +69,21 @@ export default class Sftp extends Component {
       loadingSftp: false,
       syncingTerminalCwd: false,
       inited: false,
-      ready: false
+      ready: false,
+      // 2026-09-03 coder(lq): Remote SFTP opens focused on the server; local files load on demand.
+      localPanelVisible: !this.shouldRenderRemote(),
+      localInited: false,
+      localPanelWidth: 50,
+      sftpPanelResizing: false
     }
     this.retryCount = 0
+    this.sftpWrapRef = null
+    this.sftpResizeMove = null
+    this.sftpResizeEnd = null
+    this.folderSizeBatchIds = {
+      [typeMap.local]: 0,
+      [typeMap.remote]: 0
+    }
   }
 
   componentDidMount () {
@@ -120,6 +150,10 @@ export default class Sftp extends Component {
   }
 
   componentWillUnmount () {
+    this.unmounted = true
+    this.folderSizeBatchIds[typeMap.local]++
+    this.folderSizeBatchIds[typeMap.remote]++
+    this.stopSftpPanelResize(false)
     refs.remove(this.id)
     this.sftp && this.sftp.destroy()
     this.sftp = null
@@ -130,6 +164,69 @@ export default class Sftp extends Component {
     // Clear sort cache to prevent memory leaks
     this._sortCache?.clear()
     this._lastSortArgs = null
+  }
+
+  // 2026-08-31 coder(lq): Keep panel resize listeners scoped to the current SFTP view and clean them up on unmount.
+  stopSftpPanelResize = (resetState = true) => {
+    if (this.sftpResizeMove) {
+      document.removeEventListener('pointermove', this.sftpResizeMove)
+      document.removeEventListener('pointerup', this.sftpResizeEnd)
+      document.removeEventListener('pointercancel', this.sftpResizeEnd)
+    }
+    this.sftpResizeMove = null
+    this.sftpResizeEnd = null
+    if (resetState && this.state?.sftpPanelResizing) {
+      this.setState({ sftpPanelResizing: false })
+    }
+  }
+
+  handleSftpPanelResize = (event) => {
+    if (event.button !== undefined && event.button !== 0) return
+    event.preventDefault()
+    const move = (moveEvent) => {
+      const wrap = this.sftpWrapRef
+      if (!wrap) return
+      const rect = wrap.getBoundingClientRect()
+      if (!rect.width) return
+      const next = ((moveEvent.clientX - rect.left) / rect.width) * 100
+      this.setState({ localPanelWidth: Math.max(20, Math.min(80, next)) })
+    }
+    const end = () => this.stopSftpPanelResize()
+    this.sftpResizeMove = move
+    this.sftpResizeEnd = end
+    document.addEventListener('pointermove', move)
+    document.addEventListener('pointerup', end)
+    document.addEventListener('pointercancel', end)
+    this.setState({ sftpPanelResizing: true })
+  }
+
+  adjustSftpPanelWidth = (delta) => {
+    this.setState(prev => ({
+      localPanelWidth: Math.max(20, Math.min(80, prev.localPanelWidth + delta))
+    }))
+  }
+
+  handleSftpDividerKeyDown = (event) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault()
+      this.adjustSftpPanelWidth(-5)
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault()
+      this.adjustSftpPanelWidth(5)
+    } else if (event.key === 'Home') {
+      event.preventDefault()
+      this.setState({ localPanelWidth: 20 })
+    } else if (event.key === 'End') {
+      event.preventDefault()
+      this.setState({ localPanelWidth: 80 })
+    }
+  }
+
+  handleCloseLocalPanel = () => this.setState({ localPanelVisible: false })
+
+  handleOpenLocalPanel = () => {
+    this.setState({ localPanelVisible: true })
+    if (!this.state.localInited) this.initLocalAll()
   }
 
   initFtpData = async () => {
@@ -223,36 +320,9 @@ export default class Sftp extends Component {
       return []
     }
 
-    const isDesc = sortDirection === 'desc'
-
-    const result = list.slice().sort((a, b) => {
-      // Handle items with no id first
-      if (!a.id && b.id) return -1
-      if (a.id && !b.id) return 1
-      if (!a.id && !b.id) return 0
-
-      // Sort directories before files
-      if (a.isDirectory !== b.isDirectory) {
-        return a.isDirectory ? -1 : 1
-      }
-
-      // Sort by the specified property
-      let aValue = a[sortProp]
-      let bValue = b[sortProp]
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        aValue = aValue.toLowerCase()
-        bValue = bValue.toLowerCase()
-        return isDesc
-          ? bValue.localeCompare(aValue, { sensitivity: 'base' })
-          : aValue.localeCompare(bValue, { sensitivity: 'base' })
-      }
-
-      // For non-string values, use simple comparison
-      if (aValue < bValue) return isDesc ? 1 : -1
-      if (aValue > bValue) return isDesc ? -1 : 1
-      return 0
-    })
+    const result = list.slice().sort((a, b) => (
+      compareSftpFiles(a, b, sortProp, sortDirection)
+    ))
 
     // Cache the result
     this._lastSortArgs = [list, type, sortDirection, sortProp]
@@ -271,9 +341,20 @@ export default class Sftp extends Component {
   _hashList = (list) => {
     if (!list || !list.length) return 0
     return list.reduce((hash, item, index) => {
-      const str = `${item.id || ''}${item.name || ''}${item.modifyTime || ''}${index}`
-      return hash + str.length
-    }, 0)
+      const str = [
+        item.id || '',
+        item.name || '',
+        item.modifyTime || '',
+        item.size ?? '',
+        item.folderSizeStatus || '',
+        item.folderSizeBytes ?? '',
+        index
+      ].join(':')
+      for (let i = 0; i < str.length; i++) {
+        hash = Math.imul(hash ^ str.charCodeAt(i), 16777619)
+      }
+      return hash >>> 0
+    }, 2166136261)
   }
 
   isActive () {
@@ -307,7 +388,7 @@ export default class Sftp extends Component {
     let path
 
     if (type === typeMap.remote) {
-      path = this.props.tab.startDirectoryRemote
+      path = getStartDirectoryCandidates(this.props.tab, this.props.config, 'remote')[0]
       if (!path && this.sftp) {
         path = await this.getPwd(this.props.tab.username)
       }
@@ -371,6 +452,7 @@ export default class Sftp extends Component {
         type='button'
         className='sftp-terminal-cwd-sync'
         disabled={syncingTerminalCwd}
+        onClick={options.length === 1 ? () => this.handleSyncTerminalCwd(options[0].id) : undefined}
       >
         <SyncOutlined spin={syncingTerminalCwd} />
         <span>同步终端目录</span>
@@ -378,11 +460,7 @@ export default class Sftp extends Component {
       </button>
     )
     if (options.length === 1) {
-      return (
-        <span onClick={() => this.handleSyncTerminalCwd(options[0].id)}>
-          {content}
-        </span>
-      )
+      return content
     }
     const items = options.map(option => ({
       key: option.id,
@@ -502,10 +580,43 @@ export default class Sftp extends Component {
   }
 
   confirmDelete = (files) => {
+    const visibleFiles = files.slice(0, 5)
+    const hiddenCount = Math.max(files.length - visibleFiles.length, 0)
     return new Promise((resolve) => {
       Modal.confirm({
-        title: this.renderDelConfirmTitle(files),
-        okText: e('ok'),
+        title: e('deleteItemsTitle'),
+        content: (
+          <div className='sftp-delete-confirm'>
+            <div className='sftp-delete-confirm-icon' aria-hidden='true'>
+              <DeleteOutlined />
+            </div>
+            <div className='sftp-delete-confirm-content'>
+              <div className='sftp-delete-confirm-summary'>
+                {e('deleteItemsSummary').replace('{count}', files.length)}
+              </div>
+              <div className='sftp-delete-confirm-warning'>
+                {e('deleteItemsWarning')}
+              </div>
+              <div className='sftp-delete-confirm-list'>
+                {visibleFiles.map(file => (
+                  <div className='sftp-delete-confirm-item' key={`${file.type}-${file.path}-${file.name}`}>
+                    {file.isDirectory ? <FolderOutlined /> : <FileOutlined />}
+                    <span title={file.name}>{file.name}</span>
+                  </div>
+                ))}
+                {hiddenCount > 0 && (
+                  <div className='sftp-delete-confirm-more'>
+                    {e('deleteItemsMore').replace('{count}', hiddenCount)}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ),
+        wrapClassName: 'sftp-delete-confirm-modal',
+        width: 440,
+        maskClosable: false,
+        okText: e('del'),
         cancelText: e('cancel'),
         onOk: () => resolve(true),
         onCancel: () => resolve(false)
@@ -622,7 +733,9 @@ export default class Sftp extends Component {
     if (this.shouldRenderRemote()) {
       this.initRemoteAll()
     }
-    this.initLocalAll()
+    if (!this.shouldRenderRemote() || this.state.localPanelVisible) {
+      this.initLocalAll()
+    }
   }
 
   shouldRenderRemote = () => {
@@ -653,8 +766,8 @@ export default class Sftp extends Component {
         updates.remoteKeyword = ''
       }
 
-      // For selectedFiles updates, call setState immediately for better responsiveness
-      if (updates.selectedFiles !== undefined) {
+      // 2026-10-01 coder(lq): Header sorting is a direct user action and must not wait for an idle frame that folder-size updates can continuously postpone.
+      if (updates.selectedFiles !== undefined || hasSftpSortUpdate(updates)) {
         return this.setState(...args)
       }
     }
@@ -764,13 +877,116 @@ export default class Sftp extends Component {
       })
   }
 
+  getFolderSizeProps = (file, type) => ({
+    ...this.props,
+    file,
+    type,
+    sftp: this.sftp
+  })
+
+  prepareFolderSizeFiles = (files, type) => {
+    for (const file of files) {
+      if (!file.isDirectory) continue
+      const cached = getCachedFolderSize(this.getFolderSizeProps(file, type))
+      Object.assign(file, cached
+        ? {
+            folderSizeStatus: 'done',
+            folderSizeBytes: cached.bytes,
+            folderSizeValue: cached.value,
+            folderSizeCount: cached.count
+          }
+        : {
+            folderSizeStatus: 'loading',
+            folderSizeBytes: null,
+            folderSizeValue: '',
+            folderSizeCount: 0
+          })
+    }
+  }
+
+  updateFolderSizeFile = (type, path, batchId, file, update) => {
+    if (
+      this.unmounted ||
+      this.folderSizeBatchIds[type] !== batchId ||
+      this.state[`${type}Path`] !== path
+    ) {
+      return
+    }
+    // 2026-10-01 coder(lq): Mutate the source listing too because remote symbolic-link enrichment may publish the original array again.
+    Object.assign(file, update)
+    this.setState(state => {
+      if (
+        this.folderSizeBatchIds[type] !== batchId ||
+        state[`${type}Path`] !== path
+      ) {
+        return null
+      }
+      return {
+        [type]: state[type].map(item => item.id === file.id
+          ? { ...item, ...update }
+          : item)
+      }
+    })
+  }
+
+  // 2026-10-01 coder(lq): Opening a directory queues every immediate child folder, while bounded workers keep recursive scans from saturating SSH or the local disk.
+  startFolderSizeBatch = (type, files, path) => {
+    const batchId = ++this.folderSizeBatchIds[type]
+    this.runFolderSizeQueue(type, files, path, batchId)
+  }
+
+  runFolderSizeQueue = (
+    type,
+    files,
+    path,
+    batchId,
+    concurrency = folderSizeConcurrency
+  ) => {
+    const queue = files.filter(file => file.isDirectory)
+    if (!queue.length) return
+
+    let nextIndex = 0
+    const worker = async () => {
+      while (
+        !this.unmounted &&
+        this.folderSizeBatchIds[type] === batchId &&
+        nextIndex < queue.length
+      ) {
+        const file = queue[nextIndex++]
+        try {
+          const result = await loadFolderSize(
+            this.getFolderSizeProps(file, type),
+            true
+          )
+          this.updateFolderSizeFile(type, path, batchId, file, {
+            folderSizeStatus: 'done',
+            folderSizeBytes: result.bytes,
+            folderSizeValue: result.value,
+            folderSizeCount: result.count
+          })
+        } catch (error) {
+          console.debug('folder size calculation failed', error)
+          this.updateFolderSizeFile(type, path, batchId, file, {
+            folderSizeStatus: 'error',
+            folderSizeBytes: null,
+            folderSizeValue: '',
+            folderSizeCount: 0
+          })
+        }
+      }
+    }
+
+    const workerCount = Math.min(concurrency, queue.length)
+    Promise.all(Array.from({ length: workerCount }, worker)).catch(console.debug)
+  }
+
   remoteList = async (
     returnList = false,
     remotePathReal,
     oldPath
   ) => {
     const { tab, sessionOptions } = this.props
-    const { username, startDirectory } = tab
+    const { username } = tab
     let remotePath
     const noPathInit = remotePathReal || this.state.remotePath
     if (noPathInit) {
@@ -837,16 +1053,37 @@ export default class Sftp extends Component {
         }
       }
 
+      let remote
       if (!remotePath) {
-        if (startDirectory) {
-          remotePath = normalizeRemotePath(startDirectory)
-        } else {
-          remotePath = await this.getPwd(username)
+        const candidates = getStartDirectoryCandidates(tab, this.props.config, 'remote', readLastDirectory(tab, 'sftp'))
+        let lastError
+        for (const candidate of candidates) {
+          const candidatePath = normalizeRemotePath(candidate)
+          try {
+            remote = await this.sftpList(sftp, candidatePath)
+            remotePath = candidatePath
+            break
+          } catch (e) {
+            lastError = e
+          }
+        }
+        if (!remotePath) {
+          // 2026-09-03 coder(lq): Fall back to the server home when every configured path is unavailable.
+          remotePath = normalizeRemotePath(await this.getPwd(username))
+          try {
+            remote = await this.sftpList(sftp, remotePath)
+          } catch (e) {
+            throw lastError || e
+          }
         }
       }
-
-      const remote = await this.sftpList(sftp, remotePath)
+      if (!remote) {
+        remote = await this.sftpList(sftp, remotePath)
+      }
       this.sftp = sftp
+      if (!returnList) {
+        this.prepareFolderSizeFiles(remote, typeMap.remote)
+      }
       const update = {
         remote,
         remoteFileTree: this.buildTree(remote, typeMap.remote),
@@ -862,6 +1099,7 @@ export default class Sftp extends Component {
       } else {
         update.onEditFile = false
       }
+      rememberLastDirectory(tab, 'sftp', remotePath)
       if (oldPath) {
         update.remotePathHistory = uniq([
           oldPath,
@@ -869,6 +1107,7 @@ export default class Sftp extends Component {
         ]).slice(0, maxSftpHistory)
       }
       this.setState(update, () => {
+        this.startFolderSizeBatch(typeMap.remote, remote, remotePath)
         if (this.type !== 'ftp') {
           this.updateRemoteList(remote, remotePath, sftp)
         }
@@ -905,6 +1144,7 @@ export default class Sftp extends Component {
     sftp
   ) => {
     const remote = []
+    const linkedDirectories = []
     for (const r of remotes) {
       const { name } = r
       if (r.isSymbol) {
@@ -934,6 +1174,14 @@ export default class Sftp extends Component {
         }
         r.isSymbolicLink = true
         r.isDirectory = realFileInfo.isDirectory
+        // 2026-10-01 coder(lq): A file link should report its target's bytes, while a directory link is recursively measured through the same resolved target.
+        r.size = realFileInfo.size
+        if (r.isDirectory) {
+          r.folderSizePath = realpath
+        }
+        if (r.isDirectory && !r.folderSizeStatus) {
+          linkedDirectories.push(r)
+        }
       } else {
         r.isSymbolicLink = false
       }
@@ -943,13 +1191,22 @@ export default class Sftp extends Component {
       remote,
       remoteFileTree: this.buildTree(remote, typeMap.remote)
     }
-    this.setState(update)
+    // 2026-10-01 coder(lq): SFTP reports links before their target type is known; append newly resolved directory links to the active size batch.
+    this.prepareFolderSizeFiles(linkedDirectories, typeMap.remote)
+    const batchId = this.folderSizeBatchIds[typeMap.remote]
+    this.setState(update, () => {
+      this.runFolderSizeQueue(
+        typeMap.remote,
+        linkedDirectories,
+        remotePath,
+        batchId,
+        1
+      )
+    })
   }
 
   getLocalHome = () => {
-    return this.props.tab.startDirectoryLocal ||
-    this.props.config.startDirectoryLocal ||
-    window.pre.homeOrTmp
+    return getStartDirectoryCandidates(this.props.tab, this.props.config, 'local')[0] || window.pre.homeOrTmp
   }
 
   localList = async (returnList = false, localPathReal, oldPath) => {
@@ -964,10 +1221,22 @@ export default class Sftp extends Component {
     )
     try {
       const noPathInit = localPathReal || this.state.localPath
-      const localPath = noPathInit ||
-        this.getCwdLocal() ||
-        this.getLocalHome()
-      const locals = await window.fs.readdirAsync(localPath)
+      let localPath = noPathInit || this.getCwdLocal()
+      let locals
+      if (!localPath) {
+        const candidates = getStartDirectoryCandidates(this.props.tab, this.props.config, 'local')
+        for (const candidate of candidates) {
+          try {
+            locals = await window.fs.readdirAsync(candidate)
+            localPath = candidate
+            break
+          } catch (e) {
+            // Try the next configured directory without surfacing probe errors.
+          }
+        }
+        if (!localPath) localPath = window.pre.homeOrTmp
+      }
+      if (!locals) locals = await window.fs.readdirAsync(localPath)
       const local = []
       for (const name of locals) {
         const p = resolve(localPath, name)
@@ -979,6 +1248,7 @@ export default class Sftp extends Component {
       const update = {
         local,
         inited: true,
+        localInited: true,
         localFileTree: this.buildTree(local, typeMap.local),
         localLoading: false
       }
@@ -990,6 +1260,7 @@ export default class Sftp extends Component {
         return local
       } else {
         update.onEditFile = false
+        this.prepareFolderSizeFiles(local, typeMap.local)
       }
       if (oldPath) {
         update.localPathHistory = uniq([
@@ -997,7 +1268,9 @@ export default class Sftp extends Component {
           ...this.state.localPathHistory
         ]).slice(0, maxSftpHistory)
       }
-      this.setState(update)
+      this.setState(update, () => {
+        this.startFolderSizeBatch(typeMap.local, local, localPath)
+      })
     } catch (e) {
       const update = {
         localLoading: false,
@@ -1268,7 +1541,15 @@ export default class Sftp extends Component {
               <div
                 key={o}
                 className='sftp-history-item'
+                role='button'
+                tabIndex={0}
                 onClick={() => this.onClickHistory(type, o)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    this.onClickHistory(type, o)
+                  }
+                }}
               >
                 {o}
               </div>
@@ -1279,16 +1560,74 @@ export default class Sftp extends Component {
     )
   }
 
+  // 2026-09-25 coder(lq): Keep create actions permanently reachable even when file rows fill the entire pane and leave no blank context-menu target.
+  createItem = (type, isDirectory) => {
+    const action = isDirectory ? 'newDirectory' : 'newFile'
+    this[`${type}Dom`]?.[action]?.()
+  }
+
+  renderCreateActions = (type) => {
+    if (type === typeMap.remote && this.props.enableSsh === false) {
+      return null
+    }
+    const disabled = this.state.onEditFile || this.state[`${type}Loading`]
+    return (
+      <>
+        <button
+          type='button'
+          className='sftp-panel-title-action sftp-panel-create-action'
+          aria-label={e('newFile')}
+          title={e('newFile')}
+          disabled={disabled}
+          onClick={() => this.createItem(type, false)}
+        >
+          <FileAddOutlined />
+          <span>{e('newFile')}</span>
+        </button>
+        <button
+          type='button'
+          className='sftp-panel-title-action sftp-panel-create-action'
+          aria-label={e('newFolder')}
+          title={e('newFolder')}
+          disabled={disabled}
+          onClick={() => this.createItem(type, true)}
+        >
+          <FolderAddOutlined />
+          <span>{e('newFolder')}</span>
+        </button>
+      </>
+    )
+  }
+
   renderSftpPanelTitle (type, username, host) {
     if (type === typeMap.remote) {
       return (
         <div className='sftp-panel-title pd1t pd1b pd1x'>
           <span className='sftp-panel-title-main'>{e('remote')}</span>
           <span className='sftp-panel-title-sub'>{username}@{host}</span>
-          <ReloadOutlined
-            className='mg1r pointer sftp-panel-title-action'
-            onClick={this.handleReloadRemoteSftp}
-          />
+          <span className='sftp-panel-title-actions'>
+            {this.renderCreateActions(type)}
+            {!this.state.localPanelVisible && (
+              <button
+                type='button'
+                className='sftp-panel-title-action'
+                aria-label='显示本地文件'
+                title='显示本地文件'
+                onClick={this.handleOpenLocalPanel}
+              >
+                本地文件
+              </button>
+            )}
+            <button
+              type='button'
+              className='sftp-panel-title-icon'
+              aria-label='刷新远程文件'
+              title='刷新远程文件'
+              onClick={this.handleReloadRemoteSftp}
+            >
+              <ReloadOutlined />
+            </button>
+          </span>
         </div>
       )
     }
@@ -1296,7 +1635,21 @@ export default class Sftp extends Component {
       <div className='sftp-panel-title pd1t pd1b pd1x'>
         <span className='sftp-panel-title-main'>{e('local')}</span>
         <span className='sftp-panel-title-sub'>本机文件系统</span>
-        {this.renderTerminalCwdSync()}
+        <span className='sftp-panel-title-actions'>
+          {this.renderCreateActions(type)}
+          {this.renderTerminalCwdSync()}
+          {this.shouldRenderRemote() && (
+            <button
+              type='button'
+              className='sftp-panel-title-icon'
+              aria-label='关闭本地文件面板'
+              title='关闭本地文件面板'
+              onClick={this.handleCloseLocalPanel}
+            >
+              <CloseOutlined />
+            </button>
+          )}
+        </span>
       </div>
     )
   }
@@ -1328,7 +1681,11 @@ export default class Sftp extends Component {
       sortProp: this.state[`sortProp.${type}`],
       sortDirection: this.state[`sortDirection.${type}`],
       width,
-      fileList: arr
+      currentPath: this.state[`${type}Path`],
+      fileList: arr,
+      emptyFileId: this.getPathUid(type, 'empty'),
+      selectedFiles: this.state.selectedFiles,
+      selectedType: this.state.selectedType
     }
     const addrProps = {
       host,
@@ -1367,7 +1724,6 @@ export default class Sftp extends Component {
         className={`sftp-section sftp-${type}-section tw-${type}`}
         style={style}
         key={type}
-        {...style}
       >
         <Spin spinning={loading}>
           <div className='pd1 sftp-panel'>
@@ -1412,15 +1768,40 @@ export default class Sftp extends Component {
         }, width)
       )
     }
-    return arr.map((t, i) => {
-      const style = {
-        width: width / 2,
-        left: i * width / 2,
-        top: 0,
-        height
-      }
-      return this.renderSection(t, style, width / 2)
-    })
+    const localVisible = this.state.localPanelVisible
+    const localWidth = width * this.state.localPanelWidth / 100
+    const dividerWidth = 10
+    const remoteWidth = Math.max(0, width - (localVisible ? localWidth + dividerWidth : 0))
+    const sections = []
+    if (localVisible) {
+      sections.push(this.renderSection(typeMap.local, {
+        width: localWidth,
+        height,
+        flex: `0 0 ${localWidth}px`
+      }, localWidth))
+      sections.push(
+        <div
+          key='sftp-divider'
+          className={classnames('sftp-panel-divider', {
+            dragging: this.state.sftpPanelResizing
+          })}
+          role='separator'
+          tabIndex={0}
+          aria-label='调整本地和远程文件面板宽度'
+          aria-valuemin={20}
+          aria-valuemax={80}
+          aria-valuenow={Math.round(this.state.localPanelWidth)}
+          onPointerDown={this.handleSftpPanelResize}
+          onKeyDown={this.handleSftpDividerKeyDown}
+        />
+      )
+    }
+    sections.push(this.renderSection(typeMap.remote, {
+      width: remoteWidth,
+      height,
+      flex: '1 1 auto'
+    }, remoteWidth))
+    return sections
   }
 
   render () {
@@ -1444,6 +1825,7 @@ export default class Sftp extends Component {
     return (
       <div
         {...all}
+        ref={ref => { this.sftpWrapRef = ref }}
       >
         {
           this.renderSections()

@@ -6,11 +6,7 @@ import Modal from '../components/common/modal'
 import message from '../components/common/message'
 import { isString } from 'lodash-es'
 import getInitItem from '../common/init-setting-item'
-import {
-  settingMap,
-  maxZoom,
-  minZoom
-} from '../common/constants'
+import { settingMap } from '../common/constants'
 import {
   featureIds,
   getFeatureLockedMessage,
@@ -21,21 +17,11 @@ const e = window.translate
 
 export default Store => {
   Store.prototype.zoom = function (level = 1, plus = false, zoomOnly) {
-    let nl = plus
-      ? window.pre.getZoomFactor() + level
-      : level
-    if (nl > maxZoom) {
-      nl = maxZoom
-    } else if (nl < minZoom) {
-      nl = minZoom
+    // 2026-08-30 coder(lq): Keep the application display at the native 100% scale; retain this method as a compatibility no-op for older menu/shortcut calls.
+    window.pre.setZoomFactor(1)
+    if (!zoomOnly && window.store.config?.zoom !== 1) {
+      window.store.updateConfig({ zoom: 1 })
     }
-    window.pre.setZoomFactor(nl)
-    if (zoomOnly) {
-      return
-    }
-    window.store.updateConfig({
-      zoom: nl
-    })
   }
 
   Store.prototype.onZoomIn = function () {

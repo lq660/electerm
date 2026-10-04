@@ -5,12 +5,9 @@
 import { Component } from 'react'
 import classnames from 'classnames'
 import Drawer from '../common/drawer'
-import { CloseCircleOutlined } from '@ant-design/icons'
+import { CloseOutlined } from '@ant-design/icons'
 import { ConfigProvider } from 'antd'
-import { sidebarWidth } from '../../common/constants'
-import AppDrag from '../tabs/app-drag'
 import { getWorkbenchAntdTheme } from '../../common/workbench-theme'
-import { getZoomPercent } from '../../common/zoom-display'
 import YunduoLogo from '../icons/yunduo-logo.jsx'
 import './setting-wrap.styl'
 
@@ -84,10 +81,13 @@ function getCompactSettingTheme (themeConfig) {
 }
 
 export default class SettingWrap extends Component {
-  renderDrag () {
-    return (
-      <AppDrag />
-    )
+  // 2026-09-22 coder(lq): Mask, Escape and the close button all use one safe dismiss path; Drawer may call it without a DOM event.
+  handleClose = (event) => {
+    event?.preventDefault()
+    event?.stopPropagation()
+    if (typeof this.props.onCancel === 'function') {
+      this.props.onCancel()
+    }
   }
 
   render () {
@@ -100,14 +100,13 @@ export default class SettingWrap extends Component {
     }
     const pops = {
       open: this.props.visible,
-      onClose: this.props.onCancel,
+      onClose: this.handleClose,
       className: classnames('setting-wrap', pageMeta.areaClass),
-      size: this.props.innerWidth - sidebarWidth,
-      zIndex: 888,
-      placement: 'left'
+      zIndex: 1200,
+      variant: 'modal',
+      ariaLabelledBy: 'setting-dialog-title'
     }
     const settingTheme = getCompactSettingTheme(window.store.getUiThemeConfig())
-    const zoomPercent = getZoomPercent(window.store.config?.zoom)
     return (
       <ConfigProvider theme={settingTheme}>
         <Drawer
@@ -119,27 +118,25 @@ export default class SettingWrap extends Component {
                 <YunduoLogo className='cn-setting-logo-mark' />
               </span>
               <span>
-                <strong>{pageMeta.title}</strong>
+                <strong id='setting-dialog-title'>{pageMeta.title}</strong>
                 <em>{pageMeta.desc}</em>
               </span>
             </div>
             <div className='cn-setting-status'>
               <span>{pageMeta.scope}</span>
-              <span>缩放 {zoomPercent}%</span>
               <b>{pageMeta.badge}</b>
             </div>
           </div>
-          <CloseCircleOutlined
-            className='close-setting-wrap-icon close-setting-wrap'
-            onClick={this.props.onCancel}
-          />
-          <CloseCircleOutlined
-            className='close-setting-wrap alt-close-setting-wrap'
-            onClick={this.props.onCancel}
-          />
-          {
-            this.props.useSystemTitleBar ? null : <AppDrag />
-          }
+          <button
+            type='button'
+            className='close-setting-wrap close-setting-button'
+            aria-label={`关闭${pageMeta.title}`}
+            title={`关闭${pageMeta.title}`}
+            onMouseDown={(event) => event.stopPropagation()}
+            onClick={this.handleClose}
+          >
+            <CloseOutlined />
+          </button>
           {this.props.children}
         </Drawer>
       </ConfigProvider>

@@ -223,7 +223,7 @@ export default class Upgrade extends PureComponent {
             更新检查失败：{err}
           </span>
           <span className='fright'>
-            <CloseOutlined className='pointer font16 close-upgrade-panel' onClick={this.handleClose} />
+            <button type='button' className='close-upgrade-panel' aria-label='关闭更新提示' title='关闭更新提示' onClick={this.handleClose}><CloseOutlined /></button>
           </span>
         </div>
         <div className='upgrade-panel-body'>

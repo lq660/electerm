@@ -53,7 +53,8 @@ export default class ConfirmModalStore extends Component {
       const { id, transferBatch } = transfer
       const trid = `tr-${transferBatch}-${id}`
       const currentTransfer = refsTransfers.get(trid)
-      currentTransfer?.onDecision(globalPolicy)
+      const decision = currentTransfer?.onDecision(globalPolicy)
+      decision?.catch?.(console.error)
       return
     }
     this.queue.push(transfer)
@@ -74,47 +75,51 @@ export default class ConfirmModalStore extends Component {
     })
   }
 
-  act = (action) => {
-    if (!this.state.transferToConfirm) {
-      return
-    }
-    const { id, transferBatch } = this.state.transferToConfirm
-    const toAll = action.includes('All')
-    const policy = toAll ? action.replace('All', '') : action
-    const trid = `tr-${transferBatch}-${id}`
-    const doFilter = toAll && transferBatch
+  act = async (action) => {
+    try {
+      if (!this.state.transferToConfirm) {
+        return
+      }
+      const { id, transferBatch } = this.state.transferToConfirm
+      const toAll = action.includes('All')
+      const policy = toAll ? action.replace('All', '') : action
+      const trid = `tr-${transferBatch}-${id}`
+      const doFilter = toAll && transferBatch
 
-    // For "All" actions, update all existing transfers in the same batch
-    if (doFilter) {
-      // Update all existing transfers with same batch ID in DOM
-      const prefix = `tr-${transferBatch}-`
-      const pendingConflictIds = new Set([
-        id,
-        ...this.queue
-          .filter(d => d.transferBatch === transferBatch)
-          .map(d => d.id)
-      ])
-      for (const [key, r] of window.refsTransfers.entries()) {
-        if (key.startsWith(prefix)) {
-          r.resolvePolicy = policy
-          const transferId = r.props.transfer?.id
-          if (key !== trid && pendingConflictIds.has(transferId)) {
-            r.onDecision(policy)
+      // For "All" actions, update all existing transfers in the same batch
+      if (doFilter) {
+        // Update all existing transfers with same batch ID in DOM
+        const prefix = `tr-${transferBatch}-`
+        const pendingConflictIds = new Set([
+          id,
+          ...this.queue
+            .filter(d => d.transferBatch === transferBatch)
+            .map(d => d.id)
+        ])
+        for (const [key, r] of window.refsTransfers.entries()) {
+          if (key.startsWith(prefix)) {
+            r.resolvePolicy = policy
+            const transferId = r.props.transfer?.id
+            if (key !== trid && pendingConflictIds.has(transferId)) {
+              await r.onDecision(policy)
+            }
           }
         }
+        this.queue = this.queue.filter(d => d.transferBatch !== transferBatch)
       }
-      this.queue = this.queue.filter(d => d.transferBatch !== transferBatch)
+
+      // Resolve current conflict
+      const currentTransfer = refsTransfers.get(trid)
+      await currentTransfer?.onDecision(policy)
+
+      // Move to the next item
+      this.activeTransferId = null
+      this.setState({
+        transferToConfirm: null
+      }, this.showNext)
+    } catch (error) {
+      console.error(error)
     }
-
-    // Resolve current conflict
-    const currentTransfer = refsTransfers.get(trid)
-    currentTransfer?.onDecision(policy)
-
-    // Move to the next item
-    this.activeTransferId = null
-    this.setState({
-      transferToConfirm: null
-    }, this.showNext)
   }
 
   renderContent () {

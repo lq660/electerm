@@ -30,9 +30,14 @@ export default function SerialPathSelector ({
         />
       </FormItem>
       <Spin spinning={loaddingSerials}>
-        <span onClick={store.handleGetSerials} className='pointer'>
+        <button
+          type='button'
+          onClick={store.handleGetSerials}
+          className='pointer serial-path-reload'
+          aria-label={`${e('reload')} ${e('serials')}`}
+        >
           <ReloadOutlined /> {e('reload')} {e('serials')}
-        </span>
+        </button>
       </Spin>
     </FormItem>
   )

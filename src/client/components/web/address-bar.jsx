@@ -1,16 +1,13 @@
 import {
   Input,
   Tooltip,
-  Dropdown,
   Space
 } from 'antd'
 import { copy } from '../../common/clipboard'
 import {
   ReloadOutlined,
-  GlobalOutlined,
-  EllipsisOutlined
+  GlobalOutlined
 } from '@ant-design/icons'
-import ZoomControl from '../common/zoom-control'
 
 export default function AddressBar (props) {
   const {
@@ -18,9 +15,7 @@ export default function AddressBar (props) {
     onReload,
     onOpen,
     title,
-    description,
-    zoom,
-    onZoom
+    description
   } = props
   const content = (
     <>
@@ -31,19 +26,6 @@ export default function AddressBar (props) {
   function handleClick () {
     copy(url)
   }
-  const items = [
-    {
-      key: 'zoom',
-      label: (
-        <div onClick={e => e.stopPropagation()}>
-          <ZoomControl
-            value={zoom}
-            onChange={onZoom}
-          />
-        </div>
-      )
-    }
-  ]
   return (
     <div className='web-address-bar pd1'>
       <Tooltip
@@ -64,12 +46,6 @@ export default function AddressBar (props) {
                 onClick={onOpen}
                 title={window.translate('openInDefaultBrowser')}
               />
-              <Dropdown
-                menu={{ items }}
-                trigger={['click']}
-              >
-                <EllipsisOutlined className='pointer' />
-              </Dropdown>
             </Space>
           }
         />

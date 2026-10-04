@@ -16,14 +16,29 @@
 
 import { Component, createRef } from 'react'
 
-const ITEM_SIZE = 36 // 32px item height + 4px margin-bottom
+const ITEM_SIZE = 36 // Default before the rendered theme-specific row height is measured.
 const OVERSCAN = 5
 
 export default class VirtualList extends Component {
   rootRef = createRef()
 
+  // 2026-09-25 coder(lq): Keyboard selection can target a virtual row that is not mounted yet, so scroll by its calculated position first.
+  scrollToIndex = (index) => {
+    const root = this.rootRef.current
+    const container = root?.parentElement
+    if (!root || !container || index < 0) return
+    const itemSize = this.props.itemSize || ITEM_SIZE
+    const itemTop = root.offsetTop + index * itemSize
+    const itemBottom = itemTop + itemSize
+    if (itemTop < container.scrollTop) {
+      container.scrollTop = itemTop
+    } else if (itemBottom > container.scrollTop + container.clientHeight) {
+      container.scrollTop = itemBottom - container.clientHeight
+    }
+  }
+
   render () {
-    const { list, renderItem, containerHeight = 400, scrollTop = 0 } = this.props
+    const { list, renderItem, containerHeight = 400, scrollTop = 0, itemSize = ITEM_SIZE } = this.props
 
     // offsetTop: distance from scroll container top to this list's top.
     // rootRef.offsetTop is relative to the nearest positioned ancestor, which is
@@ -33,15 +48,15 @@ export default class VirtualList extends Component {
 
     const startIndex = Math.max(
       0,
-      Math.floor((scrollTop - offsetTop) / ITEM_SIZE) - OVERSCAN
+      Math.floor((scrollTop - offsetTop) / itemSize) - OVERSCAN
     )
     const endIndex = Math.min(
       list.length - 1,
-      Math.ceil((scrollTop + containerHeight - offsetTop) / ITEM_SIZE) + OVERSCAN
+      Math.ceil((scrollTop + containerHeight - offsetTop) / itemSize) + OVERSCAN
     )
 
-    const topSpacerHeight = startIndex * ITEM_SIZE
-    const bottomSpacerHeight = Math.max(0, (list.length - endIndex - 1) * ITEM_SIZE)
+    const topSpacerHeight = startIndex * itemSize
+    const bottomSpacerHeight = Math.max(0, (list.length - endIndex - 1) * itemSize)
 
     return (
       <div ref={this.rootRef}>

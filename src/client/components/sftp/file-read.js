@@ -114,6 +114,12 @@ function toMs (ms, date) {
 export const getLocalFileInfo = async (filePath) => {
   const statr = await window.fs.statAsync(filePath)
   const stat = await window.fs.lstatAsync(filePath)
+  const isDirectory = toIsDirectory(statr)
+  const isSymbolicLink = toIsSymbolicLink(stat)
+  // 2026-10-01 coder(lq): Recursive size tools measure a link entry instead of its target, so keep the resolved directory target for the asynchronous size queue.
+  const folderSizePath = isDirectory && isSymbolicLink
+    ? await window.fs.realpath(filePath).catch(() => '')
+    : ''
   return {
     size: stat.size,
     accessTime: toMs(stat.atimeMs, stat.atime),
@@ -124,8 +130,9 @@ export const getLocalFileInfo = async (filePath) => {
     type: 'local',
     ...getFolderFromFilePath(filePath, false),
     id: generate(),
-    isDirectory: toIsDirectory(statr),
-    isSymbolicLink: toIsSymbolicLink(stat)
+    isDirectory,
+    isSymbolicLink,
+    ...(folderSizePath ? { folderSizePath } : {})
   }
 }
 

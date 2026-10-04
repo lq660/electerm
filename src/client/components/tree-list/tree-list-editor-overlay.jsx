@@ -14,8 +14,8 @@ export default function TreeListEditorOverlay ({ editor }) {
 
   const confirm = (
     <span>
-      <CheckOutlined className='pointer' onClick={editor.handleSubmit} />
-      <CloseOutlined className='mg1l pointer' onClick={editor.handleCancel} />
+      <button type='button' className='icon-button' aria-label='确认' title='确认' onClick={editor.handleSubmit}><CheckOutlined /></button>
+      <button type='button' className='icon-button mg1l' aria-label='取消' title='取消' onClick={editor.handleCancel}><CloseOutlined /></button>
     </span>
   )
   const colorPicker = (

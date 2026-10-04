@@ -129,22 +129,16 @@ function NotificationItem ({ message, description, type, onClose, duration = 18.
         <div className='notification-message'>
           <div className='notification-icon'>{messageIcons[type]}</div>
           <div className='notification-title' title={message}>{message}</div>
-          <CopyOutlined
-            className='notification-copy-icon'
-            onClick={(e) => handleCopy(message, e)}
-          />
+          <button type='button' className='notification-copy-icon' aria-label='复制' title='复制' onClick={(e) => handleCopy(message, e)}><CopyOutlined /></button>
         </div>
         {description && (
           <div className='notification-description'>
             {description}
-            <CopyOutlined
-              className='notification-copy-icon'
-              onClick={(e) => handleCopy(description, e)}
-            />
+            <button type='button' className='notification-copy-icon' aria-label='复制' title='复制' onClick={(e) => handleCopy(description, e)}><CopyOutlined /></button>
           </div>
         )}
       </div>
-      <CloseOutlined className='notification-close' onClick={onClose} />
+      <button type='button' className='notification-close' aria-label='关闭通知' title='关闭通知' onClick={onClose}><CloseOutlined /></button>
     </div>
   )
 }

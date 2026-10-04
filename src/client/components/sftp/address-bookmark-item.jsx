@@ -60,7 +60,15 @@ export default class AddrBookmarkItem extends Component {
       <div
         key={item.id}
         className='sftp-history-item addr-bookmark-item'
+        role='button'
+        tabIndex={0}
         onClick={this.handleClick}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            this.handleClick()
+          }
+        }}
         data-id={id}
         draggable
         onDragOver={this.handleDragOver}
@@ -69,10 +77,15 @@ export default class AddrBookmarkItem extends Component {
       >
         {globTag}
         <b className='mg1l'>{item.addr}</b>
-        <CloseCircleOutlined
+        <button
+          type='button'
           className='del-addr-bookmark'
+          aria-label='删除地址书签'
+          title='删除地址书签'
           onClick={this.handleDel}
-        />
+        >
+          <CloseCircleOutlined />
+        </button>
       </div>
     )
   }

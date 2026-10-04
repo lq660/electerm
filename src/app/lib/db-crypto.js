@@ -1,4 +1,4 @@
-const { encrypt, decrypt } = require('./enc')
+const { encrypt, decrypt, decryptAsync } = require('./enc')
 const { getStorageKey } = require('./storage-key')
 
 const LOCAL_PREFIX = 'v3:local:'
@@ -27,8 +27,20 @@ function decryptDbValue (value) {
   return value
 }
 
+// 2026-09-09 coder(lq): Keep existing ciphertext compatible while moving costly key derivation off the main event loop.
+async function decryptDbValueAsync (value) {
+  if (value.startsWith(LOCAL_PREFIX)) {
+    return decryptAsync(value.slice(LOCAL_PREFIX.length), getStorageKey())
+  }
+  if (value.startsWith(SAFE_PREFIX)) {
+    throw new LegacySafeStorageDisabledError()
+  }
+  return value
+}
+
 module.exports = {
   encryptDbValue,
   decryptDbValue,
+  decryptDbValueAsync,
   LegacySafeStorageDisabledError
 }

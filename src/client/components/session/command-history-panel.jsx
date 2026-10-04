@@ -12,6 +12,7 @@ import {
 import { copy } from '../../common/clipboard'
 import { normalizeTerminalCommandForHistory } from '../../common/terminal-command-history.mjs'
 import message from '../common/message'
+import HistoryReady from '../common/history-ready'
 
 function formatHistoryTime (value) {
   if (!value) return '未知时间'
@@ -73,7 +74,11 @@ function mergeHistoryItems (items) {
   }, new Map()).values()
 }
 
-export default auto(function CommandHistoryPanel ({ tab, activeTerminalTitle, onUseCommand }) {
+export default function CommandHistoryWithData (props) {
+  return <HistoryReady names={['terminalCommandHistory']}><CommandHistoryPanel {...props} /></HistoryReady>
+}
+
+const CommandHistoryPanel = auto(function CommandHistoryPanel ({ tab, activeTerminalTitle, onUseCommand }) {
   const [keyword, setKeyword] = useState('')
   const [scope, setScope] = useState('current')
   const [sortType, setSortType] = useState('recent')
@@ -127,6 +132,7 @@ export default auto(function CommandHistoryPanel ({ tab, activeTerminalTitle, on
       <div className='cn-command-history-item' key={item.id || item.cmd}>
         {/* 2026-07-29 coder(lq): Keep row click as input-only; the play icon is the explicit execute action for safer ops history reuse. */}
         <button
+          type='button'
           className='cn-command-history-command'
           title='填入当前终端，确认后再执行'
           onClick={() => handleSend(item.cmd, false)}
@@ -138,13 +144,13 @@ export default auto(function CommandHistoryPanel ({ tab, activeTerminalTitle, on
           </span>
         </button>
         <div className='cn-command-history-actions'>
-          <button title='立即执行' onClick={() => handleSend(item.cmd, true)}>
+          <button type='button' title='立即执行' onClick={() => handleSend(item.cmd, true)}>
             <PlayCircleOutlined />
           </button>
-          <button title='填入终端' onClick={() => handleSend(item.cmd, false)}>
+          <button type='button' title='填入终端' onClick={() => handleSend(item.cmd, false)}>
             <SendOutlined />
           </button>
-          <button title='复制命令' onClick={(event) => handleCopy(item.cmd, event)}>
+          <button type='button' title='复制命令' onClick={(event) => handleCopy(item.cmd, event)}>
             <CopyOutlined />
           </button>
           <Popconfirm
@@ -153,7 +159,7 @@ export default auto(function CommandHistoryPanel ({ tab, activeTerminalTitle, on
             cancelText='取消'
             onConfirm={(event) => handleDelete(item.cmd, event)}
           >
-            <button title='删除命令'>
+            <button type='button' title='删除命令'>
               <DeleteOutlined />
             </button>
           </Popconfirm>
@@ -182,12 +188,14 @@ export default auto(function CommandHistoryPanel ({ tab, activeTerminalTitle, on
         />
         <div className='cn-command-history-segments'>
           <button
+            type='button'
             className={scope === 'current' ? 'active' : ''}
             onClick={() => setScope('current')}
           >
             当前会话 {currentCount}
           </button>
           <button
+            type='button'
             className={scope === 'all' ? 'active' : ''}
             onClick={() => setScope('all')}
           >
@@ -196,12 +204,14 @@ export default auto(function CommandHistoryPanel ({ tab, activeTerminalTitle, on
         </div>
         <div className='cn-command-history-segments'>
           <button
+            type='button'
             className={sortType === 'recent' ? 'active' : ''}
             onClick={() => setSortType('recent')}
           >
             最近使用
           </button>
           <button
+            type='button'
             className={sortType === 'count' ? 'active' : ''}
             onClick={() => setSortType('count')}
           >
@@ -231,7 +241,7 @@ export default auto(function CommandHistoryPanel ({ tab, activeTerminalTitle, on
               cancelText='取消'
               onConfirm={handleClearAll}
             >
-              <button>清空</button>
+              <button type='button'>清空</button>
             </Popconfirm>
           </div>
           )

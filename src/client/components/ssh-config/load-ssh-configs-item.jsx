@@ -43,29 +43,13 @@ export default function LoadSshConfigsItem (props) {
   function renderActions () {
     if (isEditing) {
       return [
-        <CheckOutlined
-          className='mg1r pointer icon-success'
-          onClick={handleToggleEdit}
-          key='confirm-ssh-config-item'
-        />,
-        <CloseOutlined
-          className='mg1r pointer icon-warning'
-          onClick={handleCancelEdit}
-          key='cancel-ssh-config-item'
-        />
+        <button type='button' className='mg1r icon-success icon-button' aria-label='确认编辑' title='确认编辑' onClick={handleToggleEdit} key='confirm-ssh-config-item'><CheckOutlined /></button>,
+        <button type='button' className='mg1r icon-warning icon-button' aria-label='取消编辑' title='取消编辑' onClick={handleCancelEdit} key='cancel-ssh-config-item'><CloseOutlined /></button>
       ]
     }
     return [
-      <EditOutlined
-        className='mg1r pointer ssh-config-item-edit-icon'
-        onClick={handleToggleEdit}
-        key='edit-ssh-config-item'
-      />,
-      <DeleteOutlined
-        className='pointer icon-danger ssh-config-item-delete-icon'
-        onClick={handleDelete}
-        key='del-ssh-config-item'
-      />
+      <button type='button' className='mg1r icon-button ssh-config-item-edit-icon' aria-label='编辑' title='编辑' onClick={handleToggleEdit} key='edit-ssh-config-item'><EditOutlined /></button>,
+      <button type='button' className='icon-button icon-danger ssh-config-item-delete-icon' aria-label='删除' title='删除' onClick={handleDelete} key='del-ssh-config-item'><DeleteOutlined /></button>
     ]
   }
 

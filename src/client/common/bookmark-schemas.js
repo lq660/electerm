@@ -2,7 +2,7 @@
  * Bookmark schemas (ES module version for client)
  * Mirrors src/app/common/bookmark-zod-schemas.js with additional types
  */
-import { z } from './zod'
+import { z } from './zod.js'
 
 // const runScriptSchema = z.object({
 //   delay: z.number().optional().describe('Delay in ms before executing this command'),

@@ -7,6 +7,9 @@ export default class AttachAddonCustom {
     this.isWindowsShell = isWindowsShell
     this.outputSuppressed = false
     this.suppressedData = []
+    this.suppressionScanBuffer = ''
+    this.suppressionReleaseSequence = ''
+    this.suppressionReplayFromSequence = ''
     this.suppressTimeout = null
     this.onSuppressionEndCallback = null
     this.hasReceivedInitialData = false
@@ -42,6 +45,9 @@ export default class AttachAddonCustom {
   startOutputSuppression = (timeout = 3000, onEnd = null, discardOnTimeout = false) => {
     this.outputSuppressed = true
     this.suppressedData = []
+    this.suppressionScanBuffer = ''
+    this.suppressionReleaseSequence = ''
+    this.suppressionReplayFromSequence = ''
     this.onSuppressionEndCallback = onEnd
     this.suppressTimeout = setTimeout(() => {
       if (!discardOnTimeout) {
@@ -49,6 +55,19 @@ export default class AttachAddonCustom {
       }
       this.stopOutputSuppression(discardOnTimeout)
     }, timeout)
+  }
+
+  // 2026-09-10 coder(lq): Keep a hidden terminal transaction suppressed until its complete prompt marker arrives, even across socket chunks.
+  startOutputSuppressionUntil = (releaseSequence, options = {}) => {
+    const {
+      timeout = 3000,
+      onEnd = null,
+      discardOnTimeout = false,
+      replayFromSequence = ''
+    } = options
+    this.startOutputSuppression(timeout, onEnd, discardOnTimeout)
+    this.suppressionReleaseSequence = releaseSequence
+    this.suppressionReplayFromSequence = replayFromSequence
   }
 
   stopOutputSuppression = (discard = true) => {
@@ -64,6 +83,9 @@ export default class AttachAddonCustom {
       }
     }
     this.suppressedData = []
+    this.suppressionScanBuffer = ''
+    this.suppressionReleaseSequence = ''
+    this.suppressionReplayFromSequence = ''
 
     if (this.onSuppressionEndCallback) {
       const callback = this.onSuppressionEndCallback
@@ -191,6 +213,38 @@ export default class AttachAddonCustom {
         } catch (e) {
           str = ''
         }
+      }
+
+      if (this.suppressionReleaseSequence) {
+        this.suppressedData.push(data)
+        this.suppressionScanBuffer += str
+        const releaseIndex = this.suppressionScanBuffer.indexOf(this.suppressionReleaseSequence)
+        if (releaseIndex < 0) {
+          return
+        }
+
+        let replayIndex = releaseIndex
+        if (this.suppressionReplayFromSequence) {
+          const candidate = this.suppressionScanBuffer.lastIndexOf(
+            this.suppressionReplayFromSequence,
+            releaseIndex
+          )
+          if (candidate >= 0) {
+            replayIndex = candidate
+          }
+        }
+        const releaseEnd = releaseIndex + this.suppressionReleaseSequence.length
+        const replayData = this.suppressionScanBuffer.slice(
+          replayIndex < releaseIndex ? replayIndex : releaseEnd
+        )
+        const onEnd = this.onSuppressionEndCallback
+        this.onSuppressionEndCallback = null
+        this.stopOutputSuppression(true)
+        if (replayData) {
+          this.writeToTerminalDirect(replayData)
+        }
+        onEnd?.()
+        return
       }
 
       if (this.checkForShellIntegration(str)) {

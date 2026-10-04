@@ -55,6 +55,8 @@ app.on('render-process-gone', (event, webContents, details) => {
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
+  // 2026-10-04 coder(lq): Record every main-process exception; previously non-GPU failures were silently swallowed and left no diagnostic evidence.
+  log.error('uncaughtException', error)
   const errorMsg = error?.message || ''
   // Check if it's GPU related
   if (

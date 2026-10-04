@@ -16,6 +16,11 @@
   position absolute
   right 0
   top 0
+  padding 0
+  border 0
+  background transparent
+  color inherit
+  cursor pointer
 .list-item-autorun
   right 24px
 
@@ -27,6 +32,9 @@
   margin-bottom 1px
   cursor pointer
   line-height 1.8
+  &:focus-visible
+    outline 2px solid var(--primary)
+    outline-offset -2px
   &.active
     background var(--primary)
     color var(--primary-contrast)

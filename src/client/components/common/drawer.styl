@@ -1,7 +1,8 @@
 .custom-drawer
   position fixed
   top 0
-  left 43px
+  // 2026-09-22 coder(lq): Global drawers cover the full window now that the persistent left rail has been removed.
+  left 0
   right 0
   bottom 0
 
@@ -41,3 +42,41 @@
 .custom-drawer-content
   background #f5f7fb !important
   color #1f2937 !important
+
+// 2026-09-22 coder(lq): Settings and resource management use the same shell, but a modal variant keeps them visually separate from the main workspace.
+.custom-drawer-modal
+  left 0
+  display flex
+  align-items center
+  justify-content center
+  padding 28px 32px
+  box-sizing border-box
+
+  .custom-drawer-content-wrapper
+    position relative
+    top auto
+    bottom auto
+    left auto !important
+    right auto !important
+    width calc(100vw - 64px)
+    height calc(100vh - 56px)
+    max-width 1480px
+    max-height 940px
+    border 1px solid var(--workbench-border-strong, #d8e0ea)
+    border-radius 10px
+    box-shadow 0 24px 64px rgba(15, 23, 42, .22)
+    overflow hidden
+    z-index 1
+    outline none
+
+  .custom-drawer-content
+    overflow hidden
+
+@media (max-width: 760px), (max-height: 620px)
+  .custom-drawer-modal
+    padding 10px
+
+    .custom-drawer-content-wrapper
+      width calc(100vw - 20px)
+      height calc(100vh - 20px)
+      border-radius 8px

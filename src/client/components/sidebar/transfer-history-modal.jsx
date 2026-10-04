@@ -20,6 +20,7 @@ const sorterFactory = prop => {
 }
 export default memo(function TransferHistoryModal (props) {
   const [pageSize, setPageSize] = useState(5)
+  const tableScrollX = 1040
 
   const handlePageSizeChange = (page, pageSize) => {
     setPageSize(pageSize)
@@ -34,18 +35,21 @@ export default memo(function TransferHistoryModal (props) {
     dataIndex: 'startTime',
     key: 'startTime',
     sorter: sorterFactory('startTime'),
+    width: 132,
     render: timeRender
   }, {
     title: e('finishTime'),
     dataIndex: 'finishTime',
     key: 'finishTime',
     sorter: sorterFactory('finishTime'),
+    width: 132,
     render: timeRender
   }, {
     title: e('type'),
     dataIndex: 'type',
     key: 'typeFrom',
     sorter: sorterFactory('typeFrom'),
+    width: 92,
     render: (type, inst) => {
       return (
         <Tag transfer={inst} variant='solid' />
@@ -55,11 +59,15 @@ export default memo(function TransferHistoryModal (props) {
     title: e('host'),
     dataIndex: 'host',
     key: 'host',
-    sorter: sorterFactory('host')
+    sorter: sorterFactory('host'),
+    width: 140,
+    ellipsis: true
   }, {
     title: e('fromPath'),
     dataIndex: 'fromPath',
     key: 'fromPath',
+    width: 220,
+    ellipsis: true,
     render: (txt, inst) => {
       const t = inst.fromPathReal || txt
       return (
@@ -71,6 +79,8 @@ export default memo(function TransferHistoryModal (props) {
     title: e('toPath'),
     dataIndex: 'toPath',
     key: 'toPath',
+    width: 220,
+    ellipsis: true,
     render: (txt, inst) => {
       const t = inst.toPathReal || txt
       return (
@@ -83,17 +93,24 @@ export default memo(function TransferHistoryModal (props) {
     dataIndex: 'size',
     key: 'size',
     sorter: sorterFactory('size'),
+    width: 92,
     render: (v) => filesize(v || 0)
   }, {
     title: e('speed'),
     dataIndex: 'speed',
     key: 'speed',
-    sorter: sorterFactory('speed')
+    sorter: sorterFactory('speed'),
+    width: 112,
+    ellipsis: true
   }]
   const tabConf = {
     dataSource: transferHistory,
     columns,
     bordered: true,
+    tableLayout: 'fixed',
+    scroll: {
+      x: tableScrollX
+    },
     pagination: {
       pageSize,
       showSizeChanger: true,
@@ -107,13 +124,10 @@ export default memo(function TransferHistoryModal (props) {
   return (
     <div className='pd2 cn-transfer-history'>
       <div className='cn-transfer-history-actions'>
-        <span
-          className='iblock pointer cn-transfer-clear'
-          onClick={clearTransferHistory}
-        >
+        <button type='button' className='iblock cn-transfer-clear' aria-label={e('clear')} title={e('clear')} onClick={clearTransferHistory}>
           <CloseOutlined className='mg1r' />
           {e('clear')}
-        </span>
+        </button>
       </div>
       <div className='table-scroll-wrap'>
         <Table

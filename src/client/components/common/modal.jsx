@@ -124,6 +124,8 @@ export default function Modal (props) {
               <button
                 type='button'
                 className='custom-modal-close'
+                aria-label='关闭'
+                title='关闭'
                 onClick={handleClose}
               >
                 <CloseOutlined />

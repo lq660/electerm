@@ -80,6 +80,10 @@ export default () => {
     // terminalCommandHistory: [{ id, cmd, count, lastUseTime }]
     // Loaded from DB in initData
     terminalCommandHistory: [],
+    historyLoadState: {
+      terminalCommandHistory: 'idle',
+      aiChatHistory: 'idle'
+    },
 
     // workspaces
     workspaces: [],
@@ -92,7 +96,8 @@ export default () => {
     // batch input selected tab ids
     _batchInputSelectedTabIds: new Set(),
     aiChatHistory: [],
-    agentRunning: false,
+    // 2026-08-31 coder(lq): AI tasks are isolated by terminal so one busy Shell does not lock every AI panel.
+    agentRunningScopes: {},
 
     // sftp
     fileOperation: fileOperationsMap.cp, // cp or mv

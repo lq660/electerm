@@ -8,9 +8,12 @@ const { resolve } = require('path')
 const fs = require('fs')
 const uid = require('../common/uid')
 const { DatabaseSync } = require('node:sqlite')
+const asyncMapLimit = require('./async-map-limit')
 
 // Tables whose stored data values should be encrypted at rest
 const ENC_TABLES = new Set(['bookmarks', 'profiles', 'data', 'history', 'terminalCommandHistory', 'aiChatHistory'])
+const LAZY_HISTORY_TABLES = new Set(['terminalCommandHistory', 'aiChatHistory'])
+const HISTORY_DECRYPT_CONCURRENCY = 4
 
 // Within the 'data' table, only this specific record is encrypted
 const DATA_ENC_ID = 'userConfig'
@@ -18,7 +21,7 @@ const DATA_ENC_ID = 'userConfig'
 // Prefix added to stored strings to mark them as encrypted
 const ENC_PREFIX = 'enc:'
 
-function createDb (appPath, defaultUserName, { enc, dec } = {}) {
+function createDb (appPath, defaultUserName, { enc, dec, decAsync = dec } = {}) {
   const appDataPath = process.env.DATA_PATH || resolve(appPath, 'electerm')
 
   if (!fs.existsSync(appDataPath)) {
@@ -86,9 +89,9 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
    * value was stored without encryption.
    */
   function decryptData (stored) {
-    if (!dec || !stored) return stored
+    if (!decAsync || !stored) return stored
     if (!stored.startsWith(ENC_PREFIX)) return stored
-    return dec(stored.slice(ENC_PREFIX.length))
+    return decAsync(stored.slice(ENC_PREFIX.length))
   }
 
   function shouldEncForRow (dbName, id) {
@@ -96,11 +99,11 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
     return ENC_TABLES.has(dbName)
   }
 
-  function toDoc (row, dbName) {
+  async function toDoc (row, dbName) {
     if (!row) return null
-    const shouldDec = dec && shouldEncForRow(dbName, row._id)
+    const shouldDec = decAsync && shouldEncForRow(dbName, row._id)
     try {
-      const raw = shouldDec ? decryptData(row.data) : row.data
+      const raw = shouldDec ? await decryptData(row.data) : row.data
       const result = JSON.parse(raw || '{}')
       lockedRows.delete(`${dbName}:${row._id}`)
       return {
@@ -163,7 +166,12 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
       const sql = `SELECT * FROM \`${dbName}\``
       const stmt = db.prepare(sql)
       const rows = stmt.all()
-      return (rows || []).map(row => toDoc(row, dbName)).filter(Boolean)
+      // 2026-09-11 coder(lq): Decrypt lazy history with a small worker pool so long encrypted chats load faster without flooding crypto workers.
+      const concurrency = LAZY_HISTORY_TABLES.has(dbName)
+        ? HISTORY_DECRYPT_CONCURRENCY
+        : 1
+      const docs = await asyncMapLimit(rows, concurrency, row => toDoc(row, dbName))
+      return docs.filter(Boolean)
     } else if (op === 'findOne') {
       const query = args[0] || {}
       const sql = `SELECT * FROM \`${dbName}\` WHERE _id = ? LIMIT 1`

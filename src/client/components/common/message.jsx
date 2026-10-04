@@ -63,7 +63,7 @@ function MessageItem ({ id, type, content, duration, onRemove, timestamp }) {
       <div className='message-content-wrap'>
         {messageIcons[type]}
         <div className='message-content'>{content}</div>
-        <CloseOutlined className='message-close' onClick={onRemove} />
+        <button type='button' className='message-close' aria-label='关闭提示' title='关闭提示' onClick={onRemove}><CloseOutlined /></button>
       </div>
     </div>
   )

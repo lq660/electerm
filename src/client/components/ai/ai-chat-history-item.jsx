@@ -1,20 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import AIOutput from './ai-output'
+import { AiAttachmentList } from './ai-composer'
 import AIStopIcon from './ai-stop-icon'
 import AgentToolCallCard from './agent-tool-call-card'
-import { runAgentLoop } from './agent'
+import { registerAgentTask, startAgentTask, stopAgentTask } from './agent'
 import {
-  Alert,
-  Tooltip
-} from 'antd'
-import {
-  CopyOutlined,
-  CloseOutlined,
   BookOutlined,
   CaretDownOutlined,
-  CaretRightOutlined
+  CaretRightOutlined,
+  DeleteOutlined
 } from '@ant-design/icons'
-import { copy } from '../../common/clipboard'
 import createName from '../../common/create-title'
 import uid from '../../common/uid'
 import { safeGetItemJSON, safeSetItemJSON } from '../../common/safe-local-storage'
@@ -34,19 +29,21 @@ import {
   canCreateSolutionRecord,
   getSolutionRecordLimit
 } from '../../common/feature-plans'
+import { HighlightedText } from './search-highlight'
 
 const e = window.translate
 
-export default function AIChatHistoryItem ({ item }) {
-  const [showOutput, setShowOutput] = useState(true)
+export default function AIChatHistoryItem ({ item, readOnly = false, searchQuery = '' }) {
+  const [showExecutionDetails, setShowExecutionDetails] = useState(() => Boolean(
+    item.pending || item.streamingResponse || item.toolCalls?.some(tool => ['running', 'pending_confirm'].includes(tool.status))
+  ))
   const [isStreaming, setIsStreaming] = useState(false)
   const [savingRecord, setSavingRecord] = useState(false)
-  const abortRef = useRef(false)
+  const processWasActiveRef = useRef(false)
   const {
     prompt,
     requestPrompt,
     sessionId,
-    nameAI,
     modelAI,
     roleAI,
     baseURLAI,
@@ -54,10 +51,24 @@ export default function AIChatHistoryItem ({ item }) {
     apiKeyAI,
     proxyAI,
     authHeaderNameAI,
+    reasoningEffortAI,
     languageAI,
     mode,
     toolCalls
   } = item
+  const taskIsStreaming = mode === 'agent' ? Boolean(item.isStreaming) : isStreaming
+
+  useEffect(() => {
+    const processActive = Boolean(item.pending || item.queued || taskIsStreaming || toolCalls?.some(tool => ['running', 'pending_confirm'].includes(tool.status)))
+    if (processActive) {
+      processWasActiveRef.current = true
+      setShowExecutionDetails(true)
+    } else if (processWasActiveRef.current && item.response) {
+      // 2026-09-11 coder(lq): Keep live work visible, then collapse it once when the verified result arrives.
+      processWasActiveRef.current = false
+      setShowExecutionDetails(false)
+    }
+  }, [taskIsStreaming, item.pending, item.queued, item.response, toolCalls])
 
   function getCurrentSolutionTab () {
     const tabs = typeof window.store.getTabs === 'function' ? window.store.getTabs() : window.store.tabs || []
@@ -87,8 +98,9 @@ export default function AIChatHistoryItem ({ item }) {
     )
   }
 
-  function toggleOutput () {
-    setShowOutput(!showOutput)
+  function handleDel (e) {
+    e.stopPropagation()
+    window.store.removeAiHistory(item.id)
   }
 
   function buildRole () {
@@ -135,7 +147,9 @@ export default function AIChatHistoryItem ({ item }) {
         apiPathAI,
         apiKeyAI,
         proxyAI,
-        true
+        true,
+        authHeaderNameAI,
+        reasoningEffortAI
       )
 
       if (aiResponse && aiResponse.error) {
@@ -163,40 +177,31 @@ export default function AIChatHistoryItem ({ item }) {
     }
   }, [prompt, requestPrompt, modelAI, baseURLAI, apiPathAI, apiKeyAI, proxyAI, item.id, pollStreamContent])
 
-  const startAgentRequest = useCallback(async () => {
-    abortRef.current = false
-    const config = {
-      modelAI,
-      roleAI,
-      baseURLAI,
-      apiPathAI,
-      apiKeyAI,
-      proxyAI,
-      authHeaderNameAI,
-      languageAI
-    }
-    await runAgentLoop(item, config, abortRef, setIsStreaming)
-  }, [modelAI, roleAI, baseURLAI, apiPathAI, apiKeyAI, proxyAI, authHeaderNameAI, languageAI, item.id])
-
   useEffect(() => {
+    if (readOnly) {
+      return
+    }
+    if (mode === 'agent') {
+      if (item.pending) {
+        // 2026-09-23 coder(lq): Recover pending work restored from storage; normal sends start directly from the submit path.
+        startAgentTask(item)
+      }
+      return
+    }
+    const unregisterStop = registerAgentTask(item.id, stopTask)
     if (item.pending) {
       const index = window.store.aiChatHistory.findIndex(i => i.id === item.id)
       if (index !== -1) {
         window.store.aiChatHistory[index].pending = false
       }
-      if (mode === 'agent') {
-        startAgentRequest()
-      } else {
-        startRequest()
-      }
+      startRequest()
     }
-  }, [])
+    return unregisterStop
+  }, [readOnly])
 
-  async function handleStop (e) {
-    e.stopPropagation()
+  async function stopTask () {
     if (mode === 'agent') {
-      abortRef.current = true
-      setIsStreaming(false)
+      stopAgentTask(item.id)
       return
     }
     if (!sessionId) return
@@ -209,8 +214,16 @@ export default function AIChatHistoryItem ({ item }) {
     }
   }
 
+  async function handleStop (e) {
+    e.stopPropagation()
+    await stopTask()
+  }
+
   function renderStopButton () {
-    if (!isStreaming) {
+    const canStop = mode === 'agent'
+      ? Boolean(item.pending || item.queued || taskIsStreaming)
+      : taskIsStreaming
+    if (!canStop) {
       return null
     }
     return (
@@ -221,25 +234,11 @@ export default function AIChatHistoryItem ({ item }) {
     )
   }
 
-  const alertProps = {
-    title: (
-      <div className='ai-history-item-title'>
-        <span className='pointer mg1r' onClick={toggleOutput}>
-          {showOutput ? <CaretDownOutlined /> : <CaretRightOutlined />}
-        </span>
-        <span>{prompt}</span>
-      </div>
-    ),
-    type: 'info'
-  }
-
-  function handleDel (e) {
-    e.stopPropagation()
-    window.store.removeAiHistory(item.id)
-  }
-
-  function handleCopy () {
-    copy(prompt)
+  function renderQueueStatus () {
+    if (!item.queued) {
+      return null
+    }
+    return <span className='ai-history-queued-status' role='status'>排队中 · 将按顺序执行</span>
   }
 
   async function handleSaveSolutionRecord () {
@@ -274,7 +273,8 @@ export default function AIChatHistoryItem ({ item }) {
             apiKeyAI,
             proxyAI,
             false,
-            authHeaderNameAI
+            authHeaderNameAI,
+            reasoningEffortAI
           )
           if (!response?.error) {
             summary = parseSolutionSummary(response?.response)
@@ -314,55 +314,47 @@ export default function AIChatHistoryItem ({ item }) {
     }
   }
 
-  function renderTitle () {
-    return (
-      <div>
-        {nameAI && (
-          <p>
-            <b>{e('name')}:</b> {nameAI}
-          </p>
-        )}
-        <p>
-          <b>{e('model')}:</b> {modelAI}
-        </p>
-        <p>
-          <b>{e('role')}:</b> {roleAI}
-        </p>
-        <p>
-          <b>{e('baseURL')}:</b> {baseURLAI}
-        </p>
-        <p>
-          <b>{e('time')}:</b> {new Date(item.timestamp).toLocaleString()}
-        </p>
-        <p>
-          <CopyOutlined
-            className='pointer'
-            onClick={handleCopy}
-          />
-          <CloseOutlined
-            className='pointer mg1l'
-            onClick={handleDel}
-          />
-        </p>
-      </div>
-    )
-  }
-
-  function renderToolCalls () {
-    if (mode !== 'agent' || !toolCalls || !toolCalls.length) {
+  function renderExecutionProcess () {
+    const progressText = (item.agentProgress || [])
+      .map(progress => String(progress.content || '').trim())
+      .filter(Boolean)
+      .join('\n\n') || String(item.streamingResponse || '').trim()
+    const hasTools = Boolean(toolCalls?.length)
+    if (mode !== 'agent' || (!progressText && !hasTools && !taskIsStreaming && !item.pending)) {
       return null
     }
+    const detailCount = (item.agentProgress || []).filter(progress => String(progress.content || '').trim()).length + (toolCalls?.length || 0)
     return (
-      <div className='agent-tool-calls'>
-        {toolCalls.map((tc) => (
-          <AgentToolCallCard key={tc.id} toolCall={tc} />
-        ))}
+      <div className='ai-execution-details'>
+        <button
+          type='button'
+          className='ai-execution-details-toggle'
+          onClick={() => setShowExecutionDetails(!showExecutionDetails)}
+          aria-expanded={showExecutionDetails}
+        >
+          {showExecutionDetails ? <CaretDownOutlined /> : <CaretRightOutlined />}
+          <span>{taskIsStreaming || item.pending ? '执行中' : '执行过程'}</span>
+          {detailCount > 0 && <em>{detailCount} 项</em>}
+        </button>
+        {showExecutionDetails && (
+          <div className='ai-execution-details-body'>
+            {progressText && <AIOutput content={progressText} variant='progress' searchQuery={searchQuery} />}
+            {hasTools && (
+              <div className='agent-tool-calls'>
+                {toolCalls.map((tc) => (
+                  <AgentToolCallCard key={tc.id} toolCall={tc} searchQuery={searchQuery} />
+                ))}
+              </div>
+            )}
+            {!progressText && !hasTools && <div className='ai-execution-waiting' role='status'>正在分析任务…</div>}
+          </div>
+        )}
       </div>
     )
   }
 
   function renderSolutionRecordAction () {
-    if (isStreaming || !String(item.response || '').trim()) {
+    if (taskIsStreaming || !String(item.response || '').trim()) {
       return null
     }
     return (
@@ -373,27 +365,47 @@ export default function AIChatHistoryItem ({ item }) {
           title='AI 会整理当前问题、回复结果和实际执行命令，再保存到处理记录'
         >
           <BookOutlined />
-          <span>{savingRecord ? '整理保存中' : 'AI 整理并保存'}</span>
+          <span>{savingRecord ? '保存中' : '保存结果'}</span>
         </button>
       </div>
     )
   }
 
   return (
-    <div className='chat-history-item'>
-      <div className='mg1y'>
-        <Tooltip title={renderTitle()}>
-          <Alert {...alertProps} />
-        </Tooltip>
-      </div>
-      {showOutput && (
-        <div className='ai-history-item-body'>
-          {renderToolCalls()}
-          <AIOutput item={item} />
-          {renderSolutionRecordAction()}
+    <div className='chat-history-item ai-chat-turn'>
+      <section className='ai-chat-user-message' aria-label='你的消息'>
+        <div className='ai-chat-message-meta'>
+          <span>你</span>
+          <button
+            type='button'
+            className='pointer ai-history-meta-action'
+            onClick={handleDel}
+            aria-label='删除这一轮对话'
+            title='删除这一轮对话'
+          >
+            <DeleteOutlined />
+          </button>
         </div>
-      )}
-      {renderStopButton()}
+        <div className='ai-chat-user-bubble'>
+          <div className='ai-chat-user-text'><HighlightedText text={prompt} query={searchQuery} /></div>
+          <AiAttachmentList attachments={item.attachments} />
+        </div>
+        {renderQueueStatus()}
+      </section>
+      <section className='ai-chat-assistant-message' aria-label='AI 回复'>
+        <div className='ai-chat-message-meta'>
+          <span>AI Shell</span>
+          {renderStopButton()}
+        </div>
+        {renderExecutionProcess()}
+        <AIOutput content={item.response || (mode !== 'agent' ? item.streamingResponse : '')} variant='final' searchQuery={searchQuery} />
+        {!item.response && !item.streamingResponse && !(item.agentProgress || []).some(progress => progress.content) && (
+          <div className='ai-chat-message-placeholder' role='status'>
+            {item.queued ? '等待前面的任务完成' : item.pending || taskIsStreaming ? '正在处理…' : '暂无回复'}
+          </div>
+        )}
+        {renderSolutionRecordAction()}
+      </section>
     </div>
   )
 }

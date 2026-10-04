@@ -4,6 +4,7 @@ import AIConfigForm from './ai-config'
 import { aiConfigsArr } from './ai-config-props'
 import { pick } from 'lodash-es'
 import message from '../common/message'
+import { hasRunningAgentScopes } from '../../common/agent-running-scopes'
 
 const e = window.translate
 
@@ -23,12 +24,9 @@ export default auto(function AIConfigModal ({ store }) {
   }
 
   async function persistAiConfig (values) {
-    const nextConfig = {
-      ...window.store.config,
-      ...values
-    }
     try {
-      await window.pre.runGlobalAsync('saveUserConfig', nextConfig)
+      // 2026-09-22 coder(lq): Persist only the AI form patch so another window's stale config snapshot cannot overwrite newer settings.
+      await window.pre.runGlobalAsync('saveUserConfig', values)
       window.store.userConfigSaveLocked = false
       window.store.userConfigLockedNoticeShown = false
       window.store.updateConfig(values)
@@ -64,6 +62,7 @@ export default auto(function AIConfigModal ({ store }) {
         initialValues={getInitialValues()}
         onSubmit={handleSubmit}
         showAIConfig
+        agentRunning={hasRunningAgentScopes(store.agentRunningScopes)}
       />
     </Modal>
   )

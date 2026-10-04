@@ -24,16 +24,19 @@ export default memo(function TransferList (props) {
     overflowCount: 99
   }
   const handleOpenTransfer = () => {
-    window.store.setOpenedSideBar('transfer')
+    // 2026-08-30 coder(lq): Let the same entry toggle the transfer panel so an open panel is always dismissible.
+    window.store.setOpenedSideBar(active ? '' : 'transfer')
   }
   const cls = classNames('control-icon-wrap cn-side-icon-transfer', {
     active
   })
   return (
     <Tooltip title='传输任务' placement='right' mouseEnterDelay={0.2}>
-      <div
+      <button
+        type='button'
         className={cls}
         aria-label='传输任务'
+        title='传输任务'
         onClick={handleOpenTransfer}
       >
         <Badge
@@ -43,7 +46,7 @@ export default memo(function TransferList (props) {
             className='iblock font18 control-icon'
           />
         </Badge>
-      </div>
+      </button>
     </Tooltip>
   )
 })

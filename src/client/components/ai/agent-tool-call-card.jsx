@@ -3,14 +3,20 @@ import { Tag } from 'antd'
 import {
   CaretDownOutlined,
   CaretRightOutlined,
-  ClockCircleOutlined,
-  LoadingOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
   CodeOutlined,
   DatabaseOutlined,
-  PlayCircleOutlined
+  PlayCircleOutlined,
+  StopOutlined
 } from '@ant-design/icons'
+import { confirmAgentToolCall, rejectAgentToolCall } from './agent'
+import Modal from '../common/modal'
+import message from '../common/message'
+import {
+  canReplayCommand,
+  getReplayableCommand,
+  shouldConfirmCommandReplay
+} from './agent-command-replay'
+import { HighlightedText } from './search-highlight'
 
 const toolIcons = {
   send_terminal_command: CodeOutlined,
@@ -25,7 +31,7 @@ const toolIcons = {
 }
 
 const toolLabels = {
-  send_terminal_command: '执行终端命令',
+  send_terminal_command: '终端命令',
   get_terminal_output: '读取终端输出',
   get_terminal_status: '检查终端状态',
   cancel_terminal_command: '中断终端命令',
@@ -46,7 +52,7 @@ const toolLabels = {
   sftp_download: '下载文件',
   sftp_transfer_list: '查看传输任务',
   sftp_transfer_history: '查看传输历史',
-  run_background_command: '后台执行命令',
+  run_background_command: '后台命令',
   get_background_task_status: '查看后台任务状态',
   get_background_task_log: '查看后台任务日志',
   cancel_background_task: '取消后台任务'
@@ -80,83 +86,161 @@ function formatResult (result) {
   }
 }
 
-export default function AgentToolCallCard ({ toolCall }) {
-  const [expanded, setExpanded] = useState(toolCall.status === 'running')
+export default function AgentToolCallCard ({ toolCall, searchQuery = '' }) {
+  // 2026-08-30 coder(lq): Keep the execution timeline compact; users can expand any command when they need its output.
+  const [expanded, setExpanded] = useState(Boolean(toolCall.blocked || toolCall.status === 'error'))
+  const [replaying, setReplaying] = useState(false)
   const { name, args, status, result } = toolCall
   const Icon = toolIcons[name] || CodeOutlined
   const label = toolLabels[name] || name
-  const needsConfirm = status === 'pending_confirm' && name === 'send_terminal_command' && args?.command
-
-  function renderStatus () {
-    if (status === 'running') {
-      return <LoadingOutlined className='agent-tool-status-running' />
-    }
-    if (status === 'completed') {
-      return <CheckCircleOutlined className='agent-tool-status-completed' />
-    }
-    if (status === 'pending_confirm') {
-      return <ClockCircleOutlined className='agent-tool-status-pending' />
-    }
-    return <CloseCircleOutlined className='agent-tool-status-error' />
-  }
+  const needsConfirm = status === 'pending_confirm'
+  const replayCommand = getReplayableCommand(toolCall)
+  const replayEnabled = canReplayCommand(toolCall) && !replaying
+  const riskLabel = toolCall.riskLevel === 'high' ? '高风险' : toolCall.riskLevel === 'medium' ? '中风险' : null
 
   function renderTag () {
-    const color = status === 'running' ? 'processing' : status === 'completed' ? 'success' : status === 'pending_confirm' ? 'warning' : 'error'
+    const color = status === 'running' ? 'processing' : status === 'completed' ? 'success' : status === 'pending_confirm' ? 'warning' : status === 'skipped' ? 'default' : 'error'
     const statusText = {
       running: '执行中',
       completed: '已完成',
       pending_confirm: '待确认',
+      skipped: '已跳过',
       error: '失败'
     }[status] || status
+    const visibleStatusText = toolCall.blocked ? '已拦截' : statusText
     return (
       <Tag color={color} className='agent-tool-tag'>
-        {statusText}
+        {visibleStatusText}
       </Tag>
     )
   }
 
   function handleConfirmRun (e) {
     e.stopPropagation()
-    window.store.runCommandInTerminal(args.command)
+    confirmAgentToolCall(toolCall.approvalId || toolCall.id)
+  }
+
+  function handleSkipRun (e) {
+    e.stopPropagation()
+    rejectAgentToolCall(toolCall.approvalId || toolCall.id)
+  }
+
+  async function replayInCurrentTerminal () {
+    setReplaying(true)
+    try {
+      // 2026-09-11 coder(lq): Replay through the same visible-terminal API used elsewhere so nested terminal tabs resolve consistently.
+      await Promise.resolve(window.store.mcpSendTerminalCommand({
+        command: replayCommand,
+        tabId: window.store.activeTabId,
+        inputOnly: false
+      }))
+      message.success('命令已发送到当前终端')
+    } catch (error) {
+      message.error(`命令执行失败：${error.message}`)
+    } finally {
+      setReplaying(false)
+    }
+  }
+
+  function handleReplay (e) {
+    e.stopPropagation()
+    if (!replayEnabled) return
+    if (shouldConfirmCommandReplay(toolCall)) {
+      Modal.confirm({
+        title: '确认执行删除命令',
+        content: (
+          <div className='agent-command-replay-confirm'>
+            <p>该命令可能删除或清理数据，确认在当前终端执行吗？</p>
+            <code>{replayCommand}</code>
+          </div>
+        ),
+        okText: '执行',
+        cancelText: '取消',
+        onOk: replayInCurrentTerminal
+      })
+      return
+    }
+    replayInCurrentTerminal()
   }
 
   return (
     <div className={`agent-tool-call-card agent-tool-${status}`}>
-      <div
-        className='agent-tool-header pointer'
-        onClick={() => setExpanded(!expanded)}
-      >
-        {expanded ? <CaretDownOutlined /> : <CaretRightOutlined />}
-        <Icon className='mg1l' />
-        <span className='mg1l agent-tool-name'>{label}</span>
-        {args?.command
-          ? <code className='agent-tool-command-preview'>{args.command}</code>
-          : null}
-        {needsConfirm && (
-          <button
-            className='agent-tool-confirm-button'
-            title='确认执行该命令'
-            onClick={handleConfirmRun}
-          >
-            <PlayCircleOutlined />
-            <span>执行</span>
-          </button>
-        )}
-        {renderTag()}
-        {renderStatus()}
+      <div className='agent-tool-header'>
+        <button
+          type='button'
+          className='agent-tool-toggle'
+          onClick={() => setExpanded(!expanded)}
+          aria-expanded={expanded}
+          aria-label={`${label}${args?.command ? `：${args.command}` : ''}，${expanded ? '收起详情' : '展开详情'}`}
+        >
+          {expanded ? <CaretDownOutlined /> : <CaretRightOutlined />}
+          <Icon className='mg1l' />
+          <span className='mg1l agent-tool-name'>{label}</span>
+          {args?.command
+            ? (
+              <>
+                <span className='agent-tool-command-kind'>命令</span>
+                <code className='agent-tool-command-preview'><HighlightedText text={args.command} query={searchQuery} /></code>
+              </>
+              )
+            : null}
+        </button>
+        <div className='agent-tool-header-actions'>
+          {replayCommand && (
+            <button
+              type='button'
+              className='agent-tool-replay-button'
+              title={replayEnabled ? '在当前终端执行' : '命令结束后可重新执行'}
+              aria-label={replayEnabled ? '在当前终端执行这条命令' : '命令暂时不能重新执行'}
+              disabled={!replayEnabled}
+              onClick={handleReplay}
+            >
+              <PlayCircleOutlined />
+              <span>{replaying ? '发送中' : '执行'}</span>
+            </button>
+          )}
+          {needsConfirm && (
+            <button
+              type='button'
+              className='agent-tool-confirm-button'
+              title='确认并继续代理任务'
+              onClick={handleConfirmRun}
+            >
+              <PlayCircleOutlined />
+              <span>确认执行</span>
+            </button>
+          )}
+          {needsConfirm && (
+            <button
+              type='button'
+              className='agent-tool-skip-button'
+              title='跳过该命令并让代理继续'
+              onClick={handleSkipRun}
+            >
+              <StopOutlined />
+              <span>跳过</span>
+            </button>
+          )}
+          {riskLabel && (
+            <Tag color={toolCall.riskLevel === 'high' ? 'error' : 'warning'} className='agent-tool-risk-tag'>
+              {riskLabel}
+            </Tag>
+          )}
+          {renderTag()}
+        </div>
       </div>
       {expanded && (
         <div className='agent-tool-detail'>
           {args && Object.keys(args).length > 0 && (
             <div className='agent-tool-args'>
               <div className='agent-tool-label'>参数：</div>
-              <pre className='agent-tool-pre'>{JSON.stringify(args, null, 2)}</pre>
+              <pre className='agent-tool-pre'><HighlightedText text={JSON.stringify(args, null, 2)} query={searchQuery} /></pre>
             </div>
           )}
           {result && (
             <div className='agent-tool-result'>
               <div className='agent-tool-label'>结果：</div>
-              <pre className='agent-tool-pre'>{formatResult(result)}</pre>
+              <pre className='agent-tool-pre'><HighlightedText text={formatResult(result)} query={searchQuery} /></pre>
             </div>
           )}
         </div>

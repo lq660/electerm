@@ -7,7 +7,6 @@ export default function WebSession (props) {
     tab,
     reloadTab
   } = props
-  const [zoom, setZoom] = useState(1.0)
   const [authRequest, setAuthRequest] = useState(null)
   const webviewRef = useRef(null)
   const urlRegex = /^[a-z\d.+-]+:\/\/[^\s/$.?#].[^\s]*$/i
@@ -17,8 +16,6 @@ export default function WebSession (props) {
     url,
     title: tab.title,
     description: tab.description,
-    zoom,
-    onZoom: handleZoom,
     onOpen: () => {
       window.openLink(tab.url)
     },
@@ -26,19 +23,6 @@ export default function WebSession (props) {
       reloadTab(
         tab
       )
-    }
-  }
-
-  function handleZoom (v) {
-    setZoom(v)
-    const el = webviewRef.current
-    if (!el) {
-      return
-    }
-    if (el.setZoomFactor) {
-      el.setZoomFactor(v)
-    } else {
-      el.style.zoom = v
     }
   }
 

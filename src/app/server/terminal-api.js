@@ -17,6 +17,15 @@ async function runCmd (ws, msg) {
   })
 }
 
+async function runCmdStructured (ws, msg) {
+  const { id, pid, cmd, timeout, executionId, cancel, operation } = msg
+  const term = terminals(pid)
+  const result = term && typeof term.runCmdStructured === 'function'
+    ? await term.runCmdStructured(cmd, id, timeout, executionId, cancel, operation)
+    : { command: cmd, stdout: '', stderr: 'Structured command execution unavailable', exitCode: null }
+  ws.s({ id, data: result })
+}
+
 async function getTerminalCwd (ws, msg) {
   const { id, pid } = msg
   const term = terminals(pid)
@@ -144,6 +153,7 @@ exports.createTerm = createTerm
 exports.testTerm = testTerm
 exports.resize = resize
 exports.runCmd = runCmd
+exports.runCmdStructured = runCmdStructured
 exports.getTerminalCwd = getTerminalCwd
 exports.toggleTerminalLog = toggleTerminalLog
 exports.toggleTerminalLogTimestamp = toggleTerminalLogTimestamp

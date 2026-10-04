@@ -7,7 +7,11 @@ const uid = require('../common/uid')
 const { promisify } = require('util')
 const { exec, spawn } = require('child_process')
 const execAsync = promisify(exec)
-const { getSizeCount, getSizeCountWin } = require('../common/get-folder-size-and-file-count.js')
+const {
+  buildPosixFolderSizeCommand,
+  getSizeCount,
+  getSizeCountWin
+} = require('../common/get-folder-size-and-file-count.js')
 
 const ROOT_PATH = '/'
 
@@ -103,7 +107,8 @@ function getFolderSize (folderPath) {
   if (isWin) {
     return getFolderSizeWin(folderPath)
   }
-  return run(`du -sh "${folderPath}" && find "${folderPath}" -type f | wc -l`)
+  const escapedPath = `"${String(folderPath).replace(/["\\$`]/g, '\\$&')}"`
+  return run(buildPosixFolderSizeCommand(escapedPath))
     .then(getSizeCount)
 }
 
@@ -245,6 +250,80 @@ const unzipFile = async (localFilePath, targetFolderPath) => {
   return 1
 }
 
+// 2026-09-03 coder(lq): Extract common archive formats locally using native tools while keeping transfer tar extraction unchanged.
+const runArchiveCommand = (command, args) => {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true })
+    let stderr = ''
+    child.stderr.on('data', data => { stderr += data.toString() })
+    child.on('error', reject)
+    child.on('close', code => {
+      if (code === 0) return resolve()
+      reject(new Error(stderr.trim() || `Command exited with code ${code}`))
+    })
+  })
+}
+
+// 2026-09-03 coder(lq): Avoid overwriting an existing extraction directory by adding a numeric suffix.
+const getAvailableExtractPath = async (basePath) => {
+  let candidate = basePath
+  let suffix = 1
+  while (true) {
+    try {
+      await fss.stat(candidate)
+      candidate = `${basePath}${suffix}`
+      suffix += 1
+    } catch (error) {
+      if (error?.code === 'ENOENT') {
+        return candidate
+      }
+      throw error
+    }
+  }
+}
+
+const extractArchive = async (localFilePath, targetFolderPath) => {
+  const lower = String(localFilePath).toLowerCase()
+  const extractPath = await getAvailableExtractPath(targetFolderPath)
+  await fss.mkdir(extractPath, { recursive: true })
+  if (isWin) {
+    if (lower.endsWith('.zip')) {
+      await runArchiveCommand('powershell.exe', ['-NoLogo', '-NonInteractive', '-NoProfile', '-Command', `Expand-Archive -LiteralPath '${String(localFilePath).replace(/'/g, "''")}' -DestinationPath '${String(extractPath).replace(/'/g, "''")}' -Force`])
+    } else {
+      await runArchiveCommand('tar.exe', ['-xf', localFilePath, '-C', extractPath])
+    }
+    return extractPath
+  }
+  if (lower.endsWith('.zip')) {
+    try {
+      await runArchiveCommand('unzip', ['-oq', localFilePath, '-d', extractPath])
+    } catch (error) {
+      await runArchiveCommand('bsdtar', ['-xf', localFilePath, '-C', extractPath]).catch(() => { throw error })
+    }
+  } else if (lower.endsWith('.7z')) {
+    try {
+      await runArchiveCommand('7z', ['x', '-y', localFilePath, `-o${extractPath}`])
+    } catch (error) {
+      await runArchiveCommand('7zz', ['x', '-y', localFilePath, `-o${extractPath}`]).catch(() => { throw error })
+    }
+  } else if (lower.endsWith('.rar')) {
+    try {
+      await runArchiveCommand('unrar', ['x', '-o+', localFilePath, `${extractPath}/`])
+    } catch (error) {
+      await runArchiveCommand('7z', ['x', '-y', localFilePath, `-o${extractPath}`]).catch(async () => {
+        await runArchiveCommand('7zz', ['x', '-y', localFilePath, `-o${extractPath}`]).catch(() => { throw error })
+      })
+    }
+  } else {
+    try {
+      await runArchiveCommand('tar', ['-xf', localFilePath, '-C', extractPath])
+    } catch (error) {
+      await runArchiveCommand('bsdtar', ['-xf', localFilePath, '-C', extractPath]).catch(() => { throw error })
+    }
+  }
+  return extractPath
+}
+
 async function listWindowsRootPath () {
   const drives = await new Promise((resolve, reject) => {
     const { exec } = require('child_process')
@@ -351,6 +430,7 @@ const fsExport = Object.assign(
     openFile,
     zipFolder,
     unzipFile,
+    extractArchive,
     readCustom,
     writeCustom,
     openCustom,

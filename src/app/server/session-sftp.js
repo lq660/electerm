@@ -8,10 +8,14 @@ const {
 const { commonExtends } = require('./session-common.js')
 const { TerminalBase } = require('./session-base.js')
 const {
+  buildPosixFolderSizeCommand,
   getSizeCount,
   getSizeCountWin
 } = require('../common/get-folder-size-and-file-count.js')
 const globalState = require('./global-state')
+const { promisify } = require('node:util')
+const { pipeline } = require('node:stream/promises')
+const remotePath = require('node:path').posix
 
 class Sftp extends TerminalBase {
   connect (initOptions) {
@@ -54,7 +58,8 @@ class Sftp extends TerminalBase {
       conn
     } = terminalInst
     this.client = conn
-    this.enableSsh = initOptions.enableSsh
+    // 2026-09-08 coder(lq): Inherit capability from the authenticated terminal; omitted means enabled, but a file request cannot override a disabled terminal.
+    this.enableSsh = terminalInst.initOptions?.enableSsh !== false && initOptions.enableSsh !== false
     try {
       const sftp = await new Promise((resolve, reject) => {
         conn.sftp((err, sftp) => {
@@ -105,7 +110,7 @@ class Sftp extends TerminalBase {
   execBuffered (cmd) {
     return new Promise((resolve, reject) => {
       if (!this.enableSsh) {
-        return reject(new Error(`do not support ${cmd.split(' ')[0]} operation in sftp mode`))
+        return reject(new Error('当前会话只有 SFTP 文件能力，不能执行终端命令。请切换到 SSH 终端后再试。'))
       }
       const { client } = this
       client.exec(cmd, this.getExecOpts(), (err, stream) => {
@@ -183,6 +188,12 @@ class Sftp extends TerminalBase {
       if (type === 'folder-size') {
         return this.buildPowerShellCommand(`Get-ChildItem -LiteralPath ${args[0]} -Recurse -File | Measure-Object -Property Length -Sum`)
       }
+      if (type === 'extract') {
+        const archive = args[0]
+        const target = args[1]
+        // 2026-09-03 coder(lq): Keep each extraction isolated and suffix collisions instead of overwriting existing folders.
+        return this.buildPowerShellCommand(`$archive=${archive}; $base=${target}; $target=$base; $suffix=1; while (Test-Path -LiteralPath $target) { $target=$base+$suffix; $suffix++ }; New-Item -ItemType Directory -Path $target -Force | Out-Null; if ($archive -match '(?i)\\.zip$') { Expand-Archive -LiteralPath $archive -DestinationPath $target -Force; exit $LASTEXITCODE }; if (Get-Command tar.exe -ErrorAction SilentlyContinue) { tar.exe -xf $archive -C $target; exit $LASTEXITCODE }; throw 'No supported archive extractor found (Expand-Archive or tar.exe)'`)
+      }
     }
     const posixArgs = paths.map(this.escapePosixPath)
     if (type === 'rmrf') {
@@ -195,7 +206,30 @@ class Sftp extends TerminalBase {
       return `mv ${posixArgs[0]} ${posixArgs[1]}`
     }
     if (type === 'folder-size') {
-      return `du -sh ${posixArgs[0]} && find ${posixArgs[0]} -type f | wc -l`
+      return buildPosixFolderSizeCommand(posixArgs[0])
+    }
+    if (type === 'extract') {
+      const archive = posixArgs[0]
+      const target = posixArgs[1]
+      // 2026-09-03 coder(lq): Keep each extraction isolated and suffix collisions instead of overwriting existing folders.
+      return `archive=${archive}; base=${target}; target=$base; suffix=1; while [ -e "$target" ]; do target="\${base}$suffix"; suffix=$((suffix + 1)); done; mkdir -p "$target"; archive_lower=$(printf '%s' "$archive" | tr '[:upper:]' '[:lower:]'); case "$archive_lower" in *.zip)
+  if command -v unzip >/dev/null 2>&1; then unzip -oq "$archive" -d "$target" >/dev/null 2>&1
+  elif command -v bsdtar >/dev/null 2>&1; then bsdtar -xf "$archive" -C "$target" >/dev/null 2>&1
+  else printf '%s\\n' 'No supported archive extractor found (unzip or bsdtar)' >&2; exit 127; fi ;;
+*.7z)
+  if command -v 7z >/dev/null 2>&1; then 7z x -y "$archive" -o"$target" >/dev/null 2>&1
+  elif command -v 7zz >/dev/null 2>&1; then 7zz x -y "$archive" -o"$target" >/dev/null 2>&1
+  else printf '%s\\n' 'No supported archive extractor found (7z or 7zz)' >&2; exit 127; fi ;;
+*.rar)
+  if command -v unrar >/dev/null 2>&1; then unrar x -o+ "$archive" "$target/" >/dev/null 2>&1
+  elif command -v 7z >/dev/null 2>&1; then 7z x -y "$archive" -o"$target" >/dev/null 2>&1
+  elif command -v 7zz >/dev/null 2>&1; then 7zz x -y "$archive" -o"$target" >/dev/null 2>&1
+  else printf '%s\\n' 'No supported archive extractor found (unrar or 7z)' >&2; exit 127; fi ;;
+*)
+  if command -v tar >/dev/null 2>&1; then tar -xf "$archive" -C "$target" >/dev/null 2>&1
+  elif command -v bsdtar >/dev/null 2>&1; then bsdtar -xf "$archive" -C "$target" >/dev/null 2>&1
+  else printf '%s\\n' 'No supported archive extractor found (tar or bsdtar)' >&2; exit 127; fi ;;
+esac`
     }
     throw new Error(`unsupported remote command type: ${type}`)
   }
@@ -335,7 +369,56 @@ class Sftp extends TerminalBase {
    * @return {Promise}
    */
   cp (from, to) {
+    if (!this.enableSsh) {
+      return this.copyWithSftp(from, to)
+    }
     return this.buildRemoteCommand('cp', from, to)
+      .then(cmd => this.runExec(cmd))
+      .then(() => 1)
+  }
+
+  async copyWithSftp (from, to) {
+    const sftp = this.sftp
+    const call = (method, ...args) => promisify(sftp[method].bind(sftp))(...args)
+    const source = await call('lstat', from)
+    // 2026-09-08 coder(lq): Resolve the destination parent before recursion so aliases cannot copy a directory into itself.
+    if (source.isDirectory()) {
+      const sourcePath = remotePath.normalize(await call('realpath', from))
+      const parent = await call('realpath', remotePath.dirname(to))
+      const targetPath = remotePath.join(parent, remotePath.basename(to))
+      if (targetPath === sourcePath || targetPath.startsWith(sourcePath.replace(/\/$/, '') + '/')) {
+        throw new Error('不能将文件夹复制到自身或其子目录')
+      }
+    }
+    const copyEntry = async (sourcePath, targetPath, stat) => {
+      if (stat.isSymbolicLink()) {
+        await call('symlink', await call('readlink', sourcePath), targetPath)
+      } else if (stat.isDirectory()) {
+        await call('mkdir', targetPath, { mode: 0o700 })
+        const entries = await call('readdir', sourcePath)
+        for (const { filename } of entries) {
+          if (filename === '.' || filename === '..') continue
+          if (!filename || /[/\\]/.test(filename)) throw new Error('服务器返回了无效的文件名')
+          const child = remotePath.join(sourcePath, filename)
+          await copyEntry(child, remotePath.join(targetPath, filename), await call('lstat', child))
+        }
+        await call('chmod', targetPath, stat.mode & 0o777)
+      } else if (stat.isFile()) {
+        // 2026-09-08 coder(lq): Stream through SFTP with bounded memory; exclusive creation protects existing files and symlinks from overwrite races.
+        await pipeline(
+          sftp.createReadStream(sourcePath),
+          sftp.createWriteStream(targetPath, { flags: 'wx', mode: stat.mode & 0o777 })
+        )
+      } else {
+        throw new Error('不支持复制此特殊文件类型')
+      }
+    }
+    await copyEntry(from, to, source)
+    return 1
+  }
+
+  extractArchive (from, to) {
+    return this.buildRemoteCommand('extract', from, to)
       .then(cmd => this.runExec(cmd))
       .then(() => 1)
   }

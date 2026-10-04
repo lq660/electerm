@@ -11,6 +11,7 @@ export default function AppDrag (props) {
     if (
       !classList.contains('app-drag') &&
       !classList.contains('tabs-inner') &&
+      !classList.contains('tabs-scroll') &&
       !classList.contains('tabs-wrapper')
     ) {
       window.pre.runSync('windowMove', false)

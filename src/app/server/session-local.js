@@ -5,7 +5,8 @@
 const { resolve: pathResolve } = require('path')
 const { TerminalBase } = require('./session-base')
 const globalState = require('./global-state')
-const { execFile, execFileSync } = require('child_process')
+const { execFileSync } = require('child_process')
+const { runLocalCommand, cancelCommand } = require('./agent-command-execution')
 const fs = require('fs')
 // const { MockBinding } = require('@serialport/binding-mock')
 // MockBinding.createPort('/dev/ROBOT', { echo: true, record: true })
@@ -93,6 +94,11 @@ class TerminalLocal extends TerminalBase {
   }
 
   runCmd (cmd) {
+    return this.runCmdStructured(cmd).then(result => result.stdout)
+  }
+
+  // 2026-09-01 coder(lq): Run agent commands in an isolated shell and return structured execution state.
+  runCmdStructured (cmd, conn, timeout = 45000, executionId, background = false) {
     const { platform } = process
     if (platform === 'win32') {
       return Promise.reject(new Error('Local command inspection is not supported on Windows yet'))
@@ -101,22 +107,10 @@ class TerminalLocal extends TerminalBase {
       ? this.initOptions.execMac
       : this.initOptions.execLinux
     const cwd = this.getCwd() || process.env.HOME
-    // 2026-07-11 coder(lq): Run read-only environment probes outside the visible PTY so command-assistant discovery does not alter terminal history or output.
-    return new Promise((resolve, reject) => {
-      execFile(shell, ['-lc', cmd], {
-        cwd,
-        env: { ...process.env },
-        timeout: 8000,
-        maxBuffer: 1024 * 1024
-      }, (error, stdout) => {
-        if (error && !stdout) {
-          reject(error)
-          return
-        }
-        resolve(stdout || '')
-      })
-    })
+    return runLocalCommand(this, { command: cmd, shell, cwd, timeout: typeof conn === 'number' ? conn : timeout, executionId, background })
   }
+
+  cancelCmdStructured (executionId) { return cancelCommand(this, executionId) }
 
   kill () {
     if (this.sessionLogger) {

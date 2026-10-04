@@ -200,31 +200,15 @@ class ShortcutControl extends React.PureComponent {
     }
   }, 500)
 
-  zoominShortcut = throttle((e) => {
-    e.stopPropagation()
-    window.store.zoom(0.25, true)
-  }, 1000)
-
-  zoomoutShortcut = throttle((e) => {
-    e.stopPropagation()
-    window.store.zoom(-0.25, true)
-  }, 1000)
-
   zoominTerminalShortcut = throttle((event) => {
     if (window.store.inActiveTerminal) {
       window.store.zoomTerminal(event.wheelDeltaY || 120)
-    } else {
-      const plus = 0.2
-      window.store.zoom(plus, true)
     }
   }, 1000)
 
   zoomoutTerminalShortcut = throttle((event) => {
     if (window.store.inActiveTerminal) {
       window.store.zoomTerminal(event.wheelDeltaY || -120)
-    } else {
-      const plus = -0.2
-      window.store.zoom(plus, true)
     }
   }, 1000)
 

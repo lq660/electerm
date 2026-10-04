@@ -19,6 +19,24 @@ const _ = require('./lodash.js')
 const getPort = require('./get-port')
 const globalState = require('./glob-state')
 const webviewHandler = require('./webview-handler')
+const log = require('../common/log')
+
+function escapeHtml (value) {
+  return String(value || '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char])
+}
+
+function getStartupErrorPage (error) {
+  const detail = escapeHtml(error?.message || error)
+  return `<!doctype html><meta charset="utf-8"><title>云舵工作台启动失败</title>
+    <style>body{margin:0;background:#f4f7fb;color:#1f2937;font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.card{max-width:680px;margin:12vh auto;padding:32px;border:1px solid #d7e0ec;border-radius:16px;background:#fff;box-shadow:0 12px 36px rgba(38,63,91,.12)}h1{font-size:22px;margin:0 0 12px}p{line-height:1.7;color:#64748b}code{display:block;padding:14px;border-radius:10px;background:#f6f8fb;color:#b42318;white-space:pre-wrap;word-break:break-word}</style>
+    <main class="card"><h1>后台服务启动失败</h1><p>云舵无法完成初始化，请重启应用。如果问题持续出现，请保留下方信息以便排查。</p><code>${detail}</code></main>`
+}
 
 exports.createWindow = async function (userConfig) {
   globalState.set('closeAction', 'closeApp')
@@ -50,6 +68,8 @@ exports.createWindow = async function (userConfig) {
     titleBarStyle: useSystemTitleBar ? 'default' : 'hidden',
     icon: iconPath
   })
+  // 2026-08-30 coder(lq): Reset the Electron web contents scale on every window creation.
+  win.webContents.setZoomFactor(1)
   // hides the traffic lights
   if (isMac) {
     win.setWindowButtonVisibility(true)
@@ -76,7 +96,15 @@ exports.createWindow = async function (userConfig) {
   maximizeWorkbenchWindow()
   win.once('ready-to-show', maximizeWorkbenchWindow)
 
-  await initAppServer()
+  try {
+    await initAppServer()
+  } catch (error) {
+    // 2026-10-04 coder(lq): Surface service startup failures in the window instead of leaving an empty shell with no recovery guidance.
+    log.error('background service startup failed', error)
+    const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(getStartupErrorPage(error))}`
+    await win.loadURL(dataUrl)
+    return win
+  }
   initIpc()
   const port = isDev
     ? process.env.devPort || 5570

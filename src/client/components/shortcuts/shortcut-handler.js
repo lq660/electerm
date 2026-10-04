@@ -153,6 +153,10 @@ export function shortcutExtend (Cls) {
     if (event.isComposing) {
       return
     }
+    // 2026-09-10 coder(lq): Give disconnected SSH terminals first chance to turn Enter into a reconnect action.
+    if (this.handleReconnectKeyboardEvent?.(event)) {
+      return false
+    }
     if (handleTerminalSelectionReplace(event, this)) {
       return false
     }

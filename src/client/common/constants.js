@@ -277,6 +277,7 @@ export const instSftpKeys = [
   'realpath',
   'mv',
   'cp',
+  'extractArchive',
   'readFile',
   'writeFile'
 ]

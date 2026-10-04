@@ -47,12 +47,14 @@ import {
 } from './shell.js'
 import iconsMap from '../sys-menu/icons-map.jsx'
 import { refs, refsStatic } from '../common/ref.js'
+import { getStartDirectoryCandidates, readLastDirectory, rememberLastDirectory } from '../../common/start-directory.js'
 import ExternalLink from '../common/external-link.jsx'
 import createDefaultLogPath from '../../common/default-log-path.js'
 import SearchResultBar from './terminal-search-bar'
 import RemoteFloatControl from '../common/remote-float-control'
 import ReconnectOverlay from './reconnect-overlay.jsx'
 import TerminalErrorHandle from './terminal-error-handle.jsx'
+import { shouldReconnectOnEnter } from './reconnect-on-enter.js'
 import {
   loadTerminal,
   loadFitAddon,
@@ -66,10 +68,13 @@ import {
 } from './xterm-loader.js'
 
 const e = window.translate
+const shellCwdMarker = '\x1b]633;P;'
+const shellPromptMarker = '\x1b]633;A\x07'
 
 class Term extends Component {
   constructor (props) {
     super(props)
+    this.rememberedStartDirectory = readLastDirectory(props.tab, 'ssh')
     this.state = {
       loading: false,
       hasSelection: false,
@@ -94,12 +99,15 @@ class Term extends Component {
     this.currentInput = ''
     this.shellInjected = false
     this.shellType = null
+    this.connectionClosed = false
+    this.manualReconnectPending = false
   }
 
   domRef = createRef()
 
   componentDidMount () {
     this.initTerminal()
+    window.store.ensureHistoryLoaded('terminalCommandHistory').catch(window.store.onError)
     if (this.props.tab.enableSsh === false) {
       this.props.tab.pane = paneMap.fileManager
     }
@@ -255,7 +263,7 @@ class Term extends Component {
             execute: async () => {
               await this.injectShellIntegration()
               if (currSftpFollow) {
-                this.attachAddon._sendData('\r')
+                this.getCwd()
               }
             }
           })
@@ -263,7 +271,7 @@ class Term extends Component {
           // No active queue, inject directly
           this.injectShellIntegration().then(() => {
             if (currSftpFollow) {
-              this.attachAddon._sendData('\r')
+              this.getCwd()
             }
           })
         }
@@ -943,6 +951,7 @@ class Term extends Component {
   }
 
   setCwd = (cwd) => {
+    rememberLastDirectory(this.props.tab, 'ssh', cwd)
     // 2026-07-06 coder(lq): CWD follow is scoped by terminal tab id; state has no id, so use the rendered tab id.
     this.props.setCwd(cwd, this.props.tab.id)
   }
@@ -1239,15 +1248,15 @@ class Term extends Component {
 
   runInitScript = async () => {
     window.store.triggerResize()
-    const {
-      startDirectory,
-      runScripts
-    } = this.props.tab
+    const { runScripts } = this.props.tab
 
     const scripts = runScripts ? [...runScripts] : []
-    const startFolder = startDirectory || window.initFolder
-    if (startFolder) {
-      scripts.unshift({ script: `cd "${startFolder}"`, delay: 0 })
+    const type = this.isRemote() ? 'remote' : 'local'
+    const candidates = getStartDirectoryCandidates(this.props.tab, this.props.config, type, this.rememberedStartDirectory)
+    const fallback = window.initFolder
+    const startScript = this.buildStartDirectoryScript(candidates, fallback)
+    if (startScript) {
+      scripts.unshift({ script: startScript, delay: 0, refreshPromptSilently: true })
     }
 
     // Create unified execution queue
@@ -1269,8 +1278,12 @@ class Term extends Component {
         type: 'delayed_script',
         script: script.script,
         delay: script.delay || 0,
-        execute: () => {
+        execute: async () => {
           if (script.script) {
+            if (script.refreshPromptSilently && this.shellInjected) {
+              await this.executeWithSilentPromptRefresh(script.script + '\r')
+              return
+            }
             this.attachAddon._sendData(script.script + '\r')
           }
         }
@@ -1280,6 +1293,20 @@ class Term extends Component {
     this.processExecutionQueue()
   }
 
+  // 2026-09-03 coder(lq): Probe configured directories silently and stop at the first usable path.
+  buildStartDirectoryScript = (candidates, fallback) => {
+    const paths = [...candidates]
+    if (fallback && !paths.includes(fallback)) paths.push(fallback)
+    if (!paths.length) return ''
+    if (isWin && this.isLocal()) {
+      const quote = path => `"${String(path).replace(/"/g, '""')}"`
+      return paths.map(path => `if not defined __ELECTERM_START_OK if exist ${quote(path)}\\. (cd /d ${quote(path)} & set __ELECTERM_START_OK=1)`).join(' & ') + ' & set __ELECTERM_START_OK='
+    }
+    const quote = path => `'${String(path).replace(/'/g, "'\\''")}'`
+    // Chained `cd` works across POSIX shells (including fish) and keeps failed probes quiet.
+    return paths.map(path => `cd -- ${quote(path)} 2>/dev/null`).join(' || ') + ' || :'
+  }
+
   shouldUseManualHistory = () => {
     return this.props.config.autoSaveTerminalCommandHistory !== false &&
       (!this.cmdAddon || !this.cmdAddon.hasShellIntegration())
@@ -1287,7 +1314,7 @@ class Term extends Component {
 
   canInjectShellIntegration = () => {
     const { config } = this.props
-    const canInject = (config.showCmdSuggestions || config.autoSaveTerminalCommandHistory !== false || this.props.sftpPathFollowSsh) &&
+    const canInject = (this.isSsh() || config.showCmdSuggestions || config.autoSaveTerminalCommandHistory !== false || this.props.sftpPathFollowSsh) &&
     (
       this.isSsh() ||
       (this.isLocal() && !isWin)
@@ -1320,7 +1347,7 @@ class Term extends Component {
       if (item.type === 'shell_integration') {
         await item.execute()
       } else if (item.type === 'delayed_script') {
-        item.execute()
+        await item.execute()
         // Wait for the specified delay before processing next item
         if (item.delay > 0) {
           await new Promise(resolve => {
@@ -1334,6 +1361,24 @@ class Term extends Component {
 
     // Process next item
     this.processExecutionQueue()
+  }
+
+  // 2026-09-10 coder(lq): Replace the visible prompt as one transaction so hidden setup commands cannot append a duplicate prompt.
+  executeWithSilentPromptRefresh = (command, timeout = null) => {
+    if (!this.attachAddon || !this.term) {
+      return Promise.resolve()
+    }
+    const suppressionTimeout = timeout || (this.isSsh() ? 5000 : 3000)
+    return new Promise(resolve => {
+      this.attachAddon.startOutputSuppressionUntil(shellPromptMarker, {
+        timeout: suppressionTimeout,
+        onEnd: resolve,
+        replayFromSequence: shellCwdMarker
+      })
+      this.term.write('\r\x1b[2K', () => {
+        this.attachAddon?._sendData(command)
+      })
+    })
   }
 
   /**
@@ -1375,15 +1420,11 @@ class Term extends Component {
       // Wait for initial data (prompt/banner) to arrive before injecting
       this.attachAddon.onInitialData(() => {
         if (this.attachAddon) {
-          // Start suppressing output before sending the integration command
-          // This hides the command and its output until OSC 633 is detected
           const suppressionTimeout = this.isSsh() ? 5000 : 3000
-          // Pass callback to resolve the promise after suppression ends
-          this.attachAddon.startOutputSuppression(suppressionTimeout, () => {
+          this.executeWithSilentPromptRefresh(integrationCmd, suppressionTimeout).then(() => {
             this.shellInjected = true
             resolve()
           })
-          this.attachAddon._sendData(integrationCmd)
         } else {
           resolve()
         }
@@ -1435,6 +1476,8 @@ class Term extends Component {
   }
 
   remoteInit = async (term = this.term) => {
+    this.connectionClosed = false
+    this.manualReconnectPending = false
     this.setState({
       loading: true,
       terminalError: null
@@ -1539,6 +1582,8 @@ class Term extends Component {
       loading: false
     })
     if (!r) {
+      // 2026-09-10 coder(lq): Treat connection setup failures as disconnected so Enter can retry immediately.
+      this.connectionClosed = true
       if (isAutoReconnect) {
         this.scheduleAutoReconnect(3000)
         return
@@ -1559,6 +1604,7 @@ class Term extends Component {
     this.initSocketEvents()
     this.term = term
     socket.onopen = async () => {
+      this.connectionClosed = false
       await this.initAttachAddon()
       this.runInitScript()
       this.scheduleLocalCwdRefresh()
@@ -1669,6 +1715,7 @@ class Term extends Component {
     if (this.onClose || this.props.tab.enableSsh === false) {
       return
     }
+    this.connectionClosed = true
     this.setStatus(
       statusMap.error
     )
@@ -1702,9 +1749,37 @@ class Term extends Component {
       if (this.onClose || !this.props.config.autoReconnectTerminal) {
         return
       }
-      const reconnectCount = (this.props.tab.autoReConnect || 0) + 1
-      this.props.reloadTab({ ...this.props.tab, autoReConnect: reconnectCount })
+      this.reloadTerminal()
     }, delay)
+  }
+
+  reloadTerminal = () => {
+    if (this.onClose || this.manualReconnectPending) {
+      return false
+    }
+    this.manualReconnectPending = true
+    const reconnectCount = (this.props.tab.autoReConnect || 0) + 1
+    this.props.reloadTab({ ...this.props.tab, autoReConnect: reconnectCount })
+    return true
+  }
+
+  handleReconnectKeyboardEvent = (event) => {
+    const isDisconnected = this.connectionClosed || this.props.tab.status === statusMap.error
+    const shouldReconnect = shouldReconnectOnEnter({
+      event,
+      isSsh: !!this.isSsh() && this.props.tab.enableSsh !== false,
+      isDisconnected,
+      isLoading: this.state.loading,
+      isPending: this.manualReconnectPending
+    })
+    if (!shouldReconnect) {
+      return false
+    }
+    event.preventDefault?.()
+    event.stopPropagation?.()
+    this.handleCancelAutoReconnect()
+    // 2026-09-10 coder(lq): Manual Enter reconnect reuses tab reload so credentials and profile settings stay intact.
+    return this.reloadTerminal()
   }
 
   handleCancelAutoReconnect = () => {

@@ -123,10 +123,7 @@ export default class ShortcutEdit extends PureComponent {
         className='edit-shortcut-button'
       >
         <span>{shortcut}</span>
-        <EditFilled
-          className='shortcut-edit-icon pointer mg1l'
-          onClick={this.handleEditClick}
-        />
+        <button type='button' className='icon-button shortcut-edit-icon mg1l' aria-label='编辑快捷键' title='编辑快捷键' onClick={this.handleEditClick}><EditFilled /></button>
         {
           this.renderClear()
         }
@@ -139,10 +136,7 @@ export default class ShortcutEdit extends PureComponent {
     const hasShortcut = data && data.shortcut
     if (renderClear && hasShortcut && handleClear) {
       return (
-        <CloseOutlined
-          className='pointer mg1l'
-          onClick={handleClear}
-        />
+        <button type='button' className='icon-button mg1l' aria-label='清除快捷键' title='清除快捷键' onClick={handleClear}><CloseOutlined /></button>
       )
     }
   }
@@ -156,14 +150,8 @@ export default class ShortcutEdit extends PureComponent {
     }
     return (
       <>
-        <CheckOutlined
-          onClick={this.handleConfirm}
-          className='pointer'
-        />
-        <CloseOutlined
-          onClick={this.handleCancel}
-          className='pointer mg1l'
-        />
+        <button type='button' className='icon-button' aria-label='确认快捷键' title='确认快捷键' onClick={this.handleConfirm}><CheckOutlined /></button>
+        <button type='button' className='icon-button mg1l' aria-label='取消编辑' title='取消编辑' onClick={this.handleCancel}><CloseOutlined /></button>
       </>
     )
   }

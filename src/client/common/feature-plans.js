@@ -90,8 +90,8 @@ export const featureMap = {
 }
 
 export const featureLabels = {
-  [featureIds.aiChat]: 'AI 助手',
-  [featureIds.aiAgent]: 'AI Agent 诊断助手',
+  [featureIds.aiChat]: 'AI Shell 对话',
+  [featureIds.aiAgent]: 'AI Shell 任务执行',
   [featureIds.solutionRecordsUnlimited]: '无限处理记录',
   [featureIds.batchCommand]: '批量命令',
   [featureIds.advancedCommandAssistant]: '高级命令助手',
@@ -137,7 +137,7 @@ export const planFeatureGroups = [
     ],
     limits: [
       '处理记录最多 20 条',
-      '不包含 AI 助手、批量命令和团队共享'
+      '不包含 AI Shell、批量命令和团队共享'
     ]
   },
   {
@@ -146,8 +146,8 @@ export const planFeatureGroups = [
     highlight: '面向高频排障和效率增强',
     features: [
       { label: '包含个人版全部能力', status: featureStatusIds.done },
-      { label: 'AI 助手、终端上下文问答和连接生成', featureId: featureIds.aiChat },
-      { label: 'AI Agent 诊断助手', featureId: featureIds.aiAgent },
+      { label: 'AI Shell 对话、终端上下文问答和连接生成', featureId: featureIds.aiChat },
+      { label: 'AI Shell 任务执行', featureId: featureIds.aiAgent },
       { label: 'AI 整理并保存处理记录', featureId: featureIds.aiChat },
       { label: '处理记录不限数量', featureId: featureIds.solutionRecordsUnlimited },
       { label: '批量命令输入', featureId: featureIds.batchCommand },
@@ -205,12 +205,12 @@ export const planComparisonGroups = [
     title: '效率与 AI',
     items: [
       {
-        name: 'AI 助手、终端上下文问答和连接生成',
+        name: 'AI Shell 对话、终端上下文问答和连接生成',
         plans: [planIds.pro, planIds.team],
         featureId: featureIds.aiChat
       },
       {
-        name: 'AI Agent 诊断助手',
+        name: 'AI Shell 任务执行',
         plans: [planIds.pro, planIds.team],
         featureId: featureIds.aiAgent
       },

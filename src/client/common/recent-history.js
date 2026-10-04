@@ -37,6 +37,22 @@ export function getHistoryItemKey (item) {
   return getRecentHistoryKey(item?.tab)
 }
 
+export function findHistoryBookmark (tab, bookmarks = []) {
+  if (!tab) return null
+  // 2026-09-08 coder(lq): Prefer the saved connection identity; old snapshots may only be recovered when their endpoint is unambiguous.
+  if (tab.from === 'bookmarks' && tab.srcId) {
+    return bookmarks.find(item => item.id === tab.srcId) || null
+  }
+  if (!tab.host) return null
+  const endpointKey = item => getRecentHistoryKey({
+    ...item,
+    port: item.port || ((item.type || 'ssh') === 'ssh' ? 22 : '')
+  })
+  const key = endpointKey(tab)
+  const matches = bookmarks.filter(item => item.host && endpointKey(item) === key)
+  return matches.length === 1 ? matches[0] : null
+}
+
 export function findRecentHistoryIndex (history, tab) {
   const key = getRecentHistoryKey(tab)
   if (!key) {

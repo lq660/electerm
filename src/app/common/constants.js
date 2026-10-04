@@ -22,6 +22,7 @@ exports.instSftpKeys = [
   'realpath',
   'mv',
   'cp',
+  'extractArchive',
   'readFile',
   'writeFile'
 ]

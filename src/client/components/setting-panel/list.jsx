@@ -71,15 +71,15 @@ export default class ItemList extends React.PureComponent {
     }
     const { shouldConfirmDel } = this.props
     const icon = (
-      <CloseOutlined
+      <button
+        type='button'
         title={e('del')}
-        className='pointer list-item-remove'
-        onClick={
-          shouldConfirmDel
-            ? noop
-            : e => this.del(item, e)
-        }
-      />
+        aria-label={e('del')}
+        className='list-item-remove'
+        onClick={shouldConfirmDel ? noop : e => this.del(item, e)}
+      >
+        <CloseOutlined />
+      </button>
     )
     if (shouldConfirmDel) {
       return (
@@ -128,7 +128,15 @@ export default class ItemList extends React.PureComponent {
       <div
         key={id}
         className={cls}
+        role='button'
+        tabIndex={0}
         onClick={() => onClickItem(item, type)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            onClickItem(item, type)
+          }
+        }}
       >
         <div
           title={title}
@@ -159,11 +167,9 @@ export default class ItemList extends React.PureComponent {
       return null
     }
     return (
-      <EditOutlined
-        title={e('edit')}
-        onClick={(e) => this.editItem(e, item, isGroup)}
-        className='pointer list-item-edit'
-      />
+      <button type='button' title={e('edit')} aria-label={e('edit')} onClick={(e) => this.editItem(e, item, isGroup)} className='list-item-edit'>
+        <EditOutlined />
+      </button>
     )
   }
 

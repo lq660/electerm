@@ -4,6 +4,24 @@
 
 const e = window.translate
 
+const legacyPrimaryColors = new Set([
+  '#1677ff',
+  '#1890ff',
+  'rgb(22,119,255)',
+  'rgb(24,144,255)'
+])
+
+function normalizeTitleTagColor (color) {
+  if (typeof color !== 'string') {
+    return color
+  }
+  const normalized = color.toLowerCase().replace(/\s+/g, '')
+  // 2026-09-23 coder(lq): Map legacy saturated bookmark dots to the calmer workbench accent while preserving green/gray status colors.
+  return legacyPrimaryColors.has(normalized)
+    ? 'var(--workbench-primary, #426f9d)'
+    : color
+}
+
 function normalizeTitle (title) {
   // 2026-07-04 coder(lq): Upstream local terminal titles may stay in English; show a clear Chinese tab label in our workbench chrome.
   if (title === 'New terminal' || title === 'new terminal' || title === e('newTerminal')) {
@@ -67,7 +85,7 @@ export function createTitleTag (obj) {
     return null
   }
   const styleTag = color
-    ? { color }
+    ? { color: normalizeTitleTagColor(color) }
     : {}
   return (
     <span style={styleTag} className='tab-title-tag'>●</span>

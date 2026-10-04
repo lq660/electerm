@@ -12,7 +12,6 @@ import History from './history'
 import Bookmark from './boomarks'
 import Layout from './layoout-changer'
 import Tabs from './tabs'
-import Zoom from './zoom'
 import icons from './icons-map'
 import { refsStatic } from '../common/ref'
 
@@ -23,7 +22,6 @@ export default class ContextMenu extends PureComponent {
     History,
     Bookmark,
     Tabs,
-    Zoom,
     Layout
   }
 
@@ -72,7 +70,8 @@ export default class ContextMenu extends PureComponent {
       className,
       type,
       module,
-      submenu
+      submenu,
+      title
     } = item
     if (type === 'hr') {
       return <hr />
@@ -84,12 +83,9 @@ export default class ContextMenu extends PureComponent {
         </div>
       )
     }
-    let baseCls = 'context-item'
+    const baseCls = 'context-item'
     if (module && this.modules[module]) {
       const Mod = this.modules[module]
-      if (module === 'Zoom') {
-        baseCls = 'context-item zoom-item'
-      }
       return (
         <div className={baseCls}>
           <Mod {...this.props} />
@@ -121,7 +117,16 @@ export default class ContextMenu extends PureComponent {
       <div
         key={`context-item-${i}-${text}`}
         className={cls}
+        role='menuitem'
+        tabIndex={disabled ? -1 : 0}
+        title={title}
         onClick={act}
+        onKeyDown={(event) => {
+          if (!disabled && (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault()
+            act(event)
+          }
+        }}
       >
         {iconElem}{iconElem ? ' ' : ''}{text}
         {
@@ -135,7 +140,7 @@ export default class ContextMenu extends PureComponent {
     if (!requireConfirm) {
       return unit
     }
-    const title = (
+    const confirmNode = (
       <div className='wordbreak'>{confirmTitle}</div>
     )
     return (
@@ -143,7 +148,7 @@ export default class ContextMenu extends PureComponent {
         cancelText={e('cancel')}
         key={`context-item-${i}-${text}`}
         okText={e('ok')}
-        title={title}
+        title={confirmNode}
         onConfirm={(e) => this.onClick(e, item)}
       >
         {unit}

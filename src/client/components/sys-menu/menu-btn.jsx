@@ -65,12 +65,6 @@ class MenuBtn extends PureComponent {
       {
         type: 'group',
         text: '常用操作'
-      },
-      {
-        func: 'onNewSsh',
-        icon: 'CodeFilled',
-        text: '新建连接',
-        subText: this.getShortcut('app_newBookmark')
       }
     ]
     if (window.store.hasNodePty) {
@@ -84,12 +78,6 @@ class MenuBtn extends PureComponent {
     items.push({
       type: 'group',
       text: '资源与窗口'
-    })
-    items.push({
-      noCloseMenu: true,
-      icon: 'BookOutlined',
-      text: '服务器资源',
-      submenu: 'Bookmark'
     })
     items.push(
       {
@@ -114,11 +102,6 @@ class MenuBtn extends PureComponent {
         text: '应用设置'
       },
       {
-        func: 'openAbout',
-        icon: 'InfoCircleOutlined',
-        text: '关于云舵'
-      },
-      {
         func: 'openSetting',
         icon: 'SettingOutlined',
         text: '设置中心'
@@ -132,9 +115,6 @@ class MenuBtn extends PureComponent {
       {
         type: 'group',
         text: '显示与窗口'
-      },
-      {
-        module: 'Zoom'
       },
       {
         func: 'minimize',

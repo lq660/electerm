@@ -143,13 +143,20 @@ export default class BatchInput extends Component {
       <div className='batch-input-history-popover'>
         <div className='batch-input-history-head'>
           <strong>历史命令</strong>
-          <span onClick={this.handleClearHistory}>清空</span>
+          <button
+            type='button'
+            className='batch-input-history-clear'
+            onClick={this.handleClearHistory}
+          >
+            清空
+          </button>
         </div>
         <div className='batch-input-history-list'>
           {
             batchInputs.map((item, index) => (
               <button
                 key={`${index}-${item}`}
+                type='button'
                 onClick={() => this.handleSelectHistory(item)}
                 title={item}
               >

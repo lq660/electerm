@@ -5,6 +5,8 @@ const { userConfigId, userNoEncryptConfigId } = require('../common/constants')
 const generate = require('../common/uid')
 const globalState = require('./glob-state')
 
+const legacyAIRole = '终端专家,提供不同系统下命令,简要解释用法,用markdown格式'
+
 exports.getConfig = async (inited) => {
   const userConfig = await dbAction('data', 'findOne', {
     _id: userConfigId
@@ -19,9 +21,14 @@ exports.getConfig = async (inited) => {
   const port = inited
     ? globalState.get('config').port
     : await getPort()
+  // 2026-09-02 coder(lq): Upgrade only the previous built-in AI role; preserve any role text the user customized.
+  const roleAI = userConfig.roleAI === legacyAIRole
+    ? defaultSetting.roleAI
+    : userConfig.roleAI
   const config = {
     ...defaultSetting,
     ...userConfig,
+    ...(roleAI !== undefined ? { roleAI } : {}),
     requireAuth,
     port,
     tokenElecterm: inited ? globalState.get('config').tokenElecterm : generate()

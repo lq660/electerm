@@ -53,20 +53,25 @@ export default function HistoryItem (props) {
     <div
       className='item-list-unit'
       title={tt}
+      role='button'
+      tabIndex={0}
       onClick={handleClick}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          handleClick()
+        }
+      }}
     >
       <div className='elli pd1y pd2x'>
         {title}
       </div>
-      <BookFilled
-        className='list-item-bookmark'
-        title={window.translate('bookmark')}
-        onClick={handleBookmark}
-      />
-      <DeleteOutlined
-        className='list-item-edit'
-        onClick={handleDelete}
-      />
+      <button type='button' className='list-item-bookmark' aria-label={window.translate('bookmark')} title={window.translate('bookmark')} onClick={handleBookmark}>
+        <BookFilled />
+      </button>
+      <button type='button' className='list-item-edit' aria-label={window.translate('delete')} title={window.translate('delete')} onClick={handleDelete}>
+        <DeleteOutlined />
+      </button>
     </div>
   )
 }

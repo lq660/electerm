@@ -21,6 +21,8 @@ const {
 const _ = require('./lodash.js')
 const { getStorageKey } = require('./storage-key')
 
+const SFTP_CLIPBOARD_FORMAT = 'application/x-electerm-sftp-transfer'
+
 const isMaximized = () => {
   const {
     width: widthMax,
@@ -52,6 +54,34 @@ module.exports = {
   },
   writeClipboard: str => {
     clipboard.writeText(str)
+  },
+  readSftpClipboard: () => {
+    try {
+      if (!clipboard.availableFormats().includes(SFTP_CLIPBOARD_FORMAT)) {
+        return null
+      }
+      const raw = clipboard.readBuffer(SFTP_CLIPBOARD_FORMAT).toString('utf8')
+      if (!raw) {
+        return null
+      }
+      return JSON.parse(raw)
+    } catch (err) {
+      return null
+    }
+  },
+  writeSftpClipboard: payload => {
+    try {
+      // 2026-09-04 coder(lq): Keep SFTP clipboard metadata in a custom system clipboard format so other windows can paste with terminal context.
+      clipboard.writeText(payload?.text || '')
+      clipboard.writeBuffer(
+        SFTP_CLIPBOARD_FORMAT,
+        Buffer.from(JSON.stringify(payload || {}), 'utf8')
+      )
+      return true
+    } catch (err) {
+      log.error('writeSftpClipboard failed', err)
+      return false
+    }
   },
   resolve: (...args) => require('path').resolve(...args),
   join: (...args) => require('path').join(...args),
@@ -127,6 +157,7 @@ module.exports = {
         'openFile',
         'zipFolder',
         'unzipFile',
+        'extractArchive',
         'readCustom',
         'exists',
         'readdir',

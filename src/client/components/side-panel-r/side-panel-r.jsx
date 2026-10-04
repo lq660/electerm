@@ -30,7 +30,7 @@ export default memo(function RightSidePanel (
   const tag = isAiPanel
     ? <Tag className='right-panel-tag'>AI</Tag>
     : <InfoCircleOutlined className='right-panel-tag-icon' />
-  const panelName = isAiPanel ? '智能助手' : '运行详情'
+  const panelName = isAiPanel ? 'AI Shell' : '运行详情'
   const panelSubtitle = isAiPanel ? title : `${title || '当前会话'} 的状态、日志和资源信息`
 
   function onDragEnd (nw) {

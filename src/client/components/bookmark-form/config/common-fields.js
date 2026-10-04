@@ -118,15 +118,17 @@ export const commonFields = {
   },
 
   startDirectoryLocal: {
-    type: 'input',
+    type: 'textarea',
     name: 'startDirectoryLocal',
-    label: `${e('startDirectory')}:${e('local')}`
+    label: `${e('startDirectory')}:${e('local')}`,
+    props: { rows: 2, placeholder: '每行一个目录，按顺序尝试' }
   },
 
   startDirectory: {
-    type: 'input',
-    name: 'startDirectory',
-    label: `${e('startDirectory')}:${e('remote')}`
+    type: 'textarea',
+    name: 'startDirectoryRemote',
+    label: `${e('startDirectory')}:${e('remote')}`,
+    props: { rows: 2, placeholder: '每行一个目录，按顺序尝试' }
   },
 
   interactiveValues: {

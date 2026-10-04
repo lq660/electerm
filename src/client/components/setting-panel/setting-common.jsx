@@ -1,9 +1,16 @@
 import React, { Component } from 'react'
 import {
   ArrowRightOutlined,
+  BugOutlined,
+  FullscreenOutlined,
   LoadingOutlined,
+  MinusOutlined,
+  MoonOutlined,
+  PoweroffOutlined,
+  RedoOutlined,
+  ReloadOutlined,
   SunOutlined,
-  MoonOutlined
+  UpCircleOutlined
 } from '@ant-design/icons'
 import message from '../common/message'
 import { notification } from '../common/notification'
@@ -236,6 +243,84 @@ export default class SettingCommon extends Component {
         />
         <span className='cn-settings-toggle-label'>{txt}</span>
         {isNumber(extra) ? null : extra}
+      </div>
+    )
+  }
+
+  renderAppActions = () => {
+    // 2026-09-22 coder(lq): Keep app-level maintenance actions in Settings after removing the duplicated global sidebar menu.
+    const desktopOnly = !window.et.isWebApp
+    const actions = [
+      desktopOnly && !this.props.config.disableDeveloperTool && {
+        key: 'devtools',
+        icon: <BugOutlined />,
+        title: '开发者工具',
+        desc: '打开调试面板',
+        handleClick: () => window.pre.runGlobalAsync('openDevTools')
+      },
+      desktopOnly && {
+        key: 'minimize',
+        icon: <MinusOutlined />,
+        title: '最小化',
+        desc: '收起当前窗口',
+        handleClick: () => window.pre.runGlobalAsync('minimize')
+      },
+      desktopOnly && {
+        key: 'maximize',
+        icon: <FullscreenOutlined />,
+        title: '最大化',
+        desc: '切换窗口大小',
+        handleClick: () => window.pre.runGlobalAsync('maximize')
+      },
+      {
+        key: 'reload',
+        icon: <ReloadOutlined />,
+        title: '重新加载',
+        desc: '刷新当前应用界面',
+        handleClick: () => window.location.reload()
+      },
+      desktopOnly && {
+        key: 'update',
+        icon: <UpCircleOutlined />,
+        title: '检查更新',
+        desc: '检查可用新版本',
+        handleClick: () => window.store.onCheckUpdate(true)
+      },
+      desktopOnly && {
+        key: 'restart',
+        icon: <RedoOutlined />,
+        title: '重启应用',
+        desc: '关闭并重新启动',
+        handleClick: () => window.store.restart()
+      },
+      desktopOnly && {
+        key: 'exit',
+        icon: <PoweroffOutlined />,
+        title: '退出应用',
+        desc: '关闭云舵',
+        danger: true,
+        handleClick: () => window.store.exit()
+      }
+    ].filter(Boolean)
+
+    return (
+      <div className='cn-settings-app-action-grid'>
+        {
+          actions.map(action => (
+            <button
+              type='button'
+              key={action.key}
+              className={`cn-settings-app-action${action.danger ? ' danger' : ''}`}
+              onClick={action.handleClick}
+            >
+              {action.icon}
+              <span>
+                <strong>{action.title}</strong>
+                <small>{action.desc}</small>
+              </span>
+            </button>
+          ))
+        }
       </div>
     )
   }
@@ -682,6 +767,13 @@ export default class SettingCommon extends Component {
                 ].map(this.renderToggle)
               }
             </div>
+          )
+        }
+        {
+          this.renderSection(
+            '应用操作',
+            '窗口、维护和调试入口',
+            this.renderAppActions()
           )
         }
         {

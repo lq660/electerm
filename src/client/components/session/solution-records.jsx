@@ -13,6 +13,7 @@ import {
   SendOutlined
 } from '@ant-design/icons'
 import Modal from '../common/modal'
+import HistoryReady from '../common/history-ready'
 import message from '../common/message'
 import uid from '../../common/uid'
 import { copy } from '../../common/clipboard'
@@ -72,7 +73,11 @@ function createDraft ({ commands, conversations }) {
   }
 }
 
-export default auto(function SolutionRecords ({ tab, serverName, host, onRunCommand }) {
+export default function SolutionRecordsWithHistory (props) {
+  return <HistoryReady names={['terminalCommandHistory', 'aiChatHistory']}><SolutionRecords {...props} /></HistoryReady>
+}
+
+const SolutionRecords = auto(function SolutionRecords ({ tab, serverName, host, onRunCommand }) {
   const [records, setRecords] = useState(getStoredRecords)
   const [composerOpen, setComposerOpen] = useState(false)
   const [libraryOpen, setLibraryOpen] = useState(false)
@@ -167,7 +172,8 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
         config.apiKeyAI,
         config.proxyAI,
         false,
-        config.authHeaderNameAI
+        config.authHeaderNameAI,
+        config.reasoningEffortAI
       )
       if (response?.error) {
         throw new Error(response.error)
@@ -255,6 +261,7 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
   function renderRecordItem (record) {
     return (
       <button
+        type='button'
         key={record.id}
         className='cn-solution-record-item'
         title={record.problem || record.summary || record.title}
@@ -280,8 +287,8 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
         wrapClassName='solution-record-modal'
         footer={(
           <div className='custom-modal-footer-buttons'>
-            <button className='custom-modal-cancel-btn' onClick={() => setComposerOpen(false)}>取消</button>
-            <button className='custom-modal-ok-btn' onClick={handleSave}>保存记录</button>
+            <button type='button' className='custom-modal-cancel-btn' onClick={() => setComposerOpen(false)}>取消</button>
+            <button type='button' className='custom-modal-ok-btn' onClick={handleSave}>保存记录</button>
           </div>
         )}
       >
@@ -291,6 +298,7 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
             <span>{host}</span>
           </div>
           <button
+            type='button'
             className='solution-record-ai-button'
             disabled={summarizing}
             onClick={handleAiSummary}
@@ -367,6 +375,7 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
             onChange={event => setKeyword(event.target.value)}
           />
           <button
+            type='button'
             className={showAllRecords ? 'active' : ''}
             onClick={() => setShowAllRecords(!showAllRecords)}
           >
@@ -378,6 +387,7 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
             {visibleRecords.length
               ? visibleRecords.map(record => (
                 <button
+                  type='button'
                   key={record.id}
                   className={record.id === detail?.id ? 'active' : ''}
                   onClick={() => setSelectedId(record.id)}
@@ -399,14 +409,14 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
                       <span>{detail.serverName || detail.host} · {formatRecordTime(detail.updatedAt)}</span>
                     </div>
                     <div className='solution-record-detail-actions'>
-                      <button title='编辑记录' onClick={() => openComposer(detail)}>编辑</button>
+                      <button type='button' title='编辑记录' onClick={() => openComposer(detail)}>编辑</button>
                       <Popconfirm
                         title='删除这条处理记录？'
                         okText='删除'
                         cancelText='取消'
                         onConfirm={() => handleDelete(detail)}
                       >
-                        <button title='删除记录'><DeleteOutlined /></button>
+                        <button type='button' title='删除记录'><DeleteOutlined /></button>
                       </Popconfirm>
                     </div>
                   </div>
@@ -425,7 +435,7 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
                       ? detail.commands.map((command, index) => (
                         <div className='solution-record-command' key={`${command}-${index}`}>
                           <code>{command}</code>
-                          <button title='复制命令' onClick={() => copy(command)}><CopyOutlined /></button>
+                          <button type='button' title='复制命令' onClick={() => copy(command)}><CopyOutlined /></button>
                         </div>
                       ))
                       : <p>没有保存可执行命令</p>}
@@ -434,8 +444,8 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
                     ? <div className='solution-record-tags'>{detail.tags.map(tag => <span key={tag}>{tag}</span>)}</div>
                     : null}
                   <div className='solution-record-run-actions'>
-                    <button onClick={() => handleSend(detail, false)}><SendOutlined />发送到终端</button>
-                    <button className='primary' onClick={() => confirmExecute(detail)}><PlayCircleOutlined />执行命令</button>
+                    <button type='button' onClick={() => handleSend(detail, false)}><SendOutlined />发送到终端</button>
+                    <button type='button' className='primary' onClick={() => confirmExecute(detail)}><PlayCircleOutlined />执行命令</button>
                   </div>
                 </>
                 )
@@ -454,12 +464,12 @@ export default auto(function SolutionRecords ({ tab, serverName, host, onRunComm
             <span>处理记录</span>
             <em>{currentServerRecords.length ? `当前服务器 ${currentServerRecords.length} 条` : '沉淀可复用的处理步骤'}</em>
           </div>
-          <button title='保存本次处理' onClick={() => openComposer()}><PlusOutlined /></button>
+          <button type='button' title='保存本次处理' onClick={() => openComposer()}><PlusOutlined /></button>
         </div>
         {currentServerRecords.length
           ? <div className='cn-solution-record-list'>{currentServerRecords.slice(0, 2).map(renderRecordItem)}</div>
           : <div className='cn-solution-record-empty'>处理完成后，保存问题、结论和实际执行命令。</div>}
-        <button className='cn-solution-record-library-button' onClick={() => openLibrary()}>
+        <button type='button' className='cn-solution-record-library-button' onClick={() => openLibrary()}>
           <BookOutlined />
           <span>查看处理记录</span>
         </button>

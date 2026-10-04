@@ -42,7 +42,15 @@ export default class ProfileList extends List {
       <div
         key={id}
         className={cls}
+        role='button'
+        tabIndex={0}
         onClick={() => this.onClickItem(item)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            this.onClickItem(item)
+          }
+        }}
         data-id={id}
       >
         <div className='elli pd1y pd2x' title={name}>

@@ -46,13 +46,15 @@ export default function LayoutSelect (props) {
         const Icon = getLayoutIcon(v)
         const isActive = layout === t
         return (
-          <div
+          <button
+            type='button'
             key={t}
             className={`layout-menu-item ${isActive ? 'active' : ''}`}
+            aria-pressed={isActive}
             onClick={() => handleChangeLayout(t)}
           >
             <Icon /> {e(v)}
-          </div>
+          </button>
         )
       })}
     </div>

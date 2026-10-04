@@ -14,6 +14,7 @@ const {
   testTerm,
   resize,
   runCmd,
+  runCmdStructured,
   getTerminalCwd,
   toggleTerminalLog,
   toggleTerminalLogTimestamp,
@@ -98,6 +99,8 @@ const initWs = function (app) {
           getTerminalCwd(ws, msg)
         } else if (action === 'run-cmd') {
           runCmd(ws, msg)
+        } else if (action === 'run-cmd-structured') {
+          runCmdStructured(ws, msg)
         } else if (action === 'test-web-connection') {
           testWebConnection(msg.body)
             .then(data => ws.s({ id: msg.id, data }))

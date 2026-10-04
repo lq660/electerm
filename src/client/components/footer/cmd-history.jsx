@@ -10,6 +10,7 @@ import { HistoryOutlined, DeleteOutlined, CopyOutlined, UnorderedListOutlined } 
 import InputAutoFocus from '../common/input-auto-focus'
 import { getItemJSON, setItemJSON } from '../../common/safe-local-storage'
 import './cmd-history.styl'
+import HistoryReady from '../common/history-ready'
 
 const e = window.translate
 const SORT_BY_FREQ_KEY = 'electerm-cmd-history-sort-by-frequency'
@@ -79,7 +80,15 @@ export default auto(function CmdHistory (props) {
       <div
         key={index}
         className='cmd-history-item'
+        role='button'
+        tabIndex={0}
         onClick={() => handleRunCommand(item.cmd)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            handleRunCommand(item.cmd)
+          }
+        }}
       >
         <span className='cmd-history-item-text' title={item.cmd}>{item.cmd}</span>
         <div className='cmd-history-item-actions'>
@@ -147,7 +156,7 @@ export default auto(function CmdHistory (props) {
 
   return (
     <Popover
-      content={content}
+      content={<HistoryReady names={['terminalCommandHistory']}>{content}</HistoryReady>}
       trigger='click'
       placement='topLeft'
     >

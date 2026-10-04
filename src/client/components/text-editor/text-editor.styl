@@ -1,0 +1,200 @@
+.text-editor-modal-wrap
+  .custom-modal-container
+    padding 12px
+    align-items stretch
+
+  .custom-modal-content
+    margin-top 0
+    max-width calc(100vw - 24px)
+    max-height calc(100vh - 24px)
+    height calc(100vh - 24px)
+    display flex
+    flex-direction column
+    overflow hidden
+
+  .custom-modal-header
+    padding 10px 14px
+
+  .custom-modal-body
+    padding 12px 14px 14px
+    display flex
+    flex-direction column
+    align-items stretch
+    justify-content stretch
+    flex 1
+    min-height 0
+    min-width 0
+    overflow hidden
+
+  // 2026-09-25 coder(lq): AntD 5 and 6 use different Spin wrapper classes; stretch both structures so the long-file editor receives the modal's bounded height.
+  .custom-modal-body > .ant-spin-nested-loading,
+  .custom-modal-body > .ant-spin
+    display flex !important
+    flex-direction column !important
+    flex 1 1 auto
+    min-width 0
+    min-height 0
+    width 100%
+    height 100%
+    align-self stretch
+
+  .custom-modal-body > .ant-spin-nested-loading > .ant-spin-container,
+  .custom-modal-body > .ant-spin > .ant-spin-container
+    display flex !important
+    flex 1 1 auto
+    min-width 0
+    min-height 0
+    width 100%
+    height 100%
+    flex-direction column
+    align-items stretch
+
+  .text-editor-form .ant-form-item
+    width 100%
+    min-width 0
+
+  .text-editor-form .ant-form-item-row
+    width 100%
+    min-width 0
+
+  .text-editor-form .ant-form-item-control
+    width 100%
+    min-width 0
+    flex 1 1 auto
+
+  .text-editor-form .ant-form-item-control-input
+    width 100%
+    min-width 0
+    flex 1 1 auto
+
+  .text-editor-form .ant-form-item-control-input-content
+    width 100%
+    min-width 0
+    flex 1 1 auto
+
+  .text-editor-editor-shell
+    display flex
+    flex 1 1 0
+    min-width 0
+    min-height 0
+    height 0
+    width 100%
+    align-self stretch
+    overflow hidden
+
+  .text-editor-form
+    display flex
+    flex 1 1 0
+    height 100%
+    min-height 0
+    min-width 0
+    flex-direction column
+    align-items stretch
+    gap 10px
+    width 100% !important
+    align-self stretch
+
+  .code-editor
+    width 100%
+    height 100%
+    min-height 0
+    min-width 0
+    display grid
+    grid-template-rows auto minmax(0, 1fr) auto
+    flex 1 1 0
+    align-self stretch
+    overflow hidden
+    border 1px solid var(--workbench-border, var(--main-lighter))
+    border-radius 6px
+    background var(--workbench-panel, var(--main))
+
+  .code-editor-toolbar
+    flex none
+    align-items center
+    width 100%
+    min-width 0
+    align-self stretch
+    min-height 36px
+    padding 3px 8px
+    border-bottom 1px solid var(--workbench-border, var(--main-lighter))
+    background var(--workbench-panel-soft, var(--main-light))
+
+  .code-editor-host
+    height 100%
+    min-height 0
+    width 100%
+    min-width 0
+    overflow hidden
+
+  .code-editor-host .cm-editor
+    height 100%
+    min-height 0
+    max-height 100%
+
+  // 2026-09-25 coder(lq): Keep long files inside CodeMirror and reserve visible scrollbar space instead of letting their intrinsic height stretch the modal beyond the viewport.
+  .code-editor-host .cm-scroller
+    height 100%
+    min-height 0
+    overflow-x auto !important
+    overflow-y scroll !important
+    scrollbar-gutter stable
+
+  .code-editor-host .cm-scroller::-webkit-scrollbar
+    width 10px
+    height 10px
+    background var(--workbench-panel-soft, var(--main-light))
+
+  .code-editor-host .cm-scroller::-webkit-scrollbar-track
+    background var(--workbench-panel-soft, var(--main-light))
+
+  .code-editor-host .cm-scroller::-webkit-scrollbar-thumb
+    min-height 36px
+    border 2px solid var(--workbench-panel-soft, var(--main-light))
+    border-radius 8px
+    background var(--workbench-muted, #7f8da3)
+
+  .code-editor-host .cm-scroller::-webkit-scrollbar-thumb:hover
+    background var(--workbench-primary, var(--primary))
+
+  .code-editor-language
+    color var(--workbench-muted, var(--text-light))
+    font-size 12px
+    white-space nowrap
+
+  .code-editor-status
+    flex none
+    min-height 24px
+    padding 0 10px
+    border-top 1px solid var(--workbench-border, var(--main-lighter))
+    color var(--workbench-muted, var(--text-light))
+    background var(--workbench-panel-soft, var(--main-light))
+    font-size 12px
+
+  .code-editor .cm-search
+    display flex
+    align-items center
+    flex-wrap wrap
+    gap 4px
+    padding 6px 8px
+
+  .code-editor .cm-search input,
+  .code-editor .cm-search button,
+  .code-editor .cm-gotoLine input
+    min-height 26px
+    border 1px solid var(--workbench-border, var(--main-lighter))
+    border-radius 4px
+    color var(--workbench-text, var(--text))
+    background var(--workbench-panel, var(--main))
+
+  .code-editor .cm-search input:focus,
+  .code-editor .cm-gotoLine input:focus
+    border-color var(--workbench-primary, var(--primary))
+    outline none
+
+  .text-editor-actions
+    width 100%
+    min-width 0
+
+  .text-editor-actions-primary,
+  .text-editor-actions-secondary
+    min-width 0

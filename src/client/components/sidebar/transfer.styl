@@ -1,14 +1,22 @@
 .control-icon-wrap
+  border 0
+  background transparent
+  color inherit
+  font inherit
+  cursor pointer
   .ant-badge-count-sm
     font-size 11px
   .ant-badge-multiple-words
     padding 0 3px
 .transfer-list-card
-  width calc(100vw - 48px)
+  max-width 100%
+  box-sizing border-box
 .sftp-file
-  max-width calc(50vw - 250px)
+  display block
+  min-width 0
+  max-width 100%
   overflow hidden
   text-overflow ellipsis
   white-space nowrap
   &.history-file
-    max-width calc(50vw - 440px)
+    max-width 100%

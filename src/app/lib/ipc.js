@@ -75,7 +75,8 @@ const { encryptAsync, decryptAsync } = require('./enc')
 const { initCommandLine } = require('./command-line')
 const { watchFile, unwatchFile } = require('./watch-file')
 const lookup = require('../common/lookup')
-const { AIchat, AIchatWithTools, getStreamContent, stopStream } = require('./ai')
+const { AIchat, AIchatWithTools, getStreamContent, stopStream, cancelAIRequest } = require('./ai')
+const { getSystemFileIcon } = require('./system-file-icon')
 
 // Security: whitelist of safe environment variables for Linux/Mac/Windows
 const SAFE_ENV_KEYS = [
@@ -308,8 +309,10 @@ function initIpc () {
     copySensitiveText,
     AIchat,
     AIchatWithTools,
+    cancelAIRequest,
     getStreamContent,
     stopStream,
+    getSystemFileIcon: (filePath) => getSystemFileIcon(app, filePath),
     setTitle: (title) => {
       const win = globalState.get('win')
       win && win.setTitle((packInfo.productName || packInfo.name) + ' - ' + title)

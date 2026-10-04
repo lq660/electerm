@@ -14,6 +14,8 @@ module.exports = {
   },
   args: [
     resolve(cwd, 'work/app'),
+    // 2026-10-04 coder(lq): Isolate Electron's own profile as well as app data so a running production instance cannot consume the E2E single-instance lock.
+    `--user-data-dir=${join(dataPath, 'electron-profile')}`,
     '--disable-gpu',
     '--disable-dev-shm-usage'
   ]

@@ -4,7 +4,8 @@
 
 import {
   settingMap,
-  splitMap
+  splitMap,
+  splitConfig
 } from '../common/constants'
 import getInitItem from '../common/init-setting-item'
 import generate from '../common/uid'
@@ -16,22 +17,25 @@ export default Store => {
   Store.prototype.getCurrentWorkspaceState = function () {
     const { store } = window
     const { tabs } = store
-    // Group tabs by batch and get bookmark srcIds
+    // 2026-10-04 coder(lq): Preserve the actual pane assignment. The previous
+    // implementation flattened every saved workspace into the first pane.
     const tabsByBatch = {}
     for (const tab of tabs) {
-      const batch = 0
+      if (!tab.srcId) {
+        continue
+      }
+      const batch = Number.isInteger(tab.batch) && tab.batch >= 0
+        ? tab.batch
+        : 0
       if (!tabsByBatch[batch]) {
         tabsByBatch[batch] = []
       }
-      // Store srcId (bookmark id) if available, otherwise store basic connection info
-      if (tab.srcId) {
-        tabsByBatch[batch].push({
-          srcId: tab.srcId
-        })
-      }
+      tabsByBatch[batch].push({
+        srcId: tab.srcId
+      })
     }
     return {
-      layout: splitMap.c1,
+      layout: splitConfig[store.layout] ? store.layout : splitMap.c1,
       tabsByBatch
     }
   }
@@ -68,19 +72,29 @@ export default Store => {
     if (!workspace) {
       return
     }
-    const { tabsByBatch } = workspace
+    const tabsByBatch = workspace.tabsByBatch || {}
+    const layout = splitConfig[workspace.layout]
+      ? workspace.layout
+      : splitMap.c1
 
     // Close all existing tabs first
     store.removeTabs(() => true)
 
-    // Set layout
-    store.setLayout(splitMap.c1)
-    // Open tabs for each batch
-    for (const tabInfos of Object.values(tabsByBatch)) {
-      for (const tabInfo of tabInfos) {
+    // 2026-10-04 coder(lq): Restore the saved layout before opening resources,
+    // then route each saved resource back to its original pane.
+    store.setLayout(layout)
+    const maxBatch = splitConfig[layout].children - 1
+    for (const [batchKey, tabInfos] of Object.entries(tabsByBatch)) {
+      const parsedBatch = Number.parseInt(batchKey, 10)
+      const batch = Number.isInteger(parsedBatch) && parsedBatch >= 0
+        ? Math.min(parsedBatch, maxBatch)
+        : 0
+      // 2026-10-04 coder(lq): Ignore malformed legacy pane data instead of
+      // aborting the whole workspace restore operation.
+      const validTabInfos = Array.isArray(tabInfos) ? tabInfos : []
+      for (const tabInfo of validTabInfos) {
         if (tabInfo.srcId) {
-          // Open from bookmark
-          window.openTabBatch = 0
+          window.openTabBatch = batch
           store.onSelectBookmark(tabInfo.srcId)
         }
       }

@@ -26,7 +26,7 @@ test.describe('China workbench UI smoke test', () => {
     await expect(serverSearchWrapper).toHaveCSS('border-top-width', '1px')
     await expect(serverSearchInput).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
     await expect(serverSearchInput).toHaveCSS('border-top-width', '0px')
-    await expect(serverSearchInput).toHaveCSS('color', 'rgb(31, 41, 55)')
+    await expect(serverSearchInput).toHaveCSS('color', 'rgb(31, 42, 55)')
     await expect(serverSearchButton).toHaveCSS('background-color', 'rgb(255, 255, 255)')
     const closeServerSelector = serverSelector.getByRole('button', { name: '关闭服务器选择' })
     await expect(closeServerSelector).toBeVisible()
@@ -36,26 +36,18 @@ test.describe('China workbench UI smoke test', () => {
     await closeServerSelector.click()
     await expect(serverSelector).toBeHidden()
 
-    await expect(client.locator('.cn-side-icon-menu .cn-yunduo-logo-mark-icon')).toBeVisible()
-    await expect(client.locator('.cn-side-icon-menu .anticon-appstore')).toHaveCount(0)
-    await expect(client.locator('.cn-side-icon-theme, .cn-side-icon-setting, .cn-side-icon-sync, .cn-side-icon-tools')).toHaveCount(0)
-    const resourceEntry = client.locator('.cn-side-icon-server')
-    await resourceEntry.hover()
-    await expect(client.getByRole('tooltip')).toContainText('服务器资源')
+    // 2026-10-04 coder(lq): The global rail was removed; transfer status is
+    // on the workbench and management pages are consolidated in Settings.
+    await expect(client.locator('.sidebar')).toHaveCount(0)
+    const transferDrawer = client.locator('.cn-transfer-drawer')
+    await expect(transferDrawer).toContainText('传输任务')
+    await transferDrawer.locator('.cn-transfer-drawer-toggle').click()
+    await expect(transferDrawer.locator('.cn-workbench-transfer-content')).toContainText('暂无传输任务')
 
-    await expect(client.locator('.cn-side-icon-transfer')).toBeVisible()
-    await client.locator('.cn-side-icon-transfer').click()
-    await expect(client.locator('.cn-transfer-side-panel')).toContainText('暂无传输任务')
-    await client.evaluate(() => window.store.setOpenedSideBar(''))
-
-    const managementEntry = client.locator('.cn-side-icon-manage')
-    const managementMenu = client.locator('.cn-sidebar-manage-menu')
-    await managementEntry.click()
-    await expect(managementMenu).toContainText('配置管理')
-    await expect(managementMenu).toContainText('扩展能力')
-    await managementMenu.getByText('系统设置', { exact: true }).click()
+    await client.locator('.cn-toolbar-actions button').filter({ hasText: '设置' }).click()
     await expect(client.locator('.cn-setting-header')).toContainText('设置中心')
     await expect(client.locator('input[placeholder="搜索名称或关键词"]')).toBeVisible()
+    await expect(client.locator('.cn-setting-tabs-all')).toContainText('工作区')
     await client.evaluate(() => window.store.hideSettingModal())
 
     await client.evaluate(() => window.store.onNewSsh())
@@ -66,25 +58,18 @@ test.describe('China workbench UI smoke test', () => {
     await expect(client.getByRole('tooltip')).toContainText('新建服务器')
     await client.evaluate(() => window.store.hideSettingModal())
 
-    await managementEntry.click()
-    await managementMenu.getByText('终端主题', { exact: true }).click()
+    await client.evaluate(() => window.store.openTerminalThemes())
     await expect(client.locator('.cn-setting-header')).toContainText('终端主题')
     await client.evaluate(() => window.store.hideSettingModal())
 
-    await managementEntry.click()
-    await managementMenu.getByText('数据同步', { exact: true }).click()
+    await client.evaluate(() => window.store.openSettingSync())
     await expect(client.locator('.cn-setting-header')).toContainText('设置中心')
     await expect(client.locator('.item-list-unit.active')).toContainText('设置同步')
     await client.evaluate(() => window.store.hideSettingModal())
 
-    await managementEntry.click()
-    await managementMenu.getByText('扩展工具', { exact: true }).click()
+    await client.evaluate(() => window.store.openWidgetsModal())
     await expect(client.locator('.cn-setting-header')).toContainText('工具面板')
     await client.evaluate(() => window.store.hideSettingModal())
-
-    await client.evaluate(() => window.store.openAbout())
-    await expect(client.locator('.info-modal')).toContainText('云舵工作台')
-    await client.evaluate(() => { window.store.showInfoModal = false })
 
     await client.evaluate(() => window.store.addTab())
     await client.waitForSelector('.cn-terminal-session-tabs')

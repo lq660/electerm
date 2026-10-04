@@ -2,6 +2,8 @@
  * terminal/sftp/serial class
  */
 
+const { runRemoteCommand, cancelCommand } = require('./agent-command-execution')
+
 exports.commonExtends = function (Cls) {
   Cls.prototype.customEnv = function (envs) {
     if (!envs) {
@@ -30,25 +32,18 @@ exports.commonExtends = function (Cls) {
   }
 
   Cls.prototype.runCmd = function (cmd, conn) {
-    return new Promise((resolve, reject) => {
-      const client = conn || this.conn || this.client
-      client.exec(cmd, this.getExecOpts(), (err, stream) => {
-        if (err) reject(err)
-        if (stream) {
-          let r = ''
-          stream
-            .on('data', function (data) {
-              const d = data.toString()
-              r = r + d
-            })
-            .on('close', (code, signal) => {
-              resolve(r)
-            })
-        } else {
-          resolve('')
-        }
-      })
+    return this.runCmdStructured(cmd, conn).then(result => {
+      if (result.success === false || result.timedOut || result.cancelled || result.exitCode === null) {
+        throw new Error(result.stderr || 'Command did not finish successfully')
+      }
+      return result.stdout
     })
   }
+
+  // 2026-09-01 coder(lq): Keep agent commands outside the interactive PTY and expose exit/error state for reliable decisions.
+  Cls.prototype.runCmdStructured = function (cmd, conn, timeout = 45000, executionId, background = false) {
+    return runRemoteCommand(this, { command: cmd, client: conn || this.conn || this.client, execOptions: this.getExecOpts(), timeout, executionId, background })
+  }
+  Cls.prototype.cancelCmdStructured = function (executionId) { return cancelCommand(this, executionId) }
   return Cls
 }

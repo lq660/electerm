@@ -14,6 +14,7 @@ import { fixBookmarks } from '../common/db-fix'
 import dayjs from 'dayjs'
 import parseJsonSafe from '../common/parse-json-safe'
 import message from '../components/common/message'
+import { localAIConfigFields, omitConfigFields } from '../common/config-persistence.mjs'
 
 const {
   version: packVer
@@ -39,6 +40,15 @@ function updateSyncServerStatusFromGist (store, gist, type) {
   const statusContent = get(gist, 'files["electerm-status.json"].content')
   const status = statusContent ? parseJsonSafe(statusContent) : undefined
   store.syncServerStatus[type] = status
+}
+
+function applySyncedUserConfig (store, userConfig) {
+  if (!userConfig) return
+  // 2026-09-22 coder(lq): AI endpoints, credentials and roles are machine-local; an older remote settings snapshot must not replace them.
+  store.setConfig(omitConfigFields(userConfig, localAIConfigFields))
+  if (userConfig.theme) {
+    store.setTheme(userConfig.theme)
+  }
 }
 
 export default (Store) => {
@@ -515,12 +525,7 @@ export default (Store) => {
           const userConfig = parseJsonSafe(
             get(gist, 'files["userConfig.json"].content')
           )
-          if (userConfig) {
-            store.setConfig(userConfig)
-          }
-          if (userConfig && userConfig.theme) {
-            store.setTheme(userConfig.theme)
-          }
+          applySyncedUserConfig(store, userConfig)
         }
 
         const up = {
@@ -582,12 +587,7 @@ export default (Store) => {
       const userConfig = parseJsonSafe(
         get(gist, 'files["userConfig.json"].content')
       )
-      if (userConfig) {
-        store.setConfig(userConfig)
-      }
-      if (userConfig && userConfig.theme) {
-        store.setTheme(userConfig.theme)
-      }
+      applySyncedUserConfig(store, userConfig)
     }
 
     const up = {
@@ -804,11 +804,6 @@ export default (Store) => {
       'copyWhenSelect',
       'customCss',
       'dataSyncSelected',
-      'baseURLAI',
-      'modelAI',
-      'roleAI',
-      'languageAI',
-      'proxyAI',
       'disableDeveloperTool',
       'terminalBackgroundText',
       'terminalBackgroundTextSize',

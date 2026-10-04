@@ -15,6 +15,7 @@ import { buildNewTheme } from '../common/terminal-theme'
 import getInitItem from '../common/init-setting-item'
 import newTerm from '../common/new-terminal'
 import settingList from '../common/setting-list'
+import { findHistoryBookmark } from '../common/recent-history'
 
 const e = window.translate
 
@@ -53,6 +54,10 @@ export default Store => {
 
   Store.prototype.onSelectHistory = function (tab) {
     const { store } = window
+    const bookmark = findHistoryBookmark(tab, store.bookmarks)
+    if (bookmark) {
+      return store.onSelectBookmark(bookmark.id)
+    }
     store.addTab({
       ...copy(tab),
       ...newTerm(true, true),

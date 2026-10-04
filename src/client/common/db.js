@@ -129,8 +129,11 @@ export async function findOne (dbName, id) {
  * get all data as array from databse
  * @param {string} dbName
  */
-export async function find (dbName) {
-  const res = await dbAction(dbName, 'find', {}) || []
+export async function find (dbName, strict = false) {
+  const res = strict
+    ? await window.pre.runGlobalAsync('dbAction', dbName, 'find', {})
+    : await dbAction(dbName, 'find', {}) || []
+  if (!Array.isArray(res)) throw new Error('读取历史记录失败，请重试')
   return res.map(r => {
     const { _id, ...rest } = r
     return {
@@ -157,9 +160,11 @@ export async function getData (name) {
  * @param {string} dbName
  */
 
-export async function fetchInitData (dbName) {
-  const res = await find(dbName)
-  const order = await getData(`${dbName}:order`)
+export async function fetchInitData (dbName, strict = false) {
+  const res = await find(dbName, strict)
+  const order = strict
+    ? (await window.pre.runGlobalAsync('dbAction', 'data', 'findOne', { _id: `${dbName}:order` }))?.value
+    : await getData(`${dbName}:order`)
   if (order && order.length) {
     res.sort((a, b) => {
       const ai = order.findIndex(r => r === a.id)

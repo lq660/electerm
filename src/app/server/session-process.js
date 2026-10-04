@@ -211,6 +211,13 @@ exports.terminals = function (pid) {
         body: { cmd, pid }
       })
     },
+    runCmdStructured: async (cmd, id, timeout, executionId, cancel, operation) => {
+      return sendMsgToChildProcess(pid, {
+        id,
+        action: 'run-cmd-structured',
+        body: { cmd, pid, timeout, executionId, cancel, operation }
+      })
+    },
     getCwd: async (id) => {
       return sendMsgToChildProcess(pid, {
         id,

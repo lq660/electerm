@@ -1,21 +1,22 @@
-$cn-bg = var(--workbench-bg, #f4f7fb)
+$cn-bg = var(--workbench-bg, #f3f5f8)
 $cn-panel = var(--workbench-panel, #ffffff)
-$cn-panel-soft = var(--workbench-panel-soft, #fbfdff)
-$cn-border = var(--workbench-border, #dbe3ef)
-$cn-border-strong = var(--workbench-border-strong, #d8e0ea)
-$cn-border-soft = var(--workbench-border-soft, #edf1f7)
-$cn-input-border = var(--workbench-input-border, #cfd8e6)
-$cn-text = var(--workbench-text, #1f2937)
+$cn-panel-soft = var(--workbench-panel-soft, #fafbfc)
+$cn-border = var(--workbench-border, #d9e0e8)
+$cn-border-strong = var(--workbench-border-strong, #cbd5e1)
+$cn-border-soft = var(--workbench-border-soft, #e8edf3)
+$cn-input-border = var(--workbench-input-border, #cbd5df)
+$cn-text = var(--workbench-text, #1f2a37)
 $cn-control-text = var(--workbench-control-text, #344054)
 $cn-muted = var(--workbench-muted, #667085)
 $cn-placeholder = var(--workbench-placeholder, #98a2b3)
-$cn-primary = var(--workbench-primary-strong, #1769e0)
-$cn-primary-base = var(--workbench-primary, #1677ff)
-$cn-primary-hover = var(--workbench-primary-hover, #0958d9)
-$cn-primary-soft = var(--workbench-primary-soft, #eef5ff)
-$cn-primary-tint = var(--workbench-primary-tint, #f5f8ff)
-$cn-primary-border = var(--workbench-primary-border, #b8d8ff)
-$cn-primary-icon-bg = var(--workbench-primary-icon-bg, #e6f1ff)
+$cn-primary = var(--workbench-primary-strong, #365f8a)
+$cn-primary-base = var(--workbench-primary, #426f9d)
+$cn-primary-hover = var(--workbench-primary-hover, #2d5278)
+$cn-primary-soft = var(--workbench-primary-soft, #eef3f8)
+$cn-primary-tint = var(--workbench-primary-tint, #f5f8fb)
+$cn-primary-border = var(--workbench-primary-border, #c6d5e4)
+$cn-primary-icon-bg = var(--workbench-primary-icon-bg, #e7eef5)
+$cn-primary-active-bg = var(--workbench-primary-active-bg, #eaf1f7)
 $cn-success = var(--workbench-success, #12b76a)
 $cn-warning = var(--workbench-warning, #f79009)
 $cn-sidebar = var(--workbench-sidebar, #101828)
@@ -23,8 +24,8 @@ $cn-sidebar-text = var(--workbench-sidebar-text, #d0d5dd)
 $cn-terminal-accent = var(--workbench-terminal-accent, #32d583)
 $cn-scroll-thumb = var(--workbench-scroll-thumb, #b8c7dc)
 $cn-scroll-thumb-hover = var(--workbench-scroll-thumb-hover, #98a9c0)
-$cn-focus-shadow = var(--workbench-focus-shadow, rgba(22, 119, 255, .08))
-$cn-focus-shadow-soft = var(--workbench-focus-shadow-soft, rgba(22, 119, 255, .06))
+$cn-focus-shadow = var(--workbench-focus-shadow, rgba(66, 111, 157, .10))
+$cn-focus-shadow-soft = var(--workbench-focus-shadow-soft, rgba(66, 111, 157, .07))
 $cn-shadow-card = var(--workbench-shadow-card, rgba(15, 23, 42, .06))
 $cn-on-primary = var(--workbench-on-primary, #ffffff)
 
@@ -616,6 +617,20 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   font-size 10px
   font-weight 700
 
+.cn-connection-actions
+  display flex
+  align-items center
+  gap 4px
+  flex-shrink 0
+
+.cn-connection-edit-btn.ant-btn
+  min-width 42px
+  height 22px
+  padding 0 8px
+  border-radius 6px
+  font-size 11px
+  font-weight 700
+
 .cn-connection-open-btn.ant-btn
   min-width 42px
   height 22px
@@ -838,20 +853,70 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
   color $cn-primary
 
 .cn-transfer-drawer
+  display block
+  padding 0
+  overflow hidden
+  background $cn-panel
+
+.cn-transfer-drawer-toggle
+  width 100%
+  border 0
+  background transparent
   display grid
-  grid-template-columns minmax(0, 170px) minmax(180px, 1fr)
+  grid-template-columns minmax(0, 220px) minmax(180px, 1fr)
+  align-items center
+  gap 12px
+  cursor pointer
+  text-align left
+  padding 8px 10px
+  color $cn-text
+
+  &:hover
+    background $cn-panel-soft
+
+  &:focus-visible
+    outline 2px solid $cn-primary
+    outline-offset -2px
+
+.cn-transfer-drawer-title
+  display flex
+  align-items center
+  gap 8px
+  min-width 0
+
+  > .anticon
+    color $cn-primary
+
+  > span
+    display flex
+    flex-direction column
+    min-width 0
+
+  strong
+    color $cn-text
+    font-size 12px
+
+  small
+    color $cn-muted
+    font-size 11px
+    font-weight 400
+
+.cn-transfer-drawer-progress
+  display grid
+  grid-template-columns minmax(160px, 1fr) 16px
   align-items center
   gap 10px
-  padding 5px 8px
-  min-height 34px
-
-.cn-transfer-drawer strong
-  display block
-  font-size 12px
-
-.cn-transfer-drawer span
   color $cn-muted
-  font-size 11px
+
+.cn-workbench-transfer-content
+  max-height 320px
+  overflow auto
+  padding 4px 8px 8px
+  border-top 1px solid $cn-border-soft
+
+  .cn-transfer-center
+    width 100%
+    box-sizing border-box
 
 .cn-history-panel
   display flex
@@ -955,7 +1020,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
     grid-template-columns 1fr
   .cn-file-panel
     grid-column auto
-  .cn-transfer-drawer
+  .cn-transfer-drawer-toggle
     grid-template-columns 1fr
 
 // 2026-07-03 coder(lq): Final specificity layer for the home workbench because the global terminal theme uses #container selectors.
@@ -990,8 +1055,7 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
       color $cn-primary-base !important
 
   .cn-toolbar-actions .ant-btn-primary,
-  .cn-quick-connect-bar .ant-btn:last-child,
-  .cn-saved-connections .ant-btn-primary
+  .cn-quick-connect-bar .ant-btn:last-child
     border-color $cn-primary-base !important
     background $cn-primary-base !important
     color $cn-on-primary !important
@@ -1000,6 +1064,19 @@ $cn-on-primary = var(--workbench-on-primary, #ffffff)
       border-color $cn-primary-hover !important
       background $cn-primary-hover !important
       color $cn-on-primary !important
+
+  // 2026-09-23 coder(lq): Repeated server-card actions use a tonal treatment so solid blue remains reserved for primary page actions.
+  .cn-saved-connections .cn-connection-open-btn.ant-btn-primary
+    border-color $cn-primary-border !important
+    background $cn-primary-soft !important
+    color $cn-primary !important
+    box-shadow none !important
+
+    &:hover,
+    &:focus
+      border-color $cn-primary-base !important
+      background $cn-primary-active-bg !important
+      color $cn-primary-hover !important
 
   .cn-shell-tag.ant-tag
     border-color $cn-primary-border !important

@@ -16,7 +16,7 @@
     "postpublish": "node build/bin/postpublish",
     "prepare-file": "node build/bin/prepare",
     "pb": "node build/bin/prepare-electron-build.js",
-    "prepare-test": "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i -E playwright@1.28.1 --no-save && npm i -E @playwright/test@1.28.1 --no-save",
+    "prepare-test": "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm i -E playwright@1.63.0 @playwright/test@1.63.0 --no-save",
     "postinstall": "node build/bin/post-install",
     "lint": "./node_modules/.bin/standard --verbose",
     "fix": "./node_modules/.bin/standard --fix",
@@ -56,6 +56,12 @@
   "preferGlobal": true,
   "devDependencies": {
     "@ant-design/icons": "6.2.5",
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/language": "6.12.4",
+    "@codemirror/language-data": "6.5.2",
+    "@codemirror/search": "6.7.2",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.13",
     "@electerm/electerm-resource": "2.1.6",
     "@fontsource/maple-mono": "^5.2.5",
     "@novnc/novnc": "1.7.0",
@@ -73,6 +79,7 @@
     "@xterm/xterm": "5.5.0",
     "antd": "6.4.5",
     "classnames": "2.5.1",
+    "codemirror": "6.0.2",
     "cross-env": "7.0.3",
     "dotenv": "16.4.5",
     "electerm-icons": "1.0.1",
@@ -144,7 +151,8 @@
     "ignore": [
       "work",
       "temp",
-      "dist"
+      "dist",
+      "ai-chat-*.js"
     ],
     "globals": [
       "log",

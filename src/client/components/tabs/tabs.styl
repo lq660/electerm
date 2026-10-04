@@ -9,14 +9,18 @@
     width 0
     display none
 .not-system-ui.is-mac .layout-item.v1 .tabs-inner
-  margin-left 42px
+  margin-left 76px
+  max-width calc(100% - 76px)
 .not-system-ui.is-mac.not-webapp .layout-item.v1
   .tabs-inner
-    // 2026-07-04 coder(lq): Keep only the native traffic-light drag clearance; the old wide gap looked like an unnamed, unclickable first tab.
-    margin-left 28px
+    // 2026-09-23 coder(lq): Keep the first tab clear of macOS traffic-light controls without creating a fake tab-sized gap.
+    margin-left 76px
+    max-width calc(100% - 76px)
 .not-system-ui.is-mac.not-webapp.pinned .layout-item.v1
   .tabs-inner
-    margin-left 0
+    // 2026-09-23 coder(lq): Pinning the app sidebar must not remove the native titlebar safety area.
+    margin-left 76px
+    max-width calc(100% - 76px)
 .not-system-ui.not-mac.not-webapp
   .tabs-extra
     right 96px
@@ -25,16 +29,41 @@
   z-index 2
   padding 0
   margin-top 0
-  display inline-block
+  display flex
+  align-items stretch
   height 36px
+  overflow hidden
+
+  // 2026-08-31 coder(lq): The workspace is fixed while only session tabs consume horizontal scroll space.
+  .tabs-home-fixed
+    flex 0 0 auto
+    position relative
+    z-index 4
+
+  .tabs-scroll
+    flex 1 1 auto
+    min-width 0
+    height 36px
+    position relative
+    overflow-x scroll
+    overflow-y hidden
+
+  .tab,
+  button
+    -webkit-app-region no-drag
+
+.tabs-scroll
   overflow-x scroll
   overflow-y hidden
 
 .tabs-wrapper
   z-index 3
+  white-space nowrap
 .tab
   display inline-block
   vertical-align middle
+  border 0
+  font inherit
   cursor pointer
   position relative
   padding 0 14px
@@ -123,6 +152,9 @@
   color var(--text)
   height 16px
   width 16px
+  padding 0
+  border 0
+  font-family inherit
   text-align center
   line-height 16px
   font-size 10px
@@ -146,6 +178,7 @@
   right 0
   line-height 40px
   z-index 20
+  -webkit-app-region no-drag
 
   .tabs-dd-icon
     font-size 12px
@@ -165,6 +198,9 @@
 .window-control-box
   display inline-block
   padding 5px 10px
+  border 0
+  background transparent
+  font: inherit
   color var(--text)
   &:hover
     color var(--primary)
@@ -251,6 +287,11 @@
   align-items center
   gap 8px
   color var(--text)
+  width 100%
+  border 0
+  text-align left
+  font inherit
+  background transparent
   &:hover
     background var(--main-dark)
   &.active
@@ -305,8 +346,8 @@
 // 2026-07-02 coder(lq): Dropdown pages opened from the tab bar use the light workbench menu style; session tabs themselves keep contrast for terminal focus.
 .layout-workspace-dropdown
   background #fff !important
-  color #1f2937 !important
-  border 1px solid #d8e0ea !important
+  color var(--workbench-text, #1f2a37) !important
+  border 1px solid var(--workbench-border-strong, #cbd5e1) !important
   border-radius 8px !important
   box-shadow 0 16px 40px rgba(15, 23, 42, .14) !important
 
@@ -316,8 +357,8 @@
   border-radius 6px !important
   &:hover,
   &.active
-    background #eef5ff !important
-    color #1677ff !important
+    background var(--workbench-primary-soft, #eef3f8) !important
+    color var(--workbench-primary, #426f9d) !important
 
 .workspace-delete-icon
   color #667085 !important
@@ -328,14 +369,15 @@
 #container
   .tabs
     height 31px !important
-    background #eef0f3 !important
-    border-bottom 1px solid #c6cbd3 !important
+    background var(--workbench-panel-chrome, #f1f3f6) !important
+    border-bottom 1px solid var(--workbench-border-strong, #cbd5e1) !important
     box-shadow none !important
 
   .tabs-inner,
+  .tabs-scroll,
   .tabs-wrapper
     height 31px !important
-    background #eef0f3 !important
+    background var(--workbench-panel-chrome, #f1f3f6) !important
 
   .tab
     // 2026-07-29 coder(lq): Use a compact FinalShell-like connection tab so ops users can scan many servers quickly.
@@ -349,36 +391,36 @@
     max-width 170px !important
     padding 0 24px 0 9px !important
     margin 3px 0 0 0 !important
-    border 1px solid #cbd0d8 !important
+    border 1px solid var(--workbench-border-strong, #cbd5e1) !important
     border-left 0 !important
     border-bottom 0 !important
     border-radius 0 !important
-    background #f7f8fa !important
-    color #3f4a5a !important
+    background var(--workbench-panel-chrome-strong, #f6f7f9) !important
+    color var(--workbench-control-text, #344054) !important
     font-size 12px !important
     font-weight 600 !important
 
     &:hover
       background #fff !important
-      color #1f6feb !important
+      color var(--workbench-primary, #426f9d) !important
 
     &.active
       background #fff !important
-      border-color #aeb6c2 !important
-      color #1f6feb !important
+      border-color var(--workbench-primary-active-border, #b8cadb) !important
+      color var(--workbench-primary-strong, #365f8a) !important
       font-weight 700 !important
-      box-shadow inset 0 2px 0 #1f6feb !important
+      box-shadow inset 0 2px 0 var(--workbench-primary, #426f9d) !important
 
     &.active-all
       background #fff !important
       color #111827 !important
-      box-shadow inset 0 2px 0 #1f6feb !important
+      box-shadow inset 0 2px 0 var(--workbench-primary, #426f9d) !important
 
     &.home-tab
       min-width 78px !important
       max-width 90px !important
       padding 0 10px !important
-      border-left 1px solid #cbd0d8 !important
+      border-left 1px solid var(--workbench-border-strong, #cbd5e1) !important
       color #344054 !important
 
       &:before
@@ -389,14 +431,14 @@
         width 14px
         height 14px
         margin 0
-        color #1677ff
+        color var(--workbench-primary, #426f9d)
         font-size 13px
         line-height 1
 
       &.active
         background #fff !important
-        border-color #aeb6c2 !important
-        color #1769e0 !important
+        border-color var(--workbench-primary-active-border, #b8cadb) !important
+        color var(--workbench-primary-strong, #365f8a) !important
 
     > .tab-status
       display none !important
@@ -469,11 +511,12 @@
   .tabs-add-btn,
   .tabs-extra,
   .tab-scroll-icon,
-  .tabs-dd-icon
+  .tabs-dd-icon,
+  .tabs-session-list
     color #667085 !important
 
     &:hover
-      color #1677ff !important
+      color var(--workbench-primary, #426f9d) !important
 
   .tabs-add-btn
     display inline-flex !important
@@ -495,24 +538,33 @@
     line-height 1 !important
 
   .tab-scroll-icon,
-  .tabs-dd-icon
+  .tabs-dd-icon,
+  .tabs-session-list
     display inline-flex !important
     align-items center !important
     justify-content center !important
     line-height 1 !important
 
+  .tabs-session-list
+    width 28px !important
+    height 28px !important
+    padding 0 !important
+    border 0 !important
+    border-radius 4px !important
+    background transparent !important
+
   .window-controls
     background #fff !important
-    border-left 1px solid #d8e0ea !important
-    border-bottom 1px solid #d8e0ea !important
+    border-left 1px solid var(--workbench-border-strong, #cbd5e1) !important
+    border-bottom 1px solid var(--workbench-border-strong, #cbd5e1) !important
     box-shadow none !important
 
   .window-control-box
     color #667085 !important
 
     &:hover
-      background #f5f8ff !important
-      color #1677ff !important
+      background var(--workbench-primary-tint, #f5f8fb) !important
+      color var(--workbench-primary, #426f9d) !important
 
   .window-control-close:hover
     background #f04438 !important
@@ -520,10 +572,10 @@
 
   .window-control-minimize:hover,
   .window-control-maximize:hover
-    background #f5f8ff !important
+    background var(--workbench-primary-tint, #f5f8fb) !important
 
   .icon-maximize
     border-color #667085 !important
 
   .window-control-box:hover .icon-maximize
-    border-color #1677ff !important
+    border-color var(--workbench-primary, #426f9d) !important

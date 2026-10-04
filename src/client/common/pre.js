@@ -21,6 +21,14 @@ window.pre = {
     return runSync('writeClipboard', str)
   },
 
+  readSftpClipboard: () => {
+    return runSync('readSftpClipboard')
+  },
+
+  writeSftpClipboard: payload => {
+    return runSync('writeSftpClipboard', payload)
+  },
+
   resolve: (...args) => runSync('resolve', ...args),
   join: (...args) => runSync('join', ...args),
   basename: (...args) => runSync('basename', ...args),

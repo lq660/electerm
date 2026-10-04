@@ -16,8 +16,21 @@ const SuggestionItem = ({ item, onSelect, onDelete }) => {
     ? '••••••••'
     : item.command
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleClick()
+    }
+  }
+
   return (
-    <div className='suggestion-item' onClick={handleClick}>
+    <div
+      className='suggestion-item'
+      role='button'
+      tabIndex={0}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+    >
       <span className='suggestion-command'>
         {displayText}
       </span>
@@ -30,10 +43,15 @@ const SuggestionItem = ({ item, onSelect, onDelete }) => {
         {item.type}
       </span>
       {item.type === 'H' && (
-        <CloseCircleOutlined
+        <button
+          type='button'
           className='suggestion-delete'
+          aria-label='删除建议命令'
+          title='删除建议命令'
           onClick={handleDelete}
-        />
+        >
+          <CloseCircleOutlined />
+        </button>
       )}
     </div>
   )

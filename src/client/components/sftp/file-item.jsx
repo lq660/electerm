@@ -39,6 +39,14 @@ import generate from '../../common/uid'
 import sanitizeFilename from '../../common/sanitize-filename'
 import { refsStatic, refs, filesRef } from '../common/ref'
 import iconsMap from '../sys-menu/icons-map'
+import Modal from '../common/modal'
+import { notification } from '../common/notification'
+import { partitionClipboardTransfers } from '../file-transfer/transfer-routing'
+import { getArchiveExtractName, isArchiveFile } from './archive-utils'
+import { resolveDropDestination } from './drop-target'
+import { resolveSftpClipboardTransfer } from '../../common/sftp-clipboard'
+import { isClearableLogFile } from './log-file-utils'
+import { getCachedFolderSize, loadFolderSize } from './folder-size'
 
 const e = window.translate
 
@@ -46,14 +54,49 @@ const fileItemCls = 'sftp-item'
 const onDragCls = 'sftp-ondrag'
 const onDragOverCls = 'sftp-dragover'
 const onMultiDragCls = 'sftp-dragover-multi'
+// 2026-08-31 coder(lq): Normalize drag paths so dropping onto the source cannot enqueue a self-move.
+const normalizeDropPath = path => {
+  let value = String(path || '').replace(/\\/g, '/')
+  const isWindowsRoot = /^[a-zA-Z]:\/$/.test(value)
+  if (value.length > 1 && value !== '/' && !isWindowsRoot) {
+    value = value.replace(/\/+$/, '')
+  }
+  return isWin ? value.toLowerCase() : value
+}
+
+const isSameOrChildPath = (parent, candidate) => {
+  const normalizedParent = normalizeDropPath(parent)
+  const normalizedCandidate = normalizeDropPath(candidate)
+  if (!normalizedParent || !normalizedCandidate) {
+    return false
+  }
+  if (normalizedParent === '/' || /^[a-zA-Z]:\/$/.test(normalizedParent)) {
+    return normalizedCandidate.startsWith(normalizedParent)
+  }
+  return normalizedCandidate === normalizedParent ||
+    normalizedCandidate.startsWith(normalizedParent + '/')
+}
+
+// 2026-09-02 coder(lq): Keep all no-op checks in one place so internal and OS file drops behave consistently.
+const isNoOpDrop = (file, destination) => {
+  const source = resolve(file.path, file.name)
+  const sourceParent = normalizeDropPath(file.path)
+  const target = normalizeDropPath(destination)
+  return target === sourceParent ||
+    (file.isDirectory && isSameOrChildPath(source, destination))
+}
 
 export default class FileSection extends React.Component {
   constructor (props) {
     super(props)
+    const cachedFolderSize = getCachedFolderSize(props)
     this.state = {
       file: props.file,
       overwriteStrategy: '',
-      dropdownOpen: false
+      dropdownOpen: false,
+      folderSizeStatus: props.file.folderSizeStatus || (cachedFolderSize ? 'done' : 'idle'),
+      folderSizeValue: props.file.folderSizeValue || cachedFolderSize?.value || '',
+      folderSizeCount: props.file.folderSizeCount || cachedFolderSize?.count || 0
     }
     // Create ref
     this.domRef = React.createRef()
@@ -72,9 +115,25 @@ export default class FileSection extends React.Component {
     ) {
       this.applyStyle()
     }
+    const nextFolderSizeStatus = this.props.file.folderSizeStatus || 'idle'
+    const nextFolderSizeValue = this.props.file.folderSizeValue || ''
+    const nextFolderSizeCount = this.props.file.folderSizeCount || 0
+    // 2026-10-01 coder(lq): Compare against rendered state because directory scans intentionally update the shared listing object before publishing a new row; comparing old/new props misses both normal results and late-resolved directory symlinks.
+    if (
+      this.state.folderSizeStatus !== nextFolderSizeStatus ||
+      this.state.folderSizeValue !== nextFolderSizeValue ||
+      this.state.folderSizeCount !== nextFolderSizeCount
+    ) {
+      this.setState({
+        folderSizeStatus: nextFolderSizeStatus,
+        folderSizeValue: nextFolderSizeValue,
+        folderSizeCount: nextFolderSizeCount
+      })
+    }
   }
 
   componentWillUnmount () {
+    this.unmounted = true
     filesRef.remove(this.id)
     clearTimeout(this.timer)
     this.timer = null
@@ -85,6 +144,82 @@ export default class FileSection extends React.Component {
 
   clearRef = () => {
     refs.remove(this.id)
+  }
+
+  handleCalculateFolderSize = async event => {
+    event?.preventDefault()
+    event?.stopPropagation()
+    return this.calculateFolderSize(true)
+  }
+
+  // 2026-10-01 coder(lq): Automatic scans are scheduled by the directory view; this method remains the explicit refresh path for one folder.
+  calculateFolderSize = async force => {
+    if (
+      this.state.folderSizeStatus === 'loading' ||
+      (!force && this.state.folderSizeStatus !== 'idle')
+    ) {
+      return
+    }
+    this.setState({ folderSizeStatus: 'loading' })
+    try {
+      const formatted = await loadFolderSize({
+        ...this.props,
+        file: this.state.file
+      }, force)
+      if (!this.unmounted) {
+        this.setState({
+          folderSizeStatus: 'done',
+          folderSizeValue: formatted.value,
+          folderSizeCount: formatted.count
+        })
+      }
+    } catch (error) {
+      if (!this.unmounted) {
+        this.setState({ folderSizeStatus: 'error' })
+      }
+      notification.error({
+        message: '文件夹大小计算失败',
+        description: error?.message || String(error)
+      })
+    }
+  }
+
+  handleFolderSizeDoubleClick = event => {
+    event.stopPropagation()
+  }
+
+  renderFolderSize = () => {
+    const {
+      folderSizeStatus,
+      folderSizeValue,
+      folderSizeCount
+    } = this.state
+    const loading = folderSizeStatus === 'loading'
+    const text = loading
+      ? `${e('calculate')}…`
+      : folderSizeStatus === 'error'
+        ? '重试'
+        : folderSizeStatus === 'done'
+          ? folderSizeValue
+          : '—'
+    const title = folderSizeStatus === 'done'
+      ? `${folderSizeValue} · ${folderSizeCount} 个文件 · 点击重新计算`
+      : folderSizeStatus === 'idle'
+        ? '打开目录后自动计算'
+        : '点击计算文件夹大小'
+    return (
+      <button
+        type='button'
+        className='sftp-folder-size-action'
+        disabled={loading}
+        title={title}
+        draggable={false}
+        onClick={this.handleCalculateFolderSize}
+        onDoubleClick={this.handleFolderSizeDoubleClick}
+      >
+        {text}
+      </button>
+    )
   }
 
   get editor () {
@@ -133,6 +268,21 @@ export default class FileSection extends React.Component {
       return prefix + resolve(f.path, f.name)
     }).join('\n')
     copyToClipboard(textToCopy)
+    // 2026-09-02 coder(lq): Keep source terminal metadata in the app clipboard so paste can target another SFTP terminal safely.
+    const sftpClipboard = {
+      text: textToCopy,
+      files: copy(files).map(f => ({
+        ...f,
+        host: f.host || this.props.tab?.host,
+        tabType: f.tabType || this.props.tab?.type,
+        tabId: f.tabId || this.props.tab?.id,
+        title: f.title || createTransferProps(this.props).title
+      })),
+      operation: isCut ? fileOperationsMap.mv : fileOperationsMap.cp
+    }
+    window.store.sftpClipboard = sftpClipboard
+    // 2026-09-04 coder(lq): Mirror the file-transfer payload into a shared clipboard format so another window can keep the source terminal metadata.
+    window.pre?.writeSftpClipboard?.(sftpClipboard)
     window.store.fileOperation = isCut ? fileOperationsMap.mv : fileOperationsMap.cp
   }
 
@@ -165,30 +315,82 @@ export default class FileSection extends React.Component {
     const { type } = this.state.file
     const path = this.props[type + 'Path']
     const clickBoardText = readClipboard()
-    const fileNames = clickBoardText.split('\n')
+    const appClipboard = window.store.sftpClipboard
+    const systemClipboard = window.pre?.readSftpClipboard?.()
+    const sftpClipboard = resolveSftpClipboardTransfer({
+      clipboardText: clickBoardText,
+      appClipboard,
+      systemClipboard
+    })
+    const fileNames = sftpClipboard
+      ? sftpClipboard.files
+      : clickBoardText.split('\n')
     const res = []
-    const operation = this.props.fileOperation || fileOperationsMap.cp
+    const operation = sftpClipboard
+      ? sftpClipboard.operation
+      : this.props.fileOperation || fileOperationsMap.cp
     for (let i = 0, len = fileNames.length; i < len; i++) {
       const item = fileNames[i]
-      const isRemote = item.startsWith('remote:')
-      const fromPath = isRemote
-        ? item.replace(/^remote:/, '')
-        : item
+      const isRemote = typeof item === 'object'
+        ? item.type === typeMap.remote
+        : item.startsWith('remote:')
+      const fromPath = typeof item === 'object'
+        ? resolve(item.path, item.name)
+        : (isRemote ? item.replace(/^remote:/, '') : item)
       const { name } = getFolderFromFilePath(fromPath, isRemote)
       const toPath = resolve(path, sanitizeFilename(name))
+      const sourceTabId = (typeof item === 'object' ? item.tabId : undefined) || this.props.tab?.id
+      const targetTabId = this.props.tab?.id
       res.push({
         typeFrom: isRemote ? typeMap.remote : typeMap.local,
         typeTo: type,
         fromPath,
         toPath,
         id: generate(),
-        host: this.props.tab?.host,
-        tabType: this.props.tab?.type,
         ...createTransferProps(this.props),
+        // Keep tabId compatible with older transfer consumers: it points to the remote endpoint.
+        tabId: sourceTabId || targetTabId || this.props.tab?.id,
+        sourceTabId,
+        targetTabId,
+        host: isRemote && typeof item === 'object' ? item.host : this.props.tab?.host,
+        tabType: isRemote && typeof item === 'object' ? item.tabType : this.props.tab?.type,
+        title: isRemote && typeof item === 'object' ? item.title : createTransferProps(this.props).title,
+        fromFile: typeof item === 'object' ? item : undefined,
         operation
       })
     }
-    this.props.addTransferList(res)
+    // 2026-09-02 coder(lq): Route clipboard transfers between different SFTP terminals through the same local-staging flow as drag-and-drop.
+    // A normal remote transfer only has one SFTP reference and would otherwise execute on the target connection.
+    const targetTab = this.props.tab
+    const {
+      remote: crossTerminalRemote,
+      direct: directTransfers
+    } = partitionClipboardTransfers(res, targetTab)
+    const handledIds = new Set()
+    if (crossTerminalRemote.length && targetTab) {
+      const remote2RemoteHandlers = refsStatic.get('remote2remote-handlers')
+      for (const item of crossTerminalRemote) {
+        const handled = remote2RemoteHandlers?.onRemote2RemoteDrop({
+          fromFiles: [item.fromFile],
+          toFile: {
+            type,
+            path,
+            name: '',
+            isDirectory: true
+          },
+          targetTab
+        })
+        if (handled) {
+          handledIds.add(item.id)
+        }
+      }
+    }
+    const remainingTransfers = directTransfers.concat(
+      crossTerminalRemote.filter(item => !handledIds.has(item.id))
+    )
+    if (remainingTransfers.length) {
+      this.props.addTransferList(remainingTransfers)
+    }
   }
 
   onDragStart = e => {
@@ -230,35 +432,61 @@ export default class FileSection extends React.Component {
     })
   }
 
-  onDrop = async e => {
+  onDrop = async (e, dropTarget) => {
     e.preventDefault()
-    const fromFileManager = !!e?.dataTransfer?.files?.length
-    let { target } = e
-    if (!target) {
-      return
-    }
+    // 2026-09-02 coder(lq): Prefer the app-owned payload because Electron may expose files for an internal drag too, which would turn a local move into a self-copy.
+    const fromFileData = e?.dataTransfer?.getData('fromFile')
+    const fromFileManager = !fromFileData && !!e?.dataTransfer?.files?.length
     const fromFiles = this.getDropFileList(e.dataTransfer)
-    if (!fromFiles) {
+    if (!fromFiles || !fromFiles.length) {
       return
     }
 
-    while (!target.className.includes(fileItemCls)) {
-      target = target.parentNode
-    }
-    const id = target.getAttribute('data-id')
-    const type = target.getAttribute('data-type')
-    if (!type) {
-      return
-    }
-    let toFile = this.props[type + 'FileTree'].get(id) || {}
-    if (!toFile.id || !toFile.isDirectory) {
-      toFile = {
-        type,
-        ...getFolderFromFilePath(this.props[type + 'Path'], type === typeMap.remote),
-        isDirectory: false
+    let toFile = dropTarget
+    if (!toFile) {
+      let { target } = e
+      if (!target) {
+        return
+      }
+      target = target.closest?.('.' + fileItemCls)
+      if (!target) {
+        return
+      }
+      const id = target.getAttribute('data-id')
+      const type = target.getAttribute('data-type')
+      if (!type) {
+        return
+      }
+      toFile = this.props[type + 'FileTree'].get(id) || {}
+      if (!toFile.id || !toFile.isDirectory) {
+        toFile = {
+          type,
+          ...getFolderFromFilePath(this.props[type + 'Path'], type === typeMap.remote),
+          isDirectory: false
+        }
       }
     }
     this.onDropFile(fromFiles, toFile, fromFileManager)
+  }
+
+  confirmLocalMove = (files, destination) => {
+    const names = files.length === 1
+      ? files[0].name
+      : `${files.length} ${e('files')}`
+    return new Promise(resolve => {
+      Modal.confirm({
+        title: e('confirmMove'),
+        content: (
+          <div className='wordbreak'>
+            {names} → {destination}
+          </div>
+        ),
+        okText: e('ok'),
+        cancelText: e('cancel'),
+        onOk: () => resolve(true),
+        onCancel: () => resolve(false)
+      })
+    })
   }
 
   onDropFile = async (fromFiles, toFile, fromFileManager) => {
@@ -271,12 +499,14 @@ export default class FileSection extends React.Component {
 
     let operation = ''
     const targetHost = this.props.tab?.host
-    const isCrossHostRemoteDrop = !fromFileManager &&
+    const isCrossTerminalRemoteDrop = !fromFileManager &&
       fromType === typeMap.remote &&
       toType === typeMap.remote &&
-      fromFiles.every(file => file?.host && file.host !== targetHost)
+      fromFiles.every(file => file?.tabId && (
+        file.host !== targetHost || file.tabId !== this.props.tab?.id
+      ))
 
-    if (isCrossHostRemoteDrop) {
+    if (isCrossTerminalRemoteDrop) {
       const handled = refsStatic.get('remote2remote-handlers')?.onRemote2RemoteDrop({
         fromFiles,
         toFile,
@@ -311,12 +541,37 @@ export default class FileSection extends React.Component {
       operation = fileOperationsMap.mv
     }
 
-    // other side, do transfer
+    // 2026-09-02 coder(lq): Resolve OS file metadata before no-op filtering so dropped folders can be rejected when the destination is themselves or a child.
     let files = fromFiles
     if (fromFileManager) {
       files = await this.filterFiles(fromFiles)
     }
-    this.transferDrop(files, toFile, operation)
+    if (!files.length) return
+
+    const destination = resolveDropDestination(toFile)
+    const isSameSideCopy = fromFileManager && fromType === toType
+    if (operation === fileOperationsMap.mv || isSameSideCopy) {
+      // 2026-09-02 coder(lq): Treat an item dropped back onto its own row or source directory as a no-op on every transport, not only local files.
+      // Without this guard a remote folder can be sent as `/root/logs -> /root/logs/logs`, producing a misleading move error even though the user made no change.
+      const safeFiles = files.filter(file => !isNoOpDrop(file, destination))
+      if (!safeFiles.length) return
+      files = safeFiles
+      if (operation === fileOperationsMap.mv && fromType === typeMap.local) {
+        const confirmed = await this.confirmLocalMove(safeFiles, destination)
+        if (!confirmed) {
+          return
+        }
+      }
+    }
+
+    // other side, do transfer
+    this.transferDrop(
+      files,
+      toFile,
+      operation,
+      // 2026-09-02 coder(lq): Keep the validated drag set for every move; re-expanding selection could reintroduce an ignored self-move.
+      operation !== fileOperationsMap.mv
+    )
   }
 
   filterFiles = async (files) => {
@@ -333,17 +588,163 @@ export default class FileSection extends React.Component {
     return res
   }
 
-  transferDrop = (fromFiles, toFile, operation) => {
-    const files = this.isSelected(fromFiles[0]?.id)
+  transferDrop = (fromFiles, toFile, operation, respectSelection = true) => {
+    const files = respectSelection && this.isSelected(fromFiles[0]?.id)
       ? this.props.getSelectedFiles()
       : fromFiles
     return this.doTransferSelected(
       null,
       files,
-      resolve(toFile.path, sanitizeFilename(toFile.name)),
+      resolveDropDestination(toFile),
       toFile.type,
       operation
     )
+  }
+
+  // 2026-09-03 coder(lq): Extract archives from the current SFTP pane without opening a terminal or exposing command details.
+  extractArchive = async () => {
+    const { file } = this.state
+    const { type, path, name } = file
+    const archivePath = resolve(path, name)
+    const extractPath = resolve(path, getArchiveExtractName(name))
+    try {
+      if (type === typeMap.local) {
+        await window.fs.extractArchive(archivePath, extractPath)
+        await this.props.localList()
+      } else {
+        const canUseSshExtract = this.props.tab?.enableSsh !== false && this.props.sftp?.extractArchive
+        if (canUseSshExtract) {
+          try {
+            await this.props.sftp.extractArchive(archivePath, extractPath)
+            await wait(300)
+            await this.props.remoteList()
+            notification.success({
+              message: e('extractArchiveSuccess')
+            })
+            return
+          } catch (error) {
+            console.warn('remote archive extract fallback', error)
+          }
+        }
+        if (!this.props.sftp?.download || !this.props.sftp?.upload) {
+          throw new Error('当前连接不支持远程解压')
+        }
+        await this.extractArchiveBySftp(archivePath, extractPath, name)
+        await wait(300)
+        await this.props.remoteList()
+      }
+      notification.success({
+        message: e('extractArchiveSuccess')
+      })
+    } catch (error) {
+      notification.error({
+        message: e('extractArchiveFailed'),
+        description: error?.message || String(error)
+      })
+    }
+  }
+
+  // 2026-09-22 coder(lq): Truncate active logs in place so writers keep the same inode, owner and permissions.
+  clearLogFile = async () => {
+    const { file } = this.state
+    if (!isClearableLogFile(file)) {
+      return
+    }
+    const { type, path, name, size } = file
+    const filePath = resolve(path, name)
+    const confirmed = await new Promise(resolve => {
+      Modal.confirm({
+        title: e('clearLogFileConfirm'),
+        content: (
+          <div className='wordbreak'>
+            <div>{filePath}</div>
+            <div>{filesize(Number(size) || 0)}</div>
+            <div className='mg1t'>{e('clearLogFileWarning')}</div>
+          </div>
+        ),
+        okText: e('clearLogFile'),
+        cancelText: e('cancel'),
+        onOk: () => resolve(true),
+        onCancel: () => resolve(false)
+      })
+    })
+    if (!confirmed) {
+      return
+    }
+    try {
+      const result = type === typeMap.remote
+        ? await this.props.sftp.writeFile(filePath, '')
+        : await window.fs.writeFile(filePath, '')
+      if (!result) {
+        throw new Error(e('clearLogFileFailed'))
+      }
+      await this.props[`${type}List`]()
+      notification.success({
+        message: e('clearLogFileSuccess'),
+        description: `${filePath} · ${e('releasedSpace')} ${filesize(Number(size) || 0)}`
+      })
+    } catch (error) {
+      notification.error({
+        message: e('clearLogFileFailed'),
+        description: error?.message || String(error)
+      })
+    }
+  }
+
+  extractArchiveBySftp = async (archivePath, extractPath, name) => {
+    const tempId = generate()
+    const tempRoot = resolve(window.pre.tempDir, `electerm-extract-${tempId}`)
+    const tempArchivePath = resolve(tempRoot, name)
+    const tempExtractBase = resolve(tempRoot, getArchiveExtractName(name))
+    const sftp = this.props.sftp
+    const getAvailableRemotePath = async (basePath) => {
+      let candidate = basePath
+      let suffix = 1
+      while (true) {
+        try {
+          await sftp.stat(candidate)
+          candidate = `${basePath}${suffix}`
+          suffix += 1
+        } catch {
+          return candidate
+        }
+      }
+    }
+    const runTransfer = (type, fromPath, toPath, isDirectory) => {
+      return new Promise((resolve, reject) => {
+        let transport = null
+        const cleanup = () => {
+          if (transport?.destroy) {
+            transport.destroy()
+          }
+          transport = null
+        }
+        const onEnd = () => resolve()
+        const onError = (error) => {
+          cleanup()
+          reject(error)
+        }
+        sftp[type]({
+          remotePath: type === 'download' ? fromPath : toPath,
+          localPath: type === 'download' ? toPath : fromPath,
+          isDirectory,
+          onData: () => {},
+          onError,
+          onEnd
+        }).then(t => {
+          transport = t
+        }).catch(onError)
+      })
+    }
+    const remoteExtractPath = await getAvailableRemotePath(extractPath)
+    await window.fs.mkdir(tempRoot, { recursive: true }).catch(() => {})
+    try {
+      await runTransfer('download', archivePath, tempArchivePath, false)
+      const localExtractPath = await window.fs.extractArchive(tempArchivePath, tempExtractBase)
+      await runTransfer('upload', localExtractPath, remoteExtractPath, true)
+    } finally {
+      await window.fs.rmrf(tempRoot).catch(() => {})
+    }
   }
 
   isSelected = (fileId = '') => {
@@ -773,9 +1174,10 @@ export default class FileSection extends React.Component {
       toPath = toPathBase
     }
     toPath = resolve(toPath, sanitizeFilename(name))
+    const currentTabId = this.props.tab?.id
+    const sourceTabId = file.tabId || currentTabId
+    const targetTabId = currentTabId
     const obj = {
-      host: this.props.tab?.host,
-      tabType: this.props.tab?.type,
       typeFrom: type,
       typeTo,
       fromPath: resolve(path, name),
@@ -783,6 +1185,12 @@ export default class FileSection extends React.Component {
       fromFile: file,
       id: generate(),
       ...createTransferProps(this.props),
+      // 2026-09-02 coder(lq): Preserve both endpoints so a transfer can cross SFTP terminals without using the target connection as its source.
+      tabId: sourceTabId || targetTabId || currentTabId,
+      sourceTabId,
+      targetTabId,
+      host: type === typeMap.remote ? (file.host || this.props.tab?.host) : this.props.tab?.host,
+      tabType: type === typeMap.remote ? (file.tabType || this.props.tab?.type) : this.props.tab?.type,
       operation
     }
     return [obj]
@@ -934,15 +1342,18 @@ export default class FileSection extends React.Component {
   }
 
   itemToMenuFormat = (r) => {
-    const { func, text, disabled, icon, subText, requireConfirm } = r
+    const { func, text, disabled, icon, subText, requireConfirm, title } = r
     const IconCom = iconsMap[icon]
     return {
       key: func,
-      label: text,
+      label: title
+        ? <span title={title}>{text}</span>
+        : text,
       disabled,
       icon: <IconCom />,
       extra: subText,
-      danger: requireConfirm
+      danger: requireConfirm,
+      title
     }
   }
 
@@ -1010,6 +1421,9 @@ export default class FileSection extends React.Component {
     const canPaste = hasFileInClipboardText()
     const showEdit = !isDirectory && id &&
       size < maxEditFileSize
+    const showExtract = isRealFile && !isDirectory && isArchiveFile(this.state.file.name) &&
+      (isLocal || (isRemote && hasHost && !this.props.isFtp))
+    const showClearLog = !shouldShowSelectedMenu && isClearableLogFile(this.state.file)
     const res = []
     if (isDirectory && isRealFile) {
       res.push({
@@ -1043,7 +1457,10 @@ export default class FileSection extends React.Component {
       res.push({
         func: 'doTransfer',
         icon: iconType,
-        text: transferText
+        text: transferText,
+        title: isRemote
+          ? '下载到左侧当前路径'
+          : '上传到右侧当前路径'
       })
       // if (isDirectory && !this.props.isFtp) {
       //   res.push({
@@ -1071,7 +1488,8 @@ export default class FileSection extends React.Component {
       res.push({
         func: 'downloadFromBrowser',
         icon: 'DownloadOutlined',
-        text: e('downloadFromBrowser')
+        text: e('downloadFromBrowser'),
+        title: '下载到浏览器默认下载目录'
       })
     }
     if (showEdit) {
@@ -1079,6 +1497,21 @@ export default class FileSection extends React.Component {
         func: 'editFile',
         icon: 'EditOutlined',
         text: e('edit')
+      })
+    }
+    if (showExtract) {
+      res.push({
+        func: 'extractArchive',
+        icon: 'FileZipOutlined',
+        text: e('extractArchive')
+      })
+    }
+    if (showClearLog) {
+      res.push({
+        func: 'clearLogFile',
+        icon: 'ClearOutlined',
+        text: e('clearLogFile'),
+        requireConfirm: true
       })
     }
     if (isRealFile) {
@@ -1201,7 +1634,7 @@ export default class FileSection extends React.Component {
       isParent
     } = file
     if (isDirectory && id === 'size') {
-      value = null
+      value = isParent ? null : this.renderFolderSize()
     } else if (!isDirectory && id === 'size') {
       value = filesize(value)
     } else if (id === 'owner') {
@@ -1225,12 +1658,14 @@ export default class FileSection extends React.Component {
       value = time(value)
     }
     const divProps = {
-      className: `sftp-file-prop noise shi-${id}`,
+      className: classnames(`sftp-file-prop noise shi-${id}`, {
+        'sftp-folder-size-cell': isDirectory && id === 'size' && !isParent
+      }),
       style: {
         width: size + '%',
         flexBasis: `${size}%`
       },
-      title: value
+      title: React.isValidElement(value) ? '' : value
     }
     if (isParent && id !== 'name') {
       value = null
@@ -1274,6 +1709,8 @@ export default class FileSection extends React.Component {
       'data-id': id,
       id: this.id,
       'data-type': type,
+      role: isParent ? undefined : 'option',
+      'aria-selected': isParent ? undefined : selected,
       title: file.name
     }
     return (

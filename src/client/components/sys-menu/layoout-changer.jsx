@@ -49,7 +49,15 @@ export default function LayoutChanger (props) {
       <div
         key={t}
         className='sub-context-menu-item'
+        role='button'
+        tabIndex={0}
         onClick={() => handleChangeLayout({ key: t })}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            handleChangeLayout({ key: t })
+          }
+        }}
       >
         <span>
           <Icon /> {layoutNameMap[v] || v}

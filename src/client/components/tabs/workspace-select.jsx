@@ -29,6 +29,12 @@ export default auto(function WorkspaceSelect (props) {
     window.store.workspaceSaveModalVisible = true
   }
 
+  // 2026-10-04 coder(lq): Render confirmation inside the Settings drawer so
+  // its higher stacking context stays clickable.
+  function getPopupContainer (trigger) {
+    return trigger.closest('.custom-drawer-content') || document.body
+  }
+
   return (
     <div className='workspace-menu-content'>
       <div className='workspace-save-btn pd1b'>
@@ -55,7 +61,15 @@ export default auto(function WorkspaceSelect (props) {
               <div
                 key={ws.id}
                 className='workspace-item'
+                role='button'
+                tabIndex={0}
                 onClick={() => handleLoadWorkspace(ws.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    handleLoadWorkspace(ws.id)
+                  }
+                }}
               >
                 <span className='workspace-name'>{ws.name}</span>
                 <Popconfirm
@@ -64,11 +78,17 @@ export default auto(function WorkspaceSelect (props) {
                   onCancel={(ev) => ev.stopPropagation()}
                   okText={e('ok')}
                   cancelText={e('cancel')}
+                  getPopupContainer={getPopupContainer}
                 >
-                  <DeleteOutlined
+                  <button
+                    type='button'
                     className='workspace-delete-icon'
+                    aria-label={`${e('del')} ${ws.name}`}
+                    title={e('del')}
                     onClick={(ev) => ev.stopPropagation()}
-                  />
+                  >
+                    <DeleteOutlined />
+                  </button>
                 </Popconfirm>
               </div>
             ))}

@@ -6,9 +6,12 @@
 const { resolve } = require('path')
 const fs = require('fs')
 const Datastore = require('@electerm/nedb')
+const asyncMapLimit = require('./async-map-limit')
 
 // Tables whose stored data values should be encrypted at rest
 const ENC_TABLES = new Set(['bookmarks', 'profiles', 'data', 'history', 'terminalCommandHistory', 'aiChatHistory'])
+const LAZY_HISTORY_TABLES = new Set(['terminalCommandHistory', 'aiChatHistory'])
+const HISTORY_DECRYPT_CONCURRENCY = 4
 
 // Within the 'data' table, only this specific record is encrypted
 const DATA_ENC_ID = 'userConfig'
@@ -16,7 +19,7 @@ const DATA_ENC_ID = 'userConfig'
 // Prefix added to stored strings to mark them as encrypted
 const ENC_PREFIX = 'enc:'
 
-function createDb (appPath, defaultUserName, { enc, dec } = {}) {
+function createDb (appPath, defaultUserName, { enc, dec, decAsync = dec } = {}) {
   const db = {}
 
   const appDataPath = process.env.DATA_PATH || resolve(appPath, 'electerm')
@@ -69,9 +72,9 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
    * value was stored without encryption.
    */
   function decryptData (stored) {
-    if (!dec || !stored) return stored
+    if (!decAsync || !stored) return stored
     if (!stored.startsWith(ENC_PREFIX)) return stored
-    return dec(stored.slice(ENC_PREFIX.length))
+    return decAsync(stored.slice(ENC_PREFIX.length))
   }
 
   /**
@@ -89,11 +92,11 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
    * nedb stores the full document object directly, so we JSON-parse the
    * serialised data field that was encrypted during writes.
    */
-  function decryptDoc (dbName, doc) {
-    if (!dec || !doc || !needsEnc(dbName, doc._id)) return doc
+  async function decryptDoc (dbName, doc) {
+    if (!decAsync || !doc || !needsEnc(dbName, doc._id)) return doc
     if (!doc._encdata) return doc
     try {
-      const plain = decryptData(doc._encdata)
+      const plain = await decryptData(doc._encdata)
       const parsed = JSON.parse(plain)
       const { _encdata: _, ...rest } = doc
       return { ...rest, ...parsed }
@@ -104,6 +107,19 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
       }
       return doc
     }
+  }
+
+  async function decryptDocs (dbName, docs) {
+    // 2026-09-11 coder(lq): Keep ordinary startup tables serial, but use bounded parallelism for large lazy history tables.
+    const concurrency = LAZY_HISTORY_TABLES.has(dbName)
+      ? HISTORY_DECRYPT_CONCURRENCY
+      : 1
+    const result = await asyncMapLimit(
+      docs,
+      concurrency,
+      doc => decryptDoc(dbName, doc)
+    )
+    return result.filter(Boolean)
   }
 
   /**
@@ -126,7 +142,7 @@ function createDb (appPath, defaultUserName, { enc, dec } = {}) {
       if (op === 'find') {
         db[dbName][op](...args, (err, results) => {
           if (err) return reject(err)
-          resolve((results || []).map(doc => decryptDoc(dbName, doc)).filter(Boolean))
+          resolve(decryptDocs(dbName, results || []))
         })
       } else if (op === 'findOne') {
         db[dbName][op](...args, (err, result) => {

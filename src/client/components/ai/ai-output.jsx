@@ -1,21 +1,14 @@
 import { useRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { copy } from '../../common/clipboard'
-import Link from '../common/external-link'
-import { Tag } from 'antd'
 import { CopyOutlined, PlayCircleOutlined } from '@ant-design/icons'
-import getBrand from './get-brand'
+import { HighlightedText, createSearchHighlightPlugin } from './search-highlight'
 
 const e = window.translate
 
-export default function AIOutput ({ item }) {
+export default function AIOutput ({ item = {}, content, variant = 'answer', searchQuery = '' }) {
   const outputRef = useRef(null)
-  const {
-    response,
-    baseURLAI,
-    nameAI,
-    modelAI
-  } = item
+  const response = content !== undefined ? content : item.response || item.streamingResponse
 
   useEffect(() => {
     if (outputRef.current) {
@@ -27,8 +20,6 @@ export default function AIOutput ({ item }) {
     return null
   }
 
-  const { brand, brandUrl } = getBrand(baseURLAI)
-
   const renderCode = (props) => {
     const { node, className = '', children, ...rest } = props
     const code = String(children).replace(/\n$/, '')
@@ -36,7 +27,7 @@ export default function AIOutput ({ item }) {
     if (inline) {
       return (
         <code className={className} {...props}>
-          {children}
+          <HighlightedText text={code} query={searchQuery} />
         </code>
       )
     }
@@ -70,51 +61,45 @@ export default function AIOutput ({ item }) {
     return (
       <div className='code-block'>
         <div className='code-block-actions alignright'>
-          <CopyOutlined
+          <button
+            type='button'
             className='code-action-icon pointer iblock'
             onClick={copyToClipboard}
             title={e('copy')}
-          />
-          <PlayCircleOutlined
+            aria-label={e('copy')}
+          >
+            <CopyOutlined />
+          </button>
+          <button
+            type='button'
             className='code-action-icon pointer mg1l iblock'
             onClick={runInTerminal}
-          />
+            title='发送到终端执行'
+            aria-label='发送到终端执行'
+          >
+            <PlayCircleOutlined />
+          </button>
         </div>
         <pre>
           <code className={className} {...rest}>
-            {children}
+            <HighlightedText text={code} query={searchQuery} />
           </code>
         </pre>
       </div>
     )
   }
 
-  function renderBrand () {
-    if (!brand) {
-      return null
-    }
-    const nameLabel = nameAI || modelAI
-    const label = nameLabel ? `${brand}:${nameLabel}` : brand
-    return (
-      <div className='pd1y'>
-        <Link to={brandUrl}>
-          <Tag>{label}</Tag>
-        </Link>
-      </div>
-    )
-  }
-
   const mdProps = {
     children: response,
+    rehypePlugins: searchQuery ? [createSearchHighlightPlugin(searchQuery)] : undefined,
     components: {
       code: renderCode
     }
   }
 
   return (
-    <div className='ai-stream-output' ref={outputRef}>
+    <div className={`ai-stream-output ai-${variant}-output`} ref={outputRef}>
       <div className='pd1'>
-        {renderBrand()}
         <ReactMarkdown {...mdProps} />
       </div>
     </div>

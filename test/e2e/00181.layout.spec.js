@@ -81,12 +81,12 @@ describe('layouts', function () {
     for (const layout of layouts) {
       await testLayout(layout, splitConfig[layout].children)
     }
-    let dd = await client.countElem('.ant-dropdown')
-    expect(dd).equal(0)
-    await client.click('.tabs .layout-dd-icon')
-    await delay(500)
-    dd = await client.countElem('.ant-dropdown')
-    expect(dd).equal(1)
+    // 2026-10-04 coder(lq): Layout controls now live in Settings after the
+    // global side rail and tab-bar dropdown were removed.
+    await client.click('.cn-toolbar-actions button:has-text("设置")')
+    await client.click('.cn-setting-tabs-all .ant-tabs-tab:has-text("工作区")')
+    const layoutOptions = await client.countElem('.cn-workspaces-settings .layout-menu-item')
+    expect(layoutOptions).equal(Object.keys(splitMapDesc).length)
 
     await electronApp.close().catch(console.log)
   })
